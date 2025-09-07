@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hsmy.mapper.UserStatsMapper">
+    
+    <!-- 基础结果映射 -->
+    <resultMap id="BaseResultMap" type="com.hsmy.entity.UserStats">
+        <id column="id" property="id"/>
+        <result column="user_id" property="userId"/>
+        <result column="total_merit" property="totalMerit"/>
+        <result column="merit_coins" property="meritCoins"/>
+        <result column="total_knocks" property="totalKnocks"/>
+        <result column="today_merit" property="todayMerit"/>
+        <result column="today_knocks" property="todayKnocks"/>
+        <result column="weekly_merit" property="weeklyMerit"/>
+        <result column="monthly_merit" property="monthlyMerit"/>
+        <result column="consecutive_days" property="consecutiveDays"/>
+        <result column="total_login_days" property="totalLoginDays"/>
+        <result column="current_level" property="currentLevel"/>
+        <result column="max_combo" property="maxCombo"/>
+        <result column="last_knock_time" property="lastKnockTime"/>
+        <result column="last_login_date" property="lastLoginDate"/>
+        <result column="create_by" property="createBy"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_by" property="updateBy"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="is_deleted" property="isDeleted"/>
+    </resultMap>
+    
+    <!-- 基础字段列表 -->
+    <sql id="Base_Column_List">
+        id, user_id, total_merit, merit_coins, total_knocks, today_merit, today_knocks,
+        weekly_merit, monthly_merit, consecutive_days, total_login_days, current_level,
+        max_combo, last_knock_time, last_login_date, create_by, create_time, 
+        update_by, update_time, is_deleted
+    </sql>
+    
+    <!-- 根据用户ID查询统计信息 -->
+    <select id="selectByUserId" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM t_user_stats
+        WHERE user_id = #{userId}
+        AND is_deleted = 0
+        LIMIT 1
+    </select>
+    
+    <!-- 增加功德值 -->
+    <update id="addMerit">
+        UPDATE t_user_stats
+        SET total_merit = total_merit + #{merit},
+            today_merit = today_merit + #{merit},
+            weekly_merit = weekly_merit + #{merit},
+            monthly_merit = monthly_merit + #{merit},
+            update_time = NOW()
+        WHERE user_id = #{userId}
+        AND is_deleted = 0
+    </update>
+    
+    <!-- 增加功德币 -->
+    <update id="addMeritCoins">
+        UPDATE t_user_stats
+        SET merit_coins = merit_coins + #{coins},
+            update_time = NOW()
+        WHERE user_id = #{userId}
+        AND is_deleted = 0
+    </update>
+    
+    <!-- 扣减功德币 -->
+    <update id="reduceMeritCoins">
+        UPDATE t_user_stats
+        SET merit_coins = merit_coins - #{coins},
+            update_time = NOW()
+        WHERE user_id = #{userId}
+        AND merit_coins >= #{coins}
+        AND is_deleted = 0
+    </update>
+    
+    <!-- 更新敲击统计 -->
+    <update id="updateKnockStats">
+        UPDATE t_user_stats
+        SET total_knocks = total_knocks + #{knockCount},
+            today_knocks = today_knocks + #{knockCount},
+            total_merit = total_merit + #{merit},
+            today_merit = today_merit + #{merit},
+            weekly_merit = weekly_merit + #{merit},
+            monthly_merit = monthly_merit + #{merit},
+            last_knock_time = NOW(),
+            update_time = NOW()
+        WHERE user_id = #{userId}
+        AND is_deleted = 0
+    </update>
+    
+    <!-- 重置每日统计 -->
+    <update id="resetDailyStats">
+        UPDATE t_user_stats
+        SET today_merit = 0,
+            today_knocks = 0,
+            update_time = NOW()
+        WHERE is_deleted = 0
+    </update>
+    
+    <!-- 重置每周统计 -->
+    <update id="resetWeeklyStats">
+        UPDATE t_user_stats
+        SET weekly_merit = 0,
+            update_time = NOW()
+        WHERE is_deleted = 0
+    </update>
+    
+    <!-- 重置每月统计 -->
+    <update id="resetMonthlyStats">
+        UPDATE t_user_stats
+        SET monthly_merit = 0,
+            update_time = NOW()
+        WHERE is_deleted = 0
+    </update>
+    
+</mapper>

@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hsmy.mapper.MeritRecordMapper">
+    
+    <!-- 基础结果映射 -->
+    <resultMap id="BaseResultMap" type="com.hsmy.entity.MeritRecord">
+        <id column="id" property="id"/>
+        <result column="user_id" property="userId"/>
+        <result column="merit_gained" property="meritGained"/>
+        <result column="knock_type" property="knockType"/>
+        <result column="source" property="source"/>
+        <result column="session_id" property="sessionId"/>
+        <result column="combo_count" property="comboCount"/>
+        <result column="bonus_rate" property="bonusRate"/>
+        <result column="description" property="description"/>
+        <result column="create_by" property="createBy"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_by" property="updateBy"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="is_deleted" property="isDeleted"/>
+    </resultMap>
+    
+    <!-- 查询用户功德记录 -->
+    <select id="selectByUserIdAndDate" resultMap="BaseResultMap">
+        SELECT * FROM t_merit_record
+        WHERE user_id = #{userId}
+        <if test="startDate != null">
+            AND create_time >= #{startDate}
+        </if>
+        <if test="endDate != null">
+            AND create_time &lt;= #{endDate}
+        </if>
+        AND is_deleted = 0
+        ORDER BY create_time DESC
+    </select>
+    
+    <!-- 统计用户今日功德 -->
+    <select id="sumTodayMerit" resultType="java.lang.Long">
+        SELECT IFNULL(SUM(merit_gained), 0)
+        FROM t_merit_record
+        WHERE user_id = #{userId}
+        AND DATE(create_time) = CURDATE()
+        AND is_deleted = 0
+    </select>
+    
+    <!-- 统计用户本周功德 -->
+    <select id="sumWeeklyMerit" resultType="java.lang.Long">
+        SELECT IFNULL(SUM(merit_gained), 0)
+        FROM t_merit_record
+        WHERE user_id = #{userId}
+        AND YEARWEEK(create_time) = YEARWEEK(NOW())
+        AND is_deleted = 0
+    </select>
+    
+    <!-- 统计用户本月功德 -->
+    <select id="sumMonthlyMerit" resultType="java.lang.Long">
+        SELECT IFNULL(SUM(merit_gained), 0)
+        FROM t_merit_record
+        WHERE user_id = #{userId}
+        AND DATE_FORMAT(create_time, '%Y%m') = DATE_FORMAT(NOW(), '%Y%m')
+        AND is_deleted = 0
+    </select>
+    
+    <!-- 查询会话内的功德记录 -->
+    <select id="selectBySessionId" resultMap="BaseResultMap">
+        SELECT * FROM t_merit_record
+        WHERE session_id = #{sessionId}
+        AND is_deleted = 0
+        ORDER BY create_time
+    </select>
+    
+    <!-- 获取最大连击数 -->
+    <select id="getMaxCombo" resultType="java.lang.Integer">
+        SELECT IFNULL(MAX(combo_count), 0)
+        FROM t_merit_record
+        WHERE user_id = #{userId}
+        AND is_deleted = 0
+    </select>
+    
+</mapper>

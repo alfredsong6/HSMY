@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hsmy.mapper.DonationMapper">
+    
+    <!-- 查询用户捐赠记录 -->
+    <select id="selectByUserId" resultType="com.hsmy.entity.Donation">
+        SELECT * FROM t_donation
+        WHERE user_id = #{userId}
+        AND is_deleted = 0
+        ORDER BY donation_time DESC
+    </select>
+    
+    <!-- 查询项目捐赠记录 -->
+    <select id="selectByProjectId" resultType="java.util.Map">
+        SELECT 
+            d.*,
+            CASE WHEN d.is_anonymous = 1 THEN '匿名善士' ELSE u.nickname END as donor_name,
+            u.avatar_url
+        FROM t_donation d
+        LEFT JOIN t_user u ON d.user_id = u.id
+        WHERE d.project_id = #{projectId}
+        AND d.is_deleted = 0
+        ORDER BY d.donation_time DESC
+        <if test="limit != null">
+            LIMIT #{limit}
+        </if>
+    </select>
+    
+    <!-- 统计用户捐赠总额 -->
+    <select id="sumUserDonation" resultType="java.lang.Long">
+        SELECT IFNULL(SUM(merit_coins_donated), 0)
+        FROM t_donation
+        WHERE user_id = #{userId}
+        AND is_deleted = 0
+    </select>
+    
+    <!-- 查询善缘榜 -->
+    <select id="selectDonationRanking" resultType="java.util.Map">
+        SELECT 
+            u.id as user_id,
+            u.nickname,
+            u.avatar_url,
+            SUM(d.merit_coins_donated) as total_donation,
+            COUNT(d.id) as donation_count
+        FROM t_donation d
+        INNER JOIN t_user u ON d.user_id = u.id
+        WHERE d.is_deleted = 0
+        AND d.is_anonymous = 0
+        GROUP BY u.id, u.nickname, u.avatar_url
+        ORDER BY total_donation DESC
+        <if test="limit != null">
+            LIMIT #{limit}
+        </if>
+    </select>
+    
+</mapper>
