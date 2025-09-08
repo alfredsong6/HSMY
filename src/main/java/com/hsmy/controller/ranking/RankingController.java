@@ -18,7 +18,7 @@ import java.util.Map;
  * @date 2025/09/08
  */
 @RestController
-@RequestMapping("/api/rankings")
+@RequestMapping("/rankings")
 @RequiredArgsConstructor
 public class RankingController {
     

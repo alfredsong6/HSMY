@@ -20,7 +20,7 @@ import java.util.Map;
  * @date 2025/09/08
  */
 @RestController
-@RequestMapping("/api/task")
+@RequestMapping("/task")
 @RequiredArgsConstructor
 public class TaskController {
     

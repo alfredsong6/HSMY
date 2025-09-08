@@ -288,29 +288,105 @@ class APITester:
             self.log_error("SessionId为空，跳过业务接口测试")
             return
         
-        # 测试敲木鱼接口
-        self.log_info("测试7.1: 敲木鱼接口")
+        # 测试手动敲击接口
+        self.log_info("测试7.1: 手动敲击接口")
         knock_data = {
-            "knockCount": 10,
-            "prayerText": "祈求平安健康"
+            "userId": self.user_id,
+            "knockCount": 5,
+            "sessionId": self.session_id,
+            "comboCount": 1
         }
-        self.make_request("POST", "/knock/start", knock_data)
+        self.make_request("POST", "/knock/manual", knock_data)
         
-        # 测试获取用户统计
-        self.log_info("测试7.2: 获取用户统计")
+        # 测试开始自动敲击
+        self.log_info("测试7.2: 开始自动敲击")
+        self.make_request("POST", "/knock/auto/start?duration=10")
+        
+        # 测试获取敲击统计
+        self.log_info("测试7.3: 获取敲击统计")
+        self.make_request("GET", "/knock/stats")
+        
+        # 测试获取自动敲击状态
+        self.log_info("测试7.4: 获取自动敲击状态")
+        self.make_request("GET", "/knock/auto/status")
+        
+        # 测试停止自动敲击
+        self.log_info("测试7.5: 停止自动敲击")
+        test_session_id = "test_session_123"
+        self.make_request("POST", f"/knock/auto/stop?sessionId={test_session_id}")
+        
+        # 测试获取用户功德统计
+        self.log_info("测试7.6: 获取功德统计")
         self.make_request("GET", "/merit/stats")
         
-        # 测试排行榜
-        self.log_info("测试7.3: 获取功德排行榜")
+        # 测试功德排行榜
+        self.log_info("测试7.7: 获取功德排行榜")
         self.make_request("GET", "/ranking/merit?limit=10")
         
         # 测试用户设置
-        self.log_info("测试7.4: 获取用户设置")
+        self.log_info("测试7.8: 获取用户设置")
         self.make_request("GET", "/user/settings")
     
+    def test_knock_controller(self):
+        """测试8: 敲击功能专项测试"""
+        self.log_info("测试8: 敲击功能专项测试")
+        
+        if not self.session_id:
+            self.log_error("SessionId为空，跳过敲击功能测试")
+            return
+        
+        # 测试手动敲击 - 正常情况
+        self.log_info("测试8.1: 手动敲击 - 正常参数")
+        knock_data = {
+            "userId": self.user_id,
+            "knockCount": 3,
+            "sessionId": self.session_id,
+            "comboCount": 1
+        }
+        self.make_request("POST", "/knock/manual", knock_data)
+        
+        # 测试手动敲击 - 无效参数
+        self.log_info("测试8.2: 手动敲击 - 缺少userId")
+        invalid_knock_data = {
+            "knockCount": 2,
+            "sessionId": self.session_id
+        }
+        self.make_request("POST", "/knock/manual", invalid_knock_data, expected_status=400)
+        
+        # 测试开始自动敲击 - 不同时长
+        durations = [10, 30, 60, 300, 600]  # 10秒、30秒、1分钟、5分钟、10分钟
+        for i, duration in enumerate(durations):
+            self.log_info(f"测试8.3.{i+1}: 开始自动敲击 - {duration}秒")
+            self.make_request("POST", f"/knock/auto/start?duration={duration}")
+        
+        # 测试开始自动敲击 - 无效时长
+        self.log_info("测试8.4: 开始自动敲击 - 无效时长")
+        self.make_request("POST", "/knock/auto/start?duration=999", expected_status=400)
+        
+        # 测试获取敲击统计
+        self.log_info("测试8.5: 获取敲击统计详情")
+        self.make_request("GET", "/knock/stats")
+        
+        # 测试获取自动敲击状态
+        self.log_info("测试8.6: 获取自动敲击状态")
+        self.make_request("GET", "/knock/auto/status")
+        
+        # 测试停止自动敲击 - 正常会话
+        self.log_info("测试8.7: 停止自动敲击 - 正常会话ID")
+        valid_session_id = "valid_session_123"
+        self.make_request("POST", f"/knock/auto/stop?sessionId={valid_session_id}")
+        
+        # 测试停止自动敲击 - 无效会话
+        self.log_info("测试8.8: 停止自动敲击 - 无效会话ID")
+        self.make_request("POST", "/knock/auto/stop?sessionId=invalid_session", expected_status=400)
+        
+        # 测试停止自动敲击 - 缺少参数
+        self.log_info("测试8.9: 停止自动敲击 - 缺少sessionId参数")
+        self.make_request("POST", "/knock/auto/stop", expected_status=400)
+    
     def test_user_logout(self):
-        """测试8: 用户登出"""
-        self.log_info("测试8: 用户登出")
+        """测试9: 用户登出"""
+        self.log_info("测试9: 用户登出")
         
         if not self.session_id:
             self.log_error("SessionId为空，跳过登出测试")
@@ -319,7 +395,7 @@ class APITester:
         result = self.make_request("POST", "/auth/logout")
         
         # 验证登出后session失效
-        self.log_info("测试8.1: 验证登出后Session失效")
+        self.log_info("测试9.1: 验证登出后Session失效")
         self.make_request("GET", "/auth/user-info", expected_status=401)
         
         # 清空session信息
@@ -329,11 +405,11 @@ class APITester:
         return result
     
     def test_edge_cases(self):
-        """测试9: 边界情况和异常处理"""
-        self.log_info("测试9: 边界情况和异常处理")
+        """测试10: 边界情况和异常处理"""
+        self.log_info("测试10: 边界情况和异常处理")
         
         # 测试超长用户名
-        self.log_info("测试9.1: 超长用户名注册")
+        self.log_info("测试10.1: 超长用户名注册")
         long_username_data = {
             "username": "a" * 50,  # 超过20位限制
             "password": "123456",
@@ -345,7 +421,7 @@ class APITester:
         self.make_request("POST", "/auth/register", long_username_data)
         
         # 测试短密码
-        self.log_info("测试9.2: 密码过短注册")
+        self.log_info("测试10.2: 密码过短注册")
         short_password_data = {
             "username": f"testuser_{int(time.time())}",
             "password": "123",  # 少于6位
@@ -357,7 +433,7 @@ class APITester:
         self.make_request("POST", "/auth/register", short_password_data)
         
         # 测试无效手机号
-        self.log_info("测试9.3: 无效手机号格式注册")
+        self.log_info("测试10.3: 无效手机号格式注册")
         invalid_phone_data = {
             "username": f"testuser_{int(time.time())}_2",
             "password": "123456",
@@ -369,8 +445,8 @@ class APITester:
         self.make_request("POST", "/auth/register", invalid_phone_data)
     
     def test_concurrent_users(self):
-        """测试10: 模拟多用户并发"""
-        self.log_info("测试10: 模拟多用户并发测试")
+        """测试11: 模拟多用户并发"""
+        self.log_info("测试11: 模拟多用户并发测试")
         
         users = []
         for i in range(3):
@@ -438,6 +514,9 @@ class APITester:
             self.test_business_apis()
             time.sleep(1)
             
+            self.test_knock_controller()
+            time.sleep(1)
+            
             self.test_user_logout()
             time.sleep(1)
             
@@ -487,6 +566,7 @@ class APITester:
             "✅ 会话管理功能",
             "✅ 白名单机制",
             "✅ 业务接口调用",
+            "✅ 敲击功能专项测试",
             "✅ 用户登出",
             "✅ 边界条件测试",
             "✅ 并发用户测试"

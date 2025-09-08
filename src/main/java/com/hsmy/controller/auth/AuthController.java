@@ -26,7 +26,7 @@ import javax.servlet.http.HttpServletRequest;
  */
 @Slf4j
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("/auth")
 @RequiredArgsConstructor
 public class AuthController {
     

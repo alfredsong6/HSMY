@@ -11,6 +11,7 @@ target/
 .idedea/misc.xml
 .idedea/scopes/scope_settings.xml
 .idea/encodings.xml
+.idea/vcs.xml
 *.iws
 *.iml
 *.ipr

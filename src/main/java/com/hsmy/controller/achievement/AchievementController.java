@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
  * @date 2025/09/08
  */
 @RestController
-@RequestMapping("/api/achievement")
+@RequestMapping("/achievement")
 @RequiredArgsConstructor
 public class AchievementController {
     

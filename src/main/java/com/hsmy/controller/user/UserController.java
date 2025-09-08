@@ -14,8 +14,8 @@ import org.springframework.web.bind.annotation.*;
  * @author HSMY
  * @date 2025/09/07
  */
-@RestController
-@RequestMapping("/api/auth")
+//@RestController
+//@RequestMapping("/api/auth")
 @RequiredArgsConstructor
 public class UserController {
     

@@ -28,44 +28,6 @@ public class AuthWhiteListProperties {
      */
     private Boolean enabled = true;
     
-    /**
-     * 默认构造函数，初始化默认白名单
-     */
-    public AuthWhiteListProperties() {
-        initDefaultWhiteList();
-    }
-    
-    /**
-     * 初始化默认白名单
-     */
-    private void initDefaultWhiteList() {
-        // 认证相关接口
-        paths.add("/api/auth/login");
-        paths.add("/api/auth/register");  
-        paths.add("/api/auth/logout");
-        paths.add("/api/auth/code");
-        paths.add("/api/auth/health");
-        
-        // 系统接口
-        paths.add("/error");
-        paths.add("/favicon.ico");
-        
-        // 静态资源
-        paths.add("/static/**");
-        paths.add("/public/**");
-        paths.add("/webjars/**");
-        
-        // 开发工具相关
-        paths.add("/actuator/**");
-        paths.add("/h2-console/**");
-        
-        // 文档相关
-        paths.add("/doc.html");
-        paths.add("/swagger-ui/**");
-        paths.add("/swagger-resources/**");
-        paths.add("/v2/api-docs");
-        paths.add("/v3/api-docs");
-    }
     
     /**
      * 添加白名单路径

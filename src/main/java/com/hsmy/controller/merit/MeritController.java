@@ -22,7 +22,7 @@ import java.util.Map;
  * @date 2025/09/07
  */
 @RestController
-@RequestMapping("/api/merit")
+@RequestMapping("/merit")
 @RequiredArgsConstructor
 public class MeritController {
     

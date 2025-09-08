@@ -14,7 +14,7 @@ import javax.servlet.http.HttpServletRequest;
  * @date 2025/09/08
  */
 @RestController
-@RequestMapping("/api/knock")
+@RequestMapping("/knock")
 @RequiredArgsConstructor
 public class KnockController {
     

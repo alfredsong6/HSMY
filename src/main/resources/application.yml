@@ -62,11 +62,11 @@ auth:
     enabled: true
     paths:
       # 认证相关接口
-      - /api/auth/login
-      - /api/auth/register
-      - /api/auth/logout
-      - /api/auth/code
-      - /api/auth/health
+      - /auth/login
+      - /auth/register
+      - /auth/logout
+      - /auth/code
+      - /auth/health
       # 系统接口
       - /error
       - /favicon.ico
@@ -89,6 +89,6 @@ auth:
       # 健康检查
       - /health/**
       # 系统管理接口（白名单管理）
-      - /api/system/whitelist/**
+      - /system/whitelist/**
       # 测试接口（可选，生产环境建议移除）
-      - /api/test/**
+      - /test/**

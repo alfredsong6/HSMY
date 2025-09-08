@@ -21,7 +21,7 @@ import java.util.Map;
  * @date 2025/09/08
  */
 @RestController
-@RequestMapping("/api/donation")
+@RequestMapping("/donation")
 @RequiredArgsConstructor
 public class DonationController {
     

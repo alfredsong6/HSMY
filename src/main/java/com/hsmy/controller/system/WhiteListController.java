@@ -20,7 +20,7 @@ import java.util.Map;
  */
 @Slf4j
 @RestController
-@RequestMapping("/api/system/whitelist")
+@RequestMapping("/system/whitelist")
 @RequiredArgsConstructor
 public class WhiteListController {
     
