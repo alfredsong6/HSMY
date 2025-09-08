@@ -14,10 +14,10 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @SpringBootApplication
 @MapperScan("com.hsmy.mapper")
 @EnableTransactionManagement
-public class Application {
+public class HsmyApplication {
     
     public static void main(String[] args) {
-        SpringApplication.run(Application.class, args);
+        SpringApplication.run(HsmyApplication.class, args);
         System.out.println("========================================");
         System.out.println("        敲敲木鱼项目启动成功！");
         System.out.println("        Server: http://localhost:8080/api");

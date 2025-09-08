@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hsmy.mapper.UserTaskMapper">
+    
+    <!-- 基础结果映射 -->
+    <resultMap id="BaseResultMap" type="com.hsmy.entity.UserTask">
+        <id column="id" property="id"/>
+        <result column="user_id" property="userId"/>
+        <result column="task_id" property="taskId"/>
+        <result column="task_date" property="taskDate"/>
+        <result column="progress" property="progress"/>
+        <result column="is_completed" property="isCompleted"/>
+        <result column="complete_time" property="completeTime"/>
+        <result column="is_claimed" property="isClaimed"/>
+        <result column="claim_time" property="claimTime"/>
+        <result column="create_by" property="createBy"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_by" property="updateBy"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="is_deleted" property="isDeleted"/>
+    </resultMap>
+    
+    <!-- 连接任务表的结果映射 -->
+    <resultMap id="UserTaskWithTaskMap" type="com.hsmy.entity.UserTask" extends="BaseResultMap">
+        <association property="task" javaType="com.hsmy.entity.Task">
+            <id column="task_id" property="id"/>
+            <result column="task_name" property="taskName"/>
+            <result column="task_type" property="taskType"/>
+            <result column="description" property="description"/>
+            <result column="icon_url" property="iconUrl"/>
+            <result column="target_type" property="targetType"/>
+            <result column="target_value" property="targetValue"/>
+            <result column="reward_merit" property="rewardMerit"/>
+            <result column="reward_coins" property="rewardCoins"/>
+            <result column="reward_item_id" property="rewardItemId"/>
+        </association>
+    </resultMap>
+    
+    <!-- 基础字段列表 -->
+    <sql id="Base_Column_List">
+        ut.id, ut.user_id, ut.task_id, ut.task_date, ut.progress, ut.is_completed, ut.complete_time,
+        ut.is_claimed, ut.claim_time, ut.create_by, ut.create_time, ut.update_by, ut.update_time, ut.is_deleted
+    </sql>
+    
+    <!-- 根据用户ID和日期查询任务 -->
+    <select id="selectByUserIdAndDate" resultMap="UserTaskWithTaskMap">
+        SELECT
+        <include refid="Base_Column_List"/>,
+        t.task_name, t.task_type, t.description, t.icon_url, t.target_type, t.target_value,
+        t.reward_merit, t.reward_coins, t.reward_item_id
+        FROM t_user_task ut
+        LEFT JOIN t_task t ON ut.task_id = t.id
+        WHERE ut.user_id = #{userId}
+        AND ut.task_date = #{taskDate}
+        AND ut.is_deleted = 0
+        ORDER BY t.sort_order ASC, ut.create_time ASC
+    </select>
+    
+    <!-- 根据用户ID、任务ID和日期查询 -->
+    <select id="selectByUserTaskAndDate" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM t_user_task ut
+        WHERE ut.user_id = #{userId}
+        AND ut.task_id = #{taskId}
+        AND ut.task_date = #{taskDate}
+        AND ut.is_deleted = 0
+        LIMIT 1
+    </select>
+    
+    <!-- 更新任务进度 -->
+    <update id="updateProgress">
+        UPDATE t_user_task
+        SET progress = #{progress},
+            update_time = NOW()
+        WHERE user_id = #{userId}
+        AND task_id = #{taskId}
+        AND task_date = #{taskDate}
+        AND is_deleted = 0
+    </update>
+    
+    <!-- 完成任务 -->
+    <update id="completeTask">
+        UPDATE t_user_task
+        SET is_completed = 1,
+            complete_time = NOW(),
+            update_time = NOW()
+        WHERE user_id = #{userId}
+        AND task_id = #{taskId}
+        AND task_date = #{taskDate}
+        AND is_deleted = 0
+    </update>
+    
+    <!-- 查询用户今日完成的任务 -->
+    <select id="selectCompletedByUserIdAndDate" resultMap="UserTaskWithTaskMap">
+        SELECT
+        <include refid="Base_Column_List"/>,
+        t.task_name, t.task_type, t.description, t.icon_url, t.target_type, t.target_value,
+        t.reward_merit, t.reward_coins, t.reward_item_id
+        FROM t_user_task ut
+        LEFT JOIN t_task t ON ut.task_id = t.id
+        WHERE ut.user_id = #{userId}
+        AND ut.task_date = #{taskDate}
+        AND ut.is_completed = 1
+        AND ut.is_deleted = 0
+        ORDER BY ut.complete_time DESC
+    </select>
+    
+</mapper>

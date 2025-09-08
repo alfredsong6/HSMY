@@ -1,5 +1,6 @@
 package com.hsmy.entity;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.hsmy.common.BaseEntity;
 import lombok.Data;
@@ -49,4 +50,10 @@ public class UserItem extends BaseEntity {
      * 过期时间，NULL表示永久
      */
     private Date expireTime;
+    
+    /**
+     * 关联的道具信息（用于联表查询）
+     */
+    @TableField(exist = false)
+    private Item item;
 }

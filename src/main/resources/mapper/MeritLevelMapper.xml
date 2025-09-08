@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hsmy.mapper.MeritLevelMapper">
+    
+    <!-- 基础结果映射 -->
+    <resultMap id="BaseResultMap" type="com.hsmy.entity.MeritLevel">
+        <id column="id" property="id"/>
+        <result column="level" property="level"/>
+        <result column="level_name" property="levelName"/>
+        <result column="min_merit" property="minMerit"/>
+        <result column="max_merit" property="maxMerit"/>
+        <result column="level_benefits" property="levelBenefits"/>
+        <result column="icon_url" property="iconUrl"/>
+        <result column="bonus_rate" property="bonusRate"/>
+        <result column="daily_exchange_limit" property="dailyExchangeLimit"/>
+        <result column="create_by" property="createBy"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_by" property="updateBy"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="is_deleted" property="isDeleted"/>
+    </resultMap>
+    
+    <!-- 基础字段列表 -->
+    <sql id="Base_Column_List">
+        id, level, level_name, min_merit, max_merit, level_benefits, icon_url,
+        bonus_rate, daily_exchange_limit, create_by, create_time, update_by, update_time, is_deleted
+    </sql>
+    
+    <!-- 根据功德值查询对应等级 -->
+    <select id="selectByMeritValue" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM t_merit_level
+        WHERE min_merit &lt;= #{meritValue}
+        AND (max_merit IS NULL OR max_merit >= #{meritValue})
+        AND is_deleted = 0
+        ORDER BY level DESC
+        LIMIT 1
+    </select>
+    
+    <!-- 查询所有启用的等级配置 -->
+    <select id="selectAllActive" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM t_merit_level
+        WHERE is_deleted = 0
+        ORDER BY level ASC
+    </select>
+    
+    <!-- 根据等级查询 -->
+    <select id="selectByLevel" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM t_merit_level
+        WHERE level = #{level}
+        AND is_deleted = 0
+        LIMIT 1
+    </select>
+    
+</mapper>

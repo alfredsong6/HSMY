@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hsmy.mapper.ExchangeRecordMapper">
+    
+    <!-- 基础结果映射 -->
+    <resultMap id="BaseResultMap" type="com.hsmy.entity.ExchangeRecord">
+        <id column="id" property="id"/>
+        <result column="user_id" property="userId"/>
+        <result column="merit_used" property="meritUsed"/>
+        <result column="merit_coins_gained" property="meritCoinsGained"/>
+        <result column="exchange_rate" property="exchangeRate"/>
+        <result column="exchange_time" property="exchangeTime"/>
+        <result column="create_by" property="createBy"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_by" property="updateBy"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="is_deleted" property="isDeleted"/>
+    </resultMap>
+    
+    <!-- 基础字段列表 -->
+    <sql id="Base_Column_List">
+        id, user_id, merit_used, merit_coins_gained, exchange_rate, exchange_time,
+        create_by, create_time, update_by, update_time, is_deleted
+    </sql>
+    
+    <!-- 查询用户兑换记录 -->
+    <select id="selectByUserIdAndDate" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM t_exchange_record
+        WHERE user_id = #{userId}
+        AND is_deleted = 0
+        <if test="startDate != null">
+            AND exchange_time >= #{startDate}
+        </if>
+        <if test="endDate != null">
+            AND exchange_time &lt;= #{endDate}
+        </if>
+        ORDER BY exchange_time DESC
+    </select>
+    
+    <!-- 统计用户今日兑换功德币 -->
+    <select id="sumTodayCoins" resultType="java.lang.Integer">
+        SELECT COALESCE(SUM(merit_coins_gained), 0)
+        FROM t_exchange_record
+        WHERE user_id = #{userId}
+        AND DATE(exchange_time) = CURDATE()
+        AND is_deleted = 0
+    </select>
+    
+    <!-- 统计用户累计兑换功德币 -->
+    <select id="sumTotalCoins" resultType="java.lang.Long">
+        SELECT COALESCE(SUM(merit_coins_gained), 0)
+        FROM t_exchange_record
+        WHERE user_id = #{userId}
+        AND is_deleted = 0
+    </select>
+    
+</mapper>

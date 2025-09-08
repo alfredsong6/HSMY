@@ -40,6 +40,22 @@ public interface UserService {
     UserVO getUserById(Long userId);
     
     /**
+     * 根据ID获取用户实体
+     * 
+     * @param userId 用户ID
+     * @return 用户实体
+     */
+    User getUserEntityById(Long userId);
+    
+    /**
+     * 根据登录账号获取用户（支持用户名/手机号/邮箱）
+     * 
+     * @param loginAccount 登录账号
+     * @return 用户实体
+     */
+    User getUserByLoginAccount(String loginAccount);
+    
+    /**
      * 根据用户名获取用户信息
      * 
      * @param username 用户名

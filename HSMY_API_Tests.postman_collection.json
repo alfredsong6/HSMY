@@ -1,0 +1,526 @@
+{
+  "info": {
+    "name": "敲敲木鱼项目API测试",
+    "description": "完整的API接口测试集合，包含用户注册、登录、认证及业务接口",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080/api",
+      "type": "string"
+    },
+    {
+      "key": "sessionId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "userId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "username",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. 系统接口",
+      "item": [
+        {
+          "name": "健康检查",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "health"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "2. 用户认证",
+      "item": [
+        {
+          "name": "用户注册",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (responseCode.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.code === 200) {",
+                  "        console.log('用户注册成功');",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"username\": \"testuser_{{$timestamp}}\",\n    \"password\": \"123456\",\n    \"confirmPassword\": \"123456\",\n    \"nickname\": \"测试用户{{$timestamp}}\",\n    \"phone\": \"1380013{{$randomInt}}\",\n    \"email\": \"testuser_{{$timestamp}}@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "用户登录",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (responseCode.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.code === 200 && response.data) {",
+                  "        pm.collectionVariables.set('sessionId', response.data.sessionId);",
+                  "        pm.collectionVariables.set('userId', response.data.userId);",
+                  "        pm.collectionVariables.set('username', response.data.username);",
+                  "        console.log('登录成功，SessionId: ' + response.data.sessionId);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"loginAccount\": \"{{username}}\",\n    \"password\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "获取用户信息",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Session-Id",
+                "value": "{{sessionId}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/user-info",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "user-info"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "用户登出",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Session-Id",
+                "value": "{{sessionId}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/logout",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "logout"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "3. 会话管理",
+      "item": [
+        {
+          "name": "获取用户所有会话",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Session-Id",
+                "value": "{{sessionId}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/sessions",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "sessions"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "踢出其他会话",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Session-Id",
+                "value": "{{sessionId}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/kick-other-sessions",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "kick-other-sessions"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "管理员踢出用户会话",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Session-Id",
+                "value": "{{sessionId}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/kick-user-sessions?userId={{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "kick-user-sessions"],
+              "query": [
+                {
+                  "key": "userId",
+                  "value": "{{userId}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "4. 白名单管理",
+      "item": [
+        {
+          "name": "获取白名单配置",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/system/whitelist/config",
+              "host": ["{{baseUrl}}"],
+              "path": ["system", "whitelist", "config"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "获取白名单路径列表",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/system/whitelist/paths",
+              "host": ["{{baseUrl}}"],
+              "path": ["system", "whitelist", "paths"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "检查路径是否在白名单",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/system/whitelist/check?path=/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["system", "whitelist", "check"],
+              "query": [
+                {
+                  "key": "path",
+                  "value": "/api/auth/login"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "添加白名单路径",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/system/whitelist/add?path=/api/test/**",
+              "host": ["{{baseUrl}}"],
+              "path": ["system", "whitelist", "add"],
+              "query": [
+                {
+                  "key": "path",
+                  "value": "/api/test/**"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "移除白名单路径",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/system/whitelist/remove?path=/api/test/**",
+              "host": ["{{baseUrl}}"],
+              "path": ["system", "whitelist", "remove"],
+              "query": [
+                {
+                  "key": "path",
+                  "value": "/api/test/**"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "测试当前请求路径",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/system/whitelist/test-current",
+              "host": ["{{baseUrl}}"],
+              "path": ["system", "whitelist", "test-current"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "5. 业务接口",
+      "item": [
+        {
+          "name": "敲木鱼",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Session-Id",
+                "value": "{{sessionId}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"knockCount\": 10,\n    \"prayerText\": \"祈求平安健康\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/knock/start",
+              "host": ["{{baseUrl}}"],
+              "path": ["knock", "start"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "获取功德统计",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Session-Id",
+                "value": "{{sessionId}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/merit/stats",
+              "host": ["{{baseUrl}}"],
+              "path": ["merit", "stats"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "获取功德排行榜",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Session-Id",
+                "value": "{{sessionId}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/ranking/merit?limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["ranking", "merit"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "获取用户设置",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Session-Id",
+                "value": "{{sessionId}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/user/settings",
+              "host": ["{{baseUrl}}"],
+              "path": ["user", "settings"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "6. 异常测试",
+      "item": [
+        {
+          "name": "无效SessionId测试",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Session-Id",
+                "value": "invalid_session_id"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/user-info",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "user-info"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "无SessionId测试",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/user-info",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "user-info"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "错误密码登录",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"loginAccount\": \"{{username}}\",\n    \"password\": \"wrongpassword\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "不存在用户登录",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"loginAccount\": \"nonexistentuser\",\n    \"password\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "重复用户名注册",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"username\": \"{{username}}\",\n    \"password\": \"123456\",\n    \"confirmPassword\": \"123456\",\n    \"nickname\": \"重复用户\",\n    \"phone\": \"13800138001\",\n    \"email\": \"duplicate@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

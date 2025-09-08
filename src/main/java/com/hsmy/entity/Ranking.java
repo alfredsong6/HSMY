@@ -1,5 +1,6 @@
 package com.hsmy.entity;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.hsmy.common.BaseEntity;
 import lombok.Data;
@@ -49,4 +50,10 @@ public class Ranking extends BaseEntity {
      * 统计周期：如2025-01表示月榜，2025-W01表示周榜
      */
     private String period;
+    
+    /**
+     * 关联的用户信息（用于联表查询）
+     */
+    @TableField(exist = false)
+    private User user;
 }

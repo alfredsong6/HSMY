@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hsmy.mapper.UserItemMapper">
+    
+    <!-- 基础结果映射 -->
+    <resultMap id="BaseResultMap" type="com.hsmy.entity.UserItem">
+        <id column="id" property="id"/>
+        <result column="user_id" property="userId"/>
+        <result column="item_id" property="itemId"/>
+        <result column="purchase_time" property="purchaseTime"/>
+        <result column="purchase_price" property="purchasePrice"/>
+        <result column="is_equipped" property="isEquipped"/>
+        <result column="expire_time" property="expireTime"/>
+        <result column="create_by" property="createBy"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_by" property="updateBy"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="is_deleted" property="isDeleted"/>
+    </resultMap>
+    
+    <!-- 连接道具表的结果映射 -->
+    <resultMap id="UserItemWithItemMap" type="com.hsmy.entity.UserItem" extends="BaseResultMap">
+        <association property="item" javaType="com.hsmy.entity.Item">
+            <id column="item_id" property="id"/>
+            <result column="item_name" property="itemName"/>
+            <result column="item_type" property="itemType"/>
+            <result column="category" property="category"/>
+            <result column="description" property="description"/>
+            <result column="preview_url" property="previewUrl"/>
+            <result column="resource_url" property="resourceUrl"/>
+        </association>
+    </resultMap>
+    
+    <!-- 基础字段列表 -->
+    <sql id="Base_Column_List">
+        ui.id, ui.user_id, ui.item_id, ui.purchase_time, ui.purchase_price, ui.is_equipped,
+        ui.expire_time, ui.create_by, ui.create_time, ui.update_by, ui.update_time, ui.is_deleted
+    </sql>
+    
+    <!-- 根据用户ID查询用户道具列表 -->
+    <select id="selectByUserId" resultMap="UserItemWithItemMap">
+        SELECT
+        <include refid="Base_Column_List"/>,
+        i.item_name, i.item_type, i.category, i.description, i.preview_url, i.resource_url
+        FROM t_user_item ui
+        LEFT JOIN t_item i ON ui.item_id = i.id
+        WHERE ui.user_id = #{userId}
+        AND ui.is_deleted = 0
+        AND (ui.expire_time IS NULL OR ui.expire_time > NOW())
+        ORDER BY ui.purchase_time DESC
+    </select>
+    
+    <!-- 根据用户ID和道具类型查询道具 -->
+    <select id="selectByUserIdAndType" resultMap="UserItemWithItemMap">
+        SELECT
+        <include refid="Base_Column_List"/>,
+        i.item_name, i.item_type, i.category, i.description, i.preview_url, i.resource_url
+        FROM t_user_item ui
+        LEFT JOIN t_item i ON ui.item_id = i.id
+        WHERE ui.user_id = #{userId}
+        AND i.item_type = #{itemType}
+        AND ui.is_deleted = 0
+        AND (ui.expire_time IS NULL OR ui.expire_time > NOW())
+        ORDER BY ui.purchase_time DESC
+    </select>
+    
+    <!-- 根据用户ID查询已装备的道具 -->
+    <select id="selectEquippedByUserId" resultMap="UserItemWithItemMap">
+        SELECT
+        <include refid="Base_Column_List"/>,
+        i.item_name, i.item_type, i.category, i.description, i.preview_url, i.resource_url
+        FROM t_user_item ui
+        LEFT JOIN t_item i ON ui.item_id = i.id
+        WHERE ui.user_id = #{userId}
+        AND ui.is_equipped = 1
+        AND ui.is_deleted = 0
+        AND (ui.expire_time IS NULL OR ui.expire_time > NOW())
+    </select>
+    
+    <!-- 更新道具装备状态 -->
+    <update id="updateEquipStatus">
+        UPDATE t_user_item
+        SET is_equipped = #{isEquipped},
+            update_time = NOW()
+        WHERE user_id = #{userId}
+        AND item_id = #{itemId}
+        AND is_deleted = 0
+    </update>
+    
+    <!-- 取消用户某类型道具的装备状态 -->
+    <update id="unequipByUserIdAndType">
+        UPDATE t_user_item ui
+        LEFT JOIN t_item i ON ui.item_id = i.id
+        SET ui.is_equipped = 0,
+            ui.update_time = NOW()
+        WHERE ui.user_id = #{userId}
+        AND i.item_type = #{itemType}
+        AND ui.is_deleted = 0
+    </update>
+    
+</mapper>

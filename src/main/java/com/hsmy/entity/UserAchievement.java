@@ -1,5 +1,6 @@
 package com.hsmy.entity;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.hsmy.common.BaseEntity;
 import lombok.Data;
@@ -54,4 +55,10 @@ public class UserAchievement extends BaseEntity {
      * 领取时间
      */
     private Date claimTime;
+    
+    /**
+     * 关联的成就信息（用于联表查询）
+     */
+    @TableField(exist = false)
+    private Achievement achievement;
 }

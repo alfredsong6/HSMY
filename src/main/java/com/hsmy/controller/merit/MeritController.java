@@ -11,6 +11,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.Date;
 import java.util.Map;
 
@@ -21,7 +22,7 @@ import java.util.Map;
  * @date 2025/09/07
  */
 @RestController
-@RequestMapping("/merit")
+@RequestMapping("/api/merit")
 @RequiredArgsConstructor
 public class MeritController {
     
@@ -80,16 +81,64 @@ public class MeritController {
     }
     
     /**
+     * 获取功德和功德币余额
+     * 
+     * @param request HTTP请求
+     * @return 余额信息
+     */
+    @GetMapping("/balance")
+    public Result<Map<String, Object>> getBalance(HttpServletRequest request) {
+        try {
+            // TODO: 从token获取用户ID
+            Long userId = 1L; // 临时硬编码，实际需要从token解析
+            //Map<String, Object> balance = meritService.getBalance(userId);
+            return Result.success(null);
+        } catch (Exception e) {
+            return Result.error(e.getMessage());
+        }
+    }
+    
+    /**
      * 功德兑换功德币
      * 
      * @param exchangeVO 兑换信息
+     * @param request HTTP请求
      * @return 兑换结果
      */
     @PostMapping("/exchange")
-    public Result<Map<String, Object>> exchangeMerit(@Validated @RequestBody ExchangeVO exchangeVO) {
+    public Result<Map<String, Object>> exchangeMerit(@Validated @RequestBody ExchangeVO exchangeVO, HttpServletRequest request) {
         try {
+            // TODO: 从token获取用户ID并设置到exchangeVO中
             Map<String, Object> result = meritService.exchangeMerit(exchangeVO);
             return Result.success("兑换成功", result);
+        } catch (Exception e) {
+            return Result.error(e.getMessage());
+        }
+    }
+    
+    /**
+     * 获取功德获取历史
+     * 
+     * @param startDate 开始日期
+     * @param endDate 结束日期
+     * @param pageNum 页码
+     * @param pageSize 每页大小
+     * @param request HTTP请求
+     * @return 功德记录
+     */
+    @GetMapping("/history")
+    public Result<Page<MeritRecord>> getMeritHistory(
+            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date startDate,
+            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date endDate,
+            @RequestParam(defaultValue = "1") Integer pageNum,
+            @RequestParam(defaultValue = "10") Integer pageSize,
+            HttpServletRequest request) {
+        
+        try {
+            // TODO: 从token获取用户ID
+            Long userId = 1L; // 临时硬编码
+            Page<MeritRecord> page = meritService.getMeritRecords(userId, startDate, endDate, pageNum, pageSize);
+            return Result.success(page);
         } catch (Exception e) {
             return Result.error(e.getMessage());
         }

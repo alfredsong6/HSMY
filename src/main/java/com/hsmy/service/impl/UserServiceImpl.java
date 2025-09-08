@@ -138,6 +138,33 @@ public class UserServiceImpl implements UserService {
     }
     
     @Override
+    public User getUserEntityById(Long userId) {
+        return userMapper.selectById(userId);
+    }
+    
+    @Override
+    public User getUserByLoginAccount(String loginAccount) {
+        // 先尝试用户名查找
+        User user = userMapper.selectByUsername(loginAccount);
+        if (user != null) {
+            return user;
+        }
+        
+        // 尝试手机号查找
+        LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(User::getPhone, loginAccount);
+        user = userMapper.selectOne(queryWrapper);
+        if (user != null) {
+            return user;
+        }
+        
+        // 尝试邮箱查找
+        queryWrapper.clear();
+        queryWrapper.eq(User::getEmail, loginAccount);
+        return userMapper.selectOne(queryWrapper);
+    }
+    
+    @Override
     @Transactional(rollbackFor = Exception.class)
     public Boolean updateUser(UserVO userVO) {
         User user = new User();

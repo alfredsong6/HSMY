@@ -23,6 +23,20 @@ spring:
       test-while-idle: true
       test-on-borrow: false
       test-on-return: false
+  
+  # Redis配置
+  redis:
+    host: localhost
+    port: 6379
+    database: 0
+    password: 
+    timeout: 5000ms
+    jedis:
+      pool:
+        max-active: 8
+        max-wait: -1ms
+        max-idle: 8
+        min-idle: 0
 
 mybatis-plus:
   mapper-locations: classpath:mapper/**/*.xml
@@ -41,3 +55,40 @@ mybatis-plus:
 logging:
   level:
     com.hsmy: debug
+
+# 认证白名单配置
+auth:
+  whitelist:
+    enabled: true
+    paths:
+      # 认证相关接口
+      - /api/auth/login
+      - /api/auth/register
+      - /api/auth/logout
+      - /api/auth/code
+      - /api/auth/health
+      # 系统接口
+      - /error
+      - /favicon.ico
+      # 静态资源
+      - /static/**
+      - /public/**
+      - /webjars/**
+      - /css/**
+      - /js/**
+      - /images/**
+      # API文档相关
+      - /doc.html
+      - /swagger-ui/**
+      - /swagger-resources/**
+      - /v2/api-docs
+      - /v3/api-docs/**
+      # 开发工具
+      - /actuator/**
+      - /h2-console/**
+      # 健康检查
+      - /health/**
+      # 系统管理接口（白名单管理）
+      - /api/system/whitelist/**
+      # 测试接口（可选，生产环境建议移除）
+      - /api/test/**

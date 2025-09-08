@@ -5,8 +5,8 @@
 -- Date: 2025-09-07
 
 -- 创建数据库
-CREATE DATABASE IF NOT EXISTS `hsmy_db` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE `hsmy_db`;
+-- CREATE DATABASE IF NOT EXISTS `hsmy_db` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+-- USE `hsmy_db`;
 
 -- ========================================
 -- 1. 用户相关表

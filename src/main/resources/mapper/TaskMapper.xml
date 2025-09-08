@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hsmy.mapper.TaskMapper">
+    
+    <!-- 基础结果映射 -->
+    <resultMap id="BaseResultMap" type="com.hsmy.entity.Task">
+        <id column="id" property="id"/>
+        <result column="task_name" property="taskName"/>
+        <result column="task_type" property="taskType"/>
+        <result column="description" property="description"/>
+        <result column="icon_url" property="iconUrl"/>
+        <result column="target_type" property="targetType"/>
+        <result column="target_value" property="targetValue"/>
+        <result column="reward_merit" property="rewardMerit"/>
+        <result column="reward_coins" property="rewardCoins"/>
+        <result column="reward_item_id" property="rewardItemId"/>
+        <result column="refresh_type" property="refreshType"/>
+        <result column="sort_order" property="sortOrder"/>
+        <result column="is_active" property="isActive"/>
+        <result column="create_by" property="createBy"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_by" property="updateBy"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="is_deleted" property="isDeleted"/>
+    </resultMap>
+    
+    <!-- 基础字段列表 -->
+    <sql id="Base_Column_List">
+        id, task_name, task_type, description, icon_url, target_type, target_value,
+        reward_merit, reward_coins, reward_item_id, refresh_type, sort_order, is_active,
+        create_by, create_time, update_by, update_time, is_deleted
+    </sql>
+    
+    <!-- 根据任务类型查询任务列表 -->
+    <select id="selectByType" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM t_task
+        WHERE task_type = #{taskType}
+        AND is_active = 1
+        AND is_deleted = 0
+        ORDER BY sort_order ASC, create_time ASC
+    </select>
+    
+    <!-- 查询所有启用的任务 -->
+    <select id="selectAllActive" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM t_task
+        WHERE is_active = 1
+        AND is_deleted = 0
+        ORDER BY task_type ASC, sort_order ASC, create_time ASC
+    </select>
+    
+    <!-- 根据刷新类型查询任务 -->
+    <select id="selectByRefreshType" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM t_task
+        WHERE refresh_type = #{refreshType}
+        AND is_active = 1
+        AND is_deleted = 0
+        ORDER BY sort_order ASC, create_time ASC
+    </select>
+    
+</mapper>

@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hsmy.mapper.UserAchievementMapper">
+    
+    <!-- 基础结果映射 -->
+    <resultMap id="BaseResultMap" type="com.hsmy.entity.UserAchievement">
+        <id column="id" property="id"/>
+        <result column="user_id" property="userId"/>
+        <result column="achievement_id" property="achievementId"/>
+        <result column="progress" property="progress"/>
+        <result column="is_completed" property="isCompleted"/>
+        <result column="complete_time" property="completeTime"/>
+        <result column="is_claimed" property="isClaimed"/>
+        <result column="claim_time" property="claimTime"/>
+        <result column="create_by" property="createBy"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_by" property="updateBy"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="is_deleted" property="isDeleted"/>
+    </resultMap>
+    
+    <!-- 连接成就表的结果映射 -->
+    <resultMap id="UserAchievementWithAchievementMap" type="com.hsmy.entity.UserAchievement" extends="BaseResultMap">
+        <association property="achievement" javaType="com.hsmy.entity.Achievement">
+            <id column="achievement_id" property="id"/>
+            <result column="achievement_name" property="achievementName"/>
+            <result column="achievement_type" property="achievementType"/>
+            <result column="achievement_level" property="achievementLevel"/>
+            <result column="description" property="description"/>
+            <result column="icon_url" property="iconUrl"/>
+            <result column="condition_type" property="conditionType"/>
+            <result column="condition_value" property="conditionValue"/>
+            <result column="reward_type" property="rewardType"/>
+            <result column="reward_value" property="rewardValue"/>
+        </association>
+    </resultMap>
+    
+    <!-- 基础字段列表 -->
+    <sql id="Base_Column_List">
+        ua.id, ua.user_id, ua.achievement_id, ua.progress, ua.is_completed, ua.complete_time,
+        ua.is_claimed, ua.claim_time, ua.create_by, ua.create_time, ua.update_by, ua.update_time, ua.is_deleted
+    </sql>
+    
+    <!-- 根据用户ID查询用户成就 -->
+    <select id="selectByUserId" resultMap="UserAchievementWithAchievementMap">
+        SELECT
+        <include refid="Base_Column_List"/>,
+        a.achievement_name, a.achievement_type, a.achievement_level, a.description, a.icon_url,
+        a.condition_type, a.condition_value, a.reward_type, a.reward_value
+        FROM t_user_achievement ua
+        LEFT JOIN t_achievement a ON ua.achievement_id = a.id
+        WHERE ua.user_id = #{userId}
+        AND ua.is_deleted = 0
+        ORDER BY ua.is_completed ASC, a.achievement_type ASC, a.sort_order ASC
+    </select>
+    
+    <!-- 根据用户ID和成就ID查询 -->
+    <select id="selectByUserAndAchievement" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM t_user_achievement ua
+        WHERE ua.user_id = #{userId}
+        AND ua.achievement_id = #{achievementId}
+        AND ua.is_deleted = 0
+        LIMIT 1
+    </select>
+    
+    <!-- 更新用户成就进度 -->
+    <update id="updateProgress">
+        UPDATE t_user_achievement
+        SET progress = #{progress},
+            update_time = NOW()
+        WHERE user_id = #{userId}
+        AND achievement_id = #{achievementId}
+        AND is_deleted = 0
+    </update>
+    
+    <!-- 完成成就 -->
+    <update id="completeAchievement">
+        UPDATE t_user_achievement
+        SET is_completed = 1,
+            complete_time = NOW(),
+            update_time = NOW()
+        WHERE user_id = #{userId}
+        AND achievement_id = #{achievementId}
+        AND is_deleted = 0
+    </update>
+    
+    <!-- 查询用户已完成的成就 -->
+    <select id="selectCompletedByUserId" resultMap="UserAchievementWithAchievementMap">
+        SELECT
+        <include refid="Base_Column_List"/>,
+        a.achievement_name, a.achievement_type, a.achievement_level, a.description, a.icon_url,
+        a.condition_type, a.condition_value, a.reward_type, a.reward_value
+        FROM t_user_achievement ua
+        LEFT JOIN t_achievement a ON ua.achievement_id = a.id
+        WHERE ua.user_id = #{userId}
+        AND ua.is_completed = 1
+        AND ua.is_deleted = 0
+        ORDER BY ua.complete_time DESC
+    </select>
+    
+</mapper>

@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hsmy.mapper.RankingMapper">
+    
+    <!-- 基础结果映射 -->
+    <resultMap id="BaseResultMap" type="com.hsmy.entity.Ranking">
+        <id column="id" property="id"/>
+        <result column="user_id" property="userId"/>
+        <result column="rank_type" property="rankType"/>
+        <result column="merit_value" property="meritValue"/>
+        <result column="ranking_position" property="rankingPosition"/>
+        <result column="snapshot_date" property="snapshotDate"/>
+        <result column="period" property="period"/>
+        <result column="create_by" property="createBy"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_by" property="updateBy"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="is_deleted" property="isDeleted"/>
+    </resultMap>
+    
+    <!-- 连接用户表的结果映射 -->
+    <resultMap id="RankingWithUserMap" type="com.hsmy.entity.Ranking" extends="BaseResultMap">
+        <association property="user" javaType="com.hsmy.entity.User">
+            <id column="user_id" property="id"/>
+            <result column="nickname" property="nickname"/>
+            <result column="avatar_url" property="avatarUrl"/>
+        </association>
+    </resultMap>
+    
+    <!-- 基础字段列表 -->
+    <sql id="Base_Column_List">
+        r.id, r.user_id, r.rank_type, r.merit_value, r.ranking_position, r.snapshot_date,
+        r.period, r.create_by, r.create_time, r.update_by, r.update_time, r.is_deleted
+    </sql>
+    
+    <!-- 根据榜单类型和日期查询排行榜 -->
+    <select id="selectByTypeAndDate" resultMap="RankingWithUserMap">
+        SELECT
+        <include refid="Base_Column_List"/>,
+        u.nickname, u.avatar_url
+        FROM t_ranking r
+        LEFT JOIN t_user u ON r.user_id = u.id
+        WHERE r.rank_type = #{rankType}
+        AND r.snapshot_date = #{snapshotDate}
+        AND r.is_deleted = 0
+        ORDER BY r.ranking_position ASC
+        <if test="limit != null">
+            LIMIT #{limit}
+        </if>
+    </select>
+    
+    <!-- 查询用户在指定榜单中的排名 -->
+    <select id="selectUserRanking" resultMap="RankingWithUserMap">
+        SELECT
+        <include refid="Base_Column_List"/>,
+        u.nickname, u.avatar_url
+        FROM t_ranking r
+        LEFT JOIN t_user u ON r.user_id = u.id
+        WHERE r.user_id = #{userId}
+        AND r.rank_type = #{rankType}
+        AND r.snapshot_date = #{snapshotDate}
+        AND r.is_deleted = 0
+        LIMIT 1
+    </select>
+    
+    <!-- 批量插入排行榜数据 -->
+    <insert id="batchInsert">
+        INSERT INTO t_ranking (id, user_id, rank_type, merit_value, ranking_position, snapshot_date, period, create_time)
+        VALUES
+        <foreach collection="rankings" item="ranking" separator=",">
+            (#{ranking.id}, #{ranking.userId}, #{ranking.rankType}, #{ranking.meritValue}, 
+             #{ranking.rankingPosition}, #{ranking.snapshotDate}, #{ranking.period}, NOW())
+        </foreach>
+    </insert>
+    
+    <!-- 删除指定日期之前的排行榜数据 -->
+    <delete id="deleteBeforeDate">
+        DELETE FROM t_ranking
+        WHERE snapshot_date &lt; #{beforeDate}
+    </delete>
+    
+</mapper>

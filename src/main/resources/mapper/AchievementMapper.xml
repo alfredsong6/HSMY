@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hsmy.mapper.AchievementMapper">
+    
+    <!-- 基础结果映射 -->
+    <resultMap id="BaseResultMap" type="com.hsmy.entity.Achievement">
+        <id column="id" property="id"/>
+        <result column="achievement_name" property="achievementName"/>
+        <result column="achievement_type" property="achievementType"/>
+        <result column="achievement_level" property="achievementLevel"/>
+        <result column="description" property="description"/>
+        <result column="icon_url" property="iconUrl"/>
+        <result column="condition_type" property="conditionType"/>
+        <result column="condition_value" property="conditionValue"/>
+        <result column="reward_type" property="rewardType"/>
+        <result column="reward_value" property="rewardValue"/>
+        <result column="sort_order" property="sortOrder"/>
+        <result column="is_active" property="isActive"/>
+        <result column="create_by" property="createBy"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_by" property="updateBy"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="is_deleted" property="isDeleted"/>
+    </resultMap>
+    
+    <!-- 基础字段列表 -->
+    <sql id="Base_Column_List">
+        id, achievement_name, achievement_type, achievement_level, description, icon_url,
+        condition_type, condition_value, reward_type, reward_value, sort_order, is_active,
+        create_by, create_time, update_by, update_time, is_deleted
+    </sql>
+    
+    <!-- 根据成就类型查询成就列表 -->
+    <select id="selectByType" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM t_achievement
+        WHERE achievement_type = #{achievementType}
+        AND is_active = 1
+        AND is_deleted = 0
+        ORDER BY sort_order ASC, create_time ASC
+    </select>
+    
+    <!-- 查询所有启用的成就 -->
+    <select id="selectAllActive" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM t_achievement
+        WHERE is_active = 1
+        AND is_deleted = 0
+        ORDER BY achievement_type ASC, sort_order ASC, create_time ASC
+    </select>
+    
+    <!-- 根据成就等级查询成就 -->
+    <select id="selectByLevel" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM t_achievement
+        WHERE achievement_level = #{achievementLevel}
+        AND is_active = 1
+        AND is_deleted = 0
+        ORDER BY sort_order ASC, create_time ASC
+    </select>
+    
+</mapper>
