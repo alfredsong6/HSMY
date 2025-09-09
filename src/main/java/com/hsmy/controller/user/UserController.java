@@ -68,7 +68,7 @@ public class UserController {
      */
     @GetMapping("/info/{userId}")
     public Result<UserVO> getUserInfo(@PathVariable Long userId) {
-        UserVO userVO = userService.getUserById(userId);
+        UserVO userVO = userService.getUserVOById(userId);
         if (userVO == null) {
             return Result.error("用户不存在");
         }

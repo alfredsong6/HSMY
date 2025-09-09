@@ -1,6 +1,7 @@
 package com.hsmy.service;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.hsmy.dto.RegisterByCodeRequest;
 import com.hsmy.entity.User;
 import com.hsmy.vo.LoginVO;
 import com.hsmy.vo.RegisterVO;
@@ -32,12 +33,12 @@ public interface UserService {
     UserVO login(LoginVO loginVO);
     
     /**
-     * 根据ID获取用户信息
+     * 根据ID获取用户信息VO
      * 
      * @param userId 用户ID
-     * @return 用户信息
+     * @return 用户信息VO
      */
-    UserVO getUserById(Long userId);
+    UserVO getUserVOById(Long userId);
     
     /**
      * 根据ID获取用户实体
@@ -130,4 +131,54 @@ public interface UserService {
      * @return 是否存在
      */
     Boolean checkEmailExists(String email);
+    
+    /**
+     * 通过验证码注册
+     * 
+     * @param request 注册请求
+     * @return 用户ID
+     */
+    Long registerByCode(RegisterByCodeRequest request);
+    
+    /**
+     * 根据手机号获取用户
+     * 
+     * @param phone 手机号
+     * @return 用户实体
+     */
+    User getUserByPhone(String phone);
+    
+    /**
+     * 根据邮箱获取用户
+     * 
+     * @param email 邮箱
+     * @return 用户实体
+     */
+    User getUserByEmail(String email);
+    
+    /**
+     * 根据ID获取用户
+     * 
+     * @param userId 用户ID
+     * @return 用户实体
+     */
+    User getUserById(Long userId);
+    
+    /**
+     * 设置用户密码
+     * 
+     * @param userId 用户ID
+     * @param password 密码
+     * @return 是否成功
+     */
+    Boolean setPassword(Long userId, String password);
+    
+    /**
+     * 更新用户头像
+     * 
+     * @param userId 用户ID
+     * @param avatarUrl 头像URL
+     * @return 是否成功
+     */
+    Boolean updateAvatar(Long userId, String avatarUrl);
 }

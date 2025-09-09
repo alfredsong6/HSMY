@@ -5,6 +5,7 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.SecureUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.hsmy.dto.RegisterByCodeRequest;
 import com.hsmy.entity.User;
 import com.hsmy.entity.UserStats;
 import com.hsmy.mapper.UserMapper;
@@ -18,8 +19,10 @@ import com.hsmy.vo.UserVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.DigestUtils;
 
 import java.util.Date;
+import java.util.Random;
 
 /**
  * 用户Service实现类
@@ -111,7 +114,7 @@ public class UserServiceImpl implements UserService {
     }
     
     @Override
-    public UserVO getUserById(Long userId) {
+    public UserVO getUserVOById(Long userId) {
         User user = userMapper.selectById(userId);
         if (user == null) {
             return null;
@@ -246,5 +249,150 @@ public class UserServiceImpl implements UserService {
     @Override
     public Boolean checkEmailExists(String email) {
         return userMapper.selectByEmail(email) != null;
+    }
+    
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Long registerByCode(RegisterByCodeRequest request) {
+        // 检查账号是否已存在
+        if ("phone".equals(request.getAccountType())) {
+            if (checkPhoneExists(request.getAccount())) {
+                throw new RuntimeException("该手机号已被注册");
+            }
+        } else if ("email".equals(request.getAccountType())) {
+            if (checkEmailExists(request.getAccount())) {
+                throw new RuntimeException("该邮箱已被注册");
+            }
+        }
+        
+        // 生成默认用户名
+        String defaultUsername = generateDefaultUsername(request.getNickname());
+        
+        // 创建用户
+        User user = new User();
+        user.setId(IdGenerator.nextId());
+        user.setUsername(defaultUsername);
+        user.setNickname(StrUtil.isBlank(request.getNickname()) ? defaultUsername : request.getNickname());
+        
+        // 设置手机号或邮箱
+        if ("phone".equals(request.getAccountType())) {
+            user.setPhone(request.getAccount());
+        } else if ("email".equals(request.getAccountType())) {
+            user.setEmail(request.getAccount());
+        }
+        
+        // 初始密码为空，需要用户后续设置
+        user.setPassword(null);
+        user.setRegisterTime(new Date());
+        user.setStatus(1);
+        user.setVipLevel(0);
+        user.setCreateBy(defaultUsername);
+        user.setUpdateBy(defaultUsername);
+        
+        userMapper.insert(user);
+        
+        // 初始化用户统计数据
+        UserStats userStats = new UserStats();
+        userStats.setId(IdGenerator.nextId());
+        userStats.setUserId(user.getId());
+        userStats.setTotalMerit(0L);
+        userStats.setMeritCoins(0L);
+        userStats.setTotalKnocks(0L);
+        userStats.setCurrentLevel(1);
+        userStats.setCreateBy(defaultUsername);
+        userStats.setUpdateBy(defaultUsername);
+        userStatsMapper.insert(userStats);
+        
+        return user.getId();
+    }
+    
+    @Override
+    public User getUserByPhone(String phone) {
+        LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(User::getPhone, phone);
+        return userMapper.selectOne(queryWrapper);
+    }
+    
+    @Override
+    public User getUserByEmail(String email) {
+        LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(User::getEmail, email);
+        return userMapper.selectOne(queryWrapper);
+    }
+    
+    @Override
+    public User getUserById(Long userId) {
+        return userMapper.selectById(userId);
+    }
+    
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Boolean setPassword(Long userId, String password) {
+        User user = userMapper.selectById(userId);
+        if (user == null) {
+            throw new RuntimeException("用户不存在");
+        }
+        
+        // 使用MD5加密密码（与原有系统保持一致）
+        user.setPassword(DigestUtils.md5DigestAsHex(password.getBytes()));
+        user.setUpdateTime(new Date());
+        
+        return userMapper.updateById(user) > 0;
+    }
+    
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Boolean updateAvatar(Long userId, String avatarUrl) {
+        User user = userMapper.selectById(userId);
+        if (user == null) {
+            throw new RuntimeException("用户不存在");
+        }
+        
+        user.setAvatarUrl(avatarUrl);
+        user.setUpdateTime(new Date());
+        
+        return userMapper.updateById(user) > 0;
+    }
+    
+    /**
+     * 生成默认用户名
+     * 格式：nickName + 3位随机数
+     */
+    private String generateDefaultUsername(String nickname) {
+        String baseUsername = StrUtil.isBlank(nickname) ? "user" : nickname;
+        
+        // 移除特殊字符，只保留字母和数字
+        baseUsername = baseUsername.replaceAll("[^a-zA-Z0-9]", "");
+        
+        // 如果处理后为空，使用默认值
+        if (StrUtil.isBlank(baseUsername)) {
+            baseUsername = "user";
+        }
+        
+        // 限制长度
+        if (baseUsername.length() > 17) {
+            baseUsername = baseUsername.substring(0, 17);
+        }
+        
+        // 生成3位随机数
+        Random random = new Random();
+        int randomNum = random.nextInt(900) + 100; // 100-999
+        
+        String username = baseUsername + randomNum;
+        
+        // 检查用户名是否存在，如果存在则重新生成
+        int retryCount = 0;
+        while (checkUsernameExists(username) && retryCount < 10) {
+            randomNum = random.nextInt(900) + 100;
+            username = baseUsername + randomNum;
+            retryCount++;
+        }
+        
+        // 如果重试10次后仍然存在，使用时间戳
+        if (checkUsernameExists(username)) {
+            username = baseUsername + System.currentTimeMillis() % 1000;
+        }
+        
+        return username;
     }
 }
