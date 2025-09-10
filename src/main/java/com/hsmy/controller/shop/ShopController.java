@@ -1,8 +1,11 @@
 package com.hsmy.controller.shop;
 
+import com.hsmy.annotation.ApiVersion;
 import com.hsmy.common.Result;
+import com.hsmy.constant.ApiVersionConstant;
 import com.hsmy.entity.Item;
 import com.hsmy.service.ItemService;
+import com.hsmy.utils.UserContextUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,6 +22,7 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping("/shop")
+@ApiVersion(ApiVersionConstant.V1_0)
 @RequiredArgsConstructor
 public class ShopController {
     
@@ -98,8 +102,7 @@ public class ShopController {
                                                    @RequestParam(defaultValue = "1") Integer quantity,
                                                    HttpServletRequest request) {
         try {
-            // TODO: 从token获取用户ID
-            Long userId = 1L; // 临时硬编码
+            Long userId = UserContextUtil.requireCurrentUserId();
             
             // 检查道具是否可购买
             if (!itemService.checkItemAvailable(itemId, quantity)) {

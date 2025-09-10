@@ -1,7 +1,9 @@
 package com.hsmy.controller.user;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.hsmy.annotation.ApiVersion;
 import com.hsmy.common.Result;
+import com.hsmy.constant.ApiVersionConstant;
 import com.hsmy.service.UserService;
 import com.hsmy.vo.*;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
  */
 //@RestController
 //@RequestMapping("/api/auth")
+@ApiVersion(ApiVersionConstant.V1_0)
 @RequiredArgsConstructor
 public class UserController {
     

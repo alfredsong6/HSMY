@@ -1,8 +1,11 @@
 package com.hsmy.controller.user;
 
+import com.hsmy.annotation.ApiVersion;
 import com.hsmy.common.Result;
+import com.hsmy.constant.ApiVersionConstant;
 import com.hsmy.entity.UserItem;
 import com.hsmy.service.UserItemService;
+import com.hsmy.utils.UserContextUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,6 +22,7 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping("/user")
+@ApiVersion(ApiVersionConstant.V1_0)
 @RequiredArgsConstructor
 public class UserItemController {
     
@@ -35,8 +39,7 @@ public class UserItemController {
     public Result<List<UserItem>> getUserItems(@RequestParam(required = false) String itemType,
                                               HttpServletRequest request) {
         try {
-            // TODO: 从token获取用户ID
-            Long userId = 1L; // 临时硬编码
+            Long userId = UserContextUtil.requireCurrentUserId();
             
             List<UserItem> userItems;
             if (itemType != null) {
@@ -60,8 +63,7 @@ public class UserItemController {
     @GetMapping("/items/equipped")
     public Result<List<UserItem>> getEquippedItems(HttpServletRequest request) {
         try {
-            // TODO: 从token获取用户ID
-            Long userId = 1L; // 临时硬编码
+            Long userId = UserContextUtil.requireCurrentUserId();
             
             List<UserItem> equippedItems = userItemService.getEquippedItems(userId);
             return Result.success(equippedItems);
@@ -81,8 +83,7 @@ public class UserItemController {
     public Result<Map<String, Object>> equipItem(@RequestParam Long itemId,
                                                 HttpServletRequest request) {
         try {
-            // TODO: 从token获取用户ID
-            Long userId = 1L; // 临时硬编码
+            Long userId = UserContextUtil.requireCurrentUserId();
             
             boolean success = userItemService.equipItem(userId, itemId);
             if (success) {
@@ -110,8 +111,7 @@ public class UserItemController {
     public Result<Map<String, Object>> unequipItem(@RequestParam Long itemId,
                                                   HttpServletRequest request) {
         try {
-            // TODO: 从token获取用户ID
-            Long userId = 1L; // 临时硬编码
+            Long userId = UserContextUtil.requireCurrentUserId();
             
             boolean success = userItemService.unequipItem(userId, itemId);
             if (success) {

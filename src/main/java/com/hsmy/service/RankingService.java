@@ -66,6 +66,22 @@ public interface RankingService {
     Ranking getUserTodayRanking(Long userId);
     
     /**
+     * 获取用户本周排名
+     * 
+     * @param userId 用户ID
+     * @return 用户排名信息
+     */
+    Ranking getUserWeeklyRanking(Long userId);
+    
+    /**
+     * 获取用户总榜排名
+     * 
+     * @param userId 用户ID
+     * @return 用户排名信息
+     */
+    Ranking getUserTotalRanking(Long userId);
+    
+    /**
      * 生成排行榜快照
      * 
      * @param rankType 榜单类型

@@ -186,6 +186,62 @@ public class MeritServiceImpl implements MeritService {
     }
     
     @Override
+    public Map<String, Object> getBalance(Long userId) {
+        Map<String, Object> balance = new HashMap<>();
+        
+        // 获取总功德值
+        Long totalMerit = getTotalMerit(userId);
+        balance.put("totalMerit", totalMerit != null ? totalMerit : 0L);
+        
+        // 获取功德币数量
+        Integer meritCoins = getMeritCoins(userId);
+        balance.put("meritCoins", meritCoins != null ? meritCoins : 0);
+        
+        // 获取今日功德
+        Long todayMerit = getTodayMerit(userId);
+        balance.put("todayMerit", todayMerit != null ? todayMerit : 0L);
+        
+        // 获取本周功德
+        Long weeklyMerit = getWeeklyMerit(userId);
+        balance.put("weeklyMerit", weeklyMerit != null ? weeklyMerit : 0L);
+        
+        // 获取本月功德
+        Long monthlyMerit = getMonthlyMerit(userId);
+        balance.put("monthlyMerit", monthlyMerit != null ? monthlyMerit : 0L);
+        
+        // 获取用户统计信息
+        UserStats userStats = userStatsMapper.selectByUserId(userId);
+        if (userStats != null) {
+            balance.put("userLevel", userStats.getCurrentLevel());
+            balance.put("totalKnocks", userStats.getTotalKnocks());
+            balance.put("continuousSignDays", userStats.getContinuousSignDays());
+        } else {
+            balance.put("userLevel", 1);
+            balance.put("totalKnocks", 0);
+            balance.put("continuousSignDays", 0);
+        }
+        
+        // 兑换比例信息
+        balance.put("exchangeRatio", "1000:1"); // 1000功德兑换1功德币
+        balance.put("minExchangeMerit", 1000); // 最小兑换功德值
+        
+        return balance;
+    }
+    
+    @Override
+    public Long getTotalMerit(Long userId) {
+        // 计算用户总功德值
+        return meritRecordMapper.sumTotalMerit(userId);
+    }
+    
+    @Override
+    public Integer getMeritCoins(Long userId) {
+        // 从用户统计表获取功德币数量
+        UserStats userStats = userStatsMapper.selectByUserId(userId);
+        return userStats != null ? userStats.getMeritCoins() : 0;
+    }
+    
+    @Override
     @Transactional(rollbackFor = Exception.class)
     public Boolean addMeritRecord(Long userId, Integer merit, String source, String description) {
         MeritRecord record = new MeritRecord();

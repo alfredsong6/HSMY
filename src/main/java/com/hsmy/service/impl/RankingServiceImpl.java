@@ -60,6 +60,18 @@ public class RankingServiceImpl implements RankingService {
     }
     
     @Override
+    public Ranking getUserWeeklyRanking(Long userId) {
+        // 获取本周一的日期作为周榜快照日期
+        LocalDate monday = LocalDate.now().with(java.time.DayOfWeek.MONDAY);
+        return getUserRanking(userId, "weekly", monday);
+    }
+    
+    @Override
+    public Ranking getUserTotalRanking(Long userId) {
+        return getUserRanking(userId, "total", LocalDate.now());
+    }
+    
+    @Override
     @Transactional(rollbackFor = Exception.class)
     public Boolean generateRankingSnapshot(String rankType, LocalDate snapshotDate) {
         try {

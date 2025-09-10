@@ -3,6 +3,7 @@ package com.hsmy.controller.user;
 import com.hsmy.common.Result;
 import com.hsmy.entity.UserSetting;
 import com.hsmy.service.UserSettingService;
+import com.hsmy.utils.UserContextUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -33,8 +34,7 @@ public class UserSettingController {
     @GetMapping
     public Result<UserSetting> getUserSettings(HttpServletRequest request) {
         try {
-            // TODO: 从token获取用户ID
-            Long userId = 1L; // 临时硬编码
+            Long userId = UserContextUtil.requireCurrentUserId();
             
             UserSetting userSetting = userSettingService.getUserSettingByUserId(userId);
             if (userSetting == null) {
@@ -60,8 +60,7 @@ public class UserSettingController {
     public Result<Map<String, Object>> updateUserSettings(@Validated @RequestBody UserSetting userSetting,
                                                           HttpServletRequest request) {
         try {
-            // TODO: 从token获取用户ID
-            Long userId = 1L; // 临时硬编码
+            Long userId = UserContextUtil.requireCurrentUserId();
             userSetting.setUserId(userId);
             
             boolean success = userSettingService.updateUserSetting(userSetting);
@@ -91,8 +90,7 @@ public class UserSettingController {
                                                            @RequestParam Integer soundVolume,
                                                            HttpServletRequest request) {
         try {
-            // TODO: 从token获取用户ID
-            Long userId = 1L; // 临时硬编码
+            Long userId = UserContextUtil.requireCurrentUserId();
             
             boolean success = userSettingService.updateSoundSetting(userId, soundEnabled, soundVolume);
             if (success) {
@@ -123,8 +121,7 @@ public class UserSettingController {
                                                               @RequestParam(required = false) String reminderTime,
                                                               HttpServletRequest request) {
         try {
-            // TODO: 从token获取用户ID
-            Long userId = 1L; // 临时硬编码
+            Long userId = UserContextUtil.requireCurrentUserId();
             
             boolean success = userSettingService.updateReminderSetting(userId, dailyReminder, reminderTime);
             if (success) {
@@ -153,8 +150,7 @@ public class UserSettingController {
     public Result<Map<String, Object>> updatePrivacySettings(@RequestParam Integer privacyMode,
                                                              HttpServletRequest request) {
         try {
-            // TODO: 从token获取用户ID
-            Long userId = 1L; // 临时硬编码
+            Long userId = UserContextUtil.requireCurrentUserId();
             
             boolean success = userSettingService.updatePrivacySetting(userId, privacyMode);
             if (success) {
@@ -180,8 +176,7 @@ public class UserSettingController {
     @PostMapping("/reset")
     public Result<Map<String, Object>> resetToDefaultSettings(HttpServletRequest request) {
         try {
-            // TODO: 从token获取用户ID
-            Long userId = 1L; // 临时硬编码
+            Long userId = UserContextUtil.requireCurrentUserId();
             
             boolean success = userSettingService.initUserDefaultSetting(userId);
             if (success) {

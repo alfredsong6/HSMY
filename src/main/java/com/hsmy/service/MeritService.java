@@ -97,6 +97,30 @@ public interface MeritService {
     Long getMonthlyMerit(Long userId);
     
     /**
+     * 获取用户余额信息
+     * 
+     * @param userId 用户ID
+     * @return 余额信息
+     */
+    Map<String, Object> getBalance(Long userId);
+    
+    /**
+     * 获取用户总功德值
+     * 
+     * @param userId 用户ID
+     * @return 总功德值
+     */
+    Long getTotalMerit(Long userId);
+    
+    /**
+     * 获取用户功德币数量
+     * 
+     * @param userId 用户ID
+     * @return 功德币数量
+     */
+    Integer getMeritCoins(Long userId);
+    
+    /**
      * 添加功德记录
      * 
      * @param userId 用户ID

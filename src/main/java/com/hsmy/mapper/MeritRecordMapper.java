@@ -54,6 +54,14 @@ public interface MeritRecordMapper extends BaseMapper<MeritRecord> {
     Long sumMonthlyMerit(@Param("userId") Long userId);
     
     /**
+     * 统计用户总功德
+     * 
+     * @param userId 用户ID
+     * @return 总功德数
+     */
+    Long sumTotalMerit(@Param("userId") Long userId);
+    
+    /**
      * 查询会话内的功德记录
      * 
      * @param sessionId 会话ID

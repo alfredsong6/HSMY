@@ -1,6 +1,8 @@
 package com.hsmy.controller.auth;
 
+import com.hsmy.annotation.ApiVersion;
 import com.hsmy.common.Result;
+import com.hsmy.constant.ApiVersionConstant;
 import com.hsmy.dto.*;
 import com.hsmy.entity.User;
 import com.hsmy.interceptor.LoginInterceptor;
@@ -26,6 +28,7 @@ import javax.servlet.http.HttpServletRequest;
 @Slf4j
 @RestController
 @RequestMapping("/auth")
+@ApiVersion(ApiVersionConstant.V1_0)
 @RequiredArgsConstructor
 public class AuthController {
     

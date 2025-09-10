@@ -1,4 +1,4 @@
-package com.hsmy.controller.merit;
+package com.hsmy.controller.merit.v1_1;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.hsmy.common.Result;
@@ -16,19 +16,25 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
- * 功德控制器
+ * 功德控制器 V1.1
+ * 
+ * 相比v1.0版本的变化：
+ * 1. 增加了更详细的余额信息返回
+ * 2. 优化了兑换接口的响应格式
+ * 3. 新增了功德统计汇总接口
  * 
  * @author HSMY
- * @date 2025/09/07
+ * @date 2025/09/10
  */
 @RestController
 @RequestMapping("/merit")
-@ApiVersion(ApiVersionConstant.V1_0)
+@ApiVersion(ApiVersionConstant.V1_1)
 @RequiredArgsConstructor
-public class MeritController {
+public class MeritControllerV1_1 {
     
     private final MeritService meritService;
     
@@ -85,16 +91,28 @@ public class MeritController {
     }
     
     /**
-     * 获取功德和功德币余额
+     * 获取功德和功德币余额（V1.1增强版）
+     * 
+     * 相比v1.0增加了更多统计信息
      * 
      * @param request HTTP请求
      * @return 余额信息
      */
-    @GetMapping("/balance")
+    @PostMapping("/balance")
     public Result<Map<String, Object>> getBalance(HttpServletRequest request) {
         try {
             Long userId = UserContextUtil.requireCurrentUserId();
-            Map<String, Object> balance = meritService.getBalance(userId);
+            
+            // V1.1版本返回更详细的余额信息
+            Map<String, Object> balance = new HashMap<>();
+            balance.put("userId", userId);
+            balance.put("totalMerit", meritService.getTotalMerit(userId));
+            balance.put("meritCoins", meritService.getMeritCoins(userId));
+            balance.put("todayMerit", meritService.getTodayMerit(userId));
+            balance.put("weeklyMerit", meritService.getWeeklyMerit(userId));
+            balance.put("monthlyMerit", meritService.getMonthlyMerit(userId));
+            balance.put("apiVersion", "v1.1");
+            
             return Result.success("查询成功", balance);
         } catch (Exception e) {
             return Result.error(e.getMessage());
@@ -102,18 +120,37 @@ public class MeritController {
     }
     
     /**
-     * 功德兑换功德币
+     * 功德兑换功德币（V1.1增强版）
+     * 
+     * 相比v1.0增加了兑换前后的余额对比
      * 
      * @param exchangeVO 兑换信息
      * @param request HTTP请求
      * @return 兑换结果
      */
     @PostMapping("/exchange")
-    public Result<Map<String, Object>> exchangeMerit(@Validated @RequestBody ExchangeVO exchangeVO, HttpServletRequest request) {
+    public Result<Map<String, Object>> exchangeMerit(@Validated @RequestBody ExchangeVO exchangeVO, 
+                                                    HttpServletRequest request) {
         try {
             Long userId = UserContextUtil.requireCurrentUserId();
             exchangeVO.setUserId(userId);
-            Map<String, Object> result = meritService.exchangeMerit(exchangeVO);
+            
+            // V1.1版本记录兑换前的余额
+            Map<String, Object> beforeBalance = new HashMap<>();
+            beforeBalance.put("totalMerit", meritService.getTotalMerit(userId));
+            beforeBalance.put("meritCoins", meritService.getMeritCoins(userId));
+            
+            Map<String, Object> exchangeResult = meritService.exchangeMerit(exchangeVO);
+            
+            // V1.1版本增加兑换前后对比
+            Map<String, Object> result = new HashMap<>(exchangeResult);
+            result.put("beforeBalance", beforeBalance);
+            Map<String, Object> afterBalance = new HashMap<>();
+            afterBalance.put("totalMerit", meritService.getTotalMerit(userId));
+            afterBalance.put("meritCoins", meritService.getMeritCoins(userId));
+            result.put("afterBalance", afterBalance);
+            result.put("apiVersion", "v1.1");
+            
             return Result.success("兑换成功", result);
         } catch (Exception e) {
             return Result.error(e.getMessage());
@@ -142,6 +179,34 @@ public class MeritController {
             Long userId = UserContextUtil.requireCurrentUserId();
             Page<MeritRecord> page = meritService.getMeritRecords(userId, startDate, endDate, pageNum, pageSize);
             return Result.success(page);
+        } catch (Exception e) {
+            return Result.error(e.getMessage());
+        }
+    }
+    
+    /**
+     * 获取功德统计汇总（V1.1新增接口）
+     * 
+     * @param request HTTP请求
+     * @return 统计信息汇总
+     */
+    @GetMapping("/summary")
+    public Result<Map<String, Object>> getMeritSummary(HttpServletRequest request) {
+        try {
+            Long userId = UserContextUtil.requireCurrentUserId();
+            
+            Map<String, Object> summary = new HashMap<>();
+            summary.put("userId", userId);
+            summary.put("totalMerit", meritService.getTotalMerit(userId));
+            summary.put("todayMerit", meritService.getTodayMerit(userId));
+            summary.put("weeklyMerit", meritService.getWeeklyMerit(userId));
+            summary.put("monthlyMerit", meritService.getMonthlyMerit(userId));
+            summary.put("meritCoins", meritService.getMeritCoins(userId));
+            summary.put("userStats", meritService.getMeritStats(userId));
+            summary.put("apiVersion", "v1.1");
+            summary.put("newFeatures", new String[]{"详细余额信息", "兑换前后对比", "统计汇总接口"});
+            
+            return Result.success("查询成功", summary);
         } catch (Exception e) {
             return Result.error(e.getMessage());
         }

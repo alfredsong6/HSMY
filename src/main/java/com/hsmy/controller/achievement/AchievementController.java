@@ -1,9 +1,12 @@
 package com.hsmy.controller.achievement;
 
+import com.hsmy.annotation.ApiVersion;
 import com.hsmy.common.Result;
+import com.hsmy.constant.ApiVersionConstant;
 import com.hsmy.entity.Achievement;
 import com.hsmy.entity.UserAchievement;
 import com.hsmy.service.AchievementService;
+import com.hsmy.utils.UserContextUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,6 +25,7 @@ import java.util.stream.Collectors;
  */
 @RestController
 @RequestMapping("/achievement")
+@ApiVersion(ApiVersionConstant.V1_0)
 @RequiredArgsConstructor
 public class AchievementController {
     
@@ -38,8 +42,7 @@ public class AchievementController {
     public Result<List<UserAchievement>> getUserAchievements(@RequestParam(required = false) String achievementType,
                                                            HttpServletRequest request) {
         try {
-            // TODO: 从token获取用户ID
-            Long userId = 1L; // 临时硬编码
+            Long userId = UserContextUtil.requireCurrentUserId();
             
             List<UserAchievement> userAchievements = achievementService.getUserAchievements(userId);
             
@@ -65,8 +68,7 @@ public class AchievementController {
     @GetMapping("/completed")
     public Result<List<UserAchievement>> getCompletedAchievements(HttpServletRequest request) {
         try {
-            // TODO: 从token获取用户ID
-            Long userId = 1L; // 临时硬编码
+            Long userId = UserContextUtil.requireCurrentUserId();
             
             List<UserAchievement> completedAchievements = achievementService.getCompletedAchievements(userId);
             return Result.success(completedAchievements);
@@ -108,8 +110,7 @@ public class AchievementController {
     public Result<Map<String, Object>> claimAchievementReward(@RequestParam Long achievementId,
                                                              HttpServletRequest request) {
         try {
-            // TODO: 从token获取用户ID
-            Long userId = 1L; // 临时硬编码
+            Long userId = UserContextUtil.requireCurrentUserId();
             
             boolean success = achievementService.claimAchievementReward(userId, achievementId);
             if (success) {
@@ -135,8 +136,7 @@ public class AchievementController {
     @GetMapping("/stats")
     public Result<Map<String, Object>> getAchievementStats(HttpServletRequest request) {
         try {
-            // TODO: 从token获取用户ID
-            Long userId = 1L; // 临时硬编码
+            Long userId = UserContextUtil.requireCurrentUserId();
             
             List<UserAchievement> allAchievements = achievementService.getUserAchievements(userId);
             List<UserAchievement> completedAchievements = achievementService.getCompletedAchievements(userId);

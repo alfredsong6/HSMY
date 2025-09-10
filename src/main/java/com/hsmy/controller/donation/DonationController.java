@@ -1,10 +1,13 @@
 package com.hsmy.controller.donation;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.hsmy.annotation.ApiVersion;
 import com.hsmy.common.Result;
+import com.hsmy.constant.ApiVersionConstant;
 import com.hsmy.entity.Donation;
 import com.hsmy.entity.DonationProject;
 import com.hsmy.service.DonationService;
+import com.hsmy.utils.UserContextUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -22,6 +25,7 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping("/donation")
+@ApiVersion(ApiVersionConstant.V1_0)
 @RequiredArgsConstructor
 public class DonationController {
     
@@ -76,8 +80,7 @@ public class DonationController {
     public Result<Map<String, Object>> makeDonation(@Validated @RequestBody DonationRequest donationRequest,
                                                    HttpServletRequest request) {
         try {
-            // TODO: 从token获取用户ID
-            Long userId = 1L; // 临时硬编码
+            Long userId = UserContextUtil.requireCurrentUserId();
             
             // 检查最低捐赠金额
             if (donationRequest.getMeritCoins() < 10) {
@@ -136,8 +139,7 @@ public class DonationController {
                                                 @RequestParam(defaultValue = "10") Integer pageSize,
                                                 HttpServletRequest request) {
         try {
-            // TODO: 从token获取用户ID
-            Long userId = 1L; // 临时硬编码
+            Long userId = UserContextUtil.requireCurrentUserId();
             
             Page<Donation> donations = donationService.getUserDonations(userId, pageNum, pageSize);
             return Result.success(donations);
@@ -173,8 +175,7 @@ public class DonationController {
     @GetMapping("/stats")
     public Result<String> getDonationStats(HttpServletRequest request) {
         try {
-            // TODO: 从token获取用户ID
-            Long userId = 1L; // 临时硬编码
+            Long userId = UserContextUtil.requireCurrentUserId();
             
             //String stats = donationService.getUserDonationStats(userId);
             return Result.success(null);

@@ -1,9 +1,12 @@
 package com.hsmy.controller.task;
 
+import com.hsmy.annotation.ApiVersion;
 import com.hsmy.common.Result;
+import com.hsmy.constant.ApiVersionConstant;
 import com.hsmy.entity.Task;
 import com.hsmy.entity.UserTask;
 import com.hsmy.service.TaskService;
+import com.hsmy.utils.UserContextUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,6 +24,7 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping("/task")
+@ApiVersion(ApiVersionConstant.V1_0)
 @RequiredArgsConstructor
 public class TaskController {
     
@@ -35,8 +39,7 @@ public class TaskController {
     @GetMapping("/daily")
     public Result<List<UserTask>> getDailyTasks(HttpServletRequest request) {
         try {
-            // TODO: 从token获取用户ID
-            Long userId = 1L; // 临时硬编码
+            Long userId = UserContextUtil.requireCurrentUserId();
             
             List<UserTask> dailyTasks = taskService.getUserTodayTasks(userId);
             return Result.success(dailyTasks);
@@ -56,8 +59,7 @@ public class TaskController {
     public Result<List<UserTask>> getUserTasks(@RequestParam(required = false) String taskType,
                                               HttpServletRequest request) {
         try {
-            // TODO: 从token获取用户ID
-            Long userId = 1L; // 临时硬编码
+            Long userId = UserContextUtil.requireCurrentUserId();
             
             List<UserTask> userTasks;
             if ("daily".equals(taskType)) {
@@ -83,8 +85,7 @@ public class TaskController {
     public Result<Map<String, Object>> claimTaskReward(@RequestParam Long taskId,
                                                       HttpServletRequest request) {
         try {
-            // TODO: 从token获取用户ID
-            Long userId = 1L; // 临时硬编码
+            Long userId = UserContextUtil.requireCurrentUserId();
             
             boolean success = taskService.claimTaskReward(userId, taskId, LocalDate.now());
             if (success) {
@@ -112,8 +113,7 @@ public class TaskController {
     public Result<Map<String, Object>> getTaskProgress(@PathVariable Long taskId,
                                                       HttpServletRequest request) {
         try {
-            // TODO: 从token获取用户ID
-            Long userId = 1L; // 临时硬编码
+            Long userId = UserContextUtil.requireCurrentUserId();
             
             List<UserTask> userTasks = taskService.getUserTodayTasks(userId);
             UserTask targetTask = userTasks.stream()
