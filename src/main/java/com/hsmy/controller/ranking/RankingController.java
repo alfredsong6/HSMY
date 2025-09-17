@@ -36,12 +36,8 @@ public class RankingController {
      */
     @GetMapping("/daily")
     public Result<List<Ranking>> getDailyRanking(@RequestParam(defaultValue = "100") Integer limit) {
-        try {
-            List<Ranking> rankings = rankingService.getTodayRanking(limit);
-            return Result.success(rankings);
-        } catch (Exception e) {
-            return Result.error(e.getMessage());
-        }
+        List<Ranking> rankings = rankingService.getTodayRanking(limit);
+        return Result.success(rankings);
     }
     
     /**
@@ -52,12 +48,8 @@ public class RankingController {
      */
     @GetMapping("/weekly")
     public Result<List<Ranking>> getWeeklyRanking(@RequestParam(defaultValue = "100") Integer limit) {
-        try {
-            List<Ranking> rankings = rankingService.getWeeklyRanking(limit);
-            return Result.success(rankings);
-        } catch (Exception e) {
-            return Result.error(e.getMessage());
-        }
+        List<Ranking> rankings = rankingService.getWeeklyRanking(limit);
+        return Result.success(rankings);
     }
     
     /**
@@ -68,12 +60,8 @@ public class RankingController {
      */
     @GetMapping("/total")
     public Result<List<Ranking>> getTotalRanking(@RequestParam(defaultValue = "100") Integer limit) {
-        try {
-            List<Ranking> rankings = rankingService.getTotalRanking(limit);
-            return Result.success(rankings);
-        } catch (Exception e) {
-            return Result.error(e.getMessage());
-        }
+        List<Ranking> rankings = rankingService.getTotalRanking(limit);
+        return Result.success(rankings);
     }
     
     /**
@@ -85,48 +73,44 @@ public class RankingController {
      */
     @GetMapping("/user/{userId}")
     public Result<Map<String, Object>> getUserRanking(@PathVariable Long userId, HttpServletRequest request) {
-        try {
-            // 1. 获取用户今日排名
-            Ranking todayRanking = rankingService.getUserTodayRanking(userId);
-            
-            // 2. 获取用户本周排名  
-            Ranking weeklyRanking = rankingService.getUserWeeklyRanking(userId);
-            
-            // 3. 获取用户总榜排名
-            Ranking totalRanking = rankingService.getUserTotalRanking(userId);
-            
-            // 4. 组装返回数据
-            Map<String, Object> result = new HashMap<>();
-            result.put("userId", userId);
-            result.put("dailyRanking", todayRanking);
-            result.put("weeklyRanking", weeklyRanking);
-            result.put("totalRanking", totalRanking);
-            
-            // 添加汇总信息
-            Map<String, Object> summary = new HashMap<>();
-            summary.put("hasDaily", todayRanking != null);
-            summary.put("hasWeekly", weeklyRanking != null);
-            summary.put("hasTotal", totalRanking != null);
-            
-            if (todayRanking != null) {
-                summary.put("todayRank", todayRanking.getRank());
-                summary.put("todayScore", todayRanking.getScore());
-            }
-            if (weeklyRanking != null) {
-                summary.put("weeklyRank", weeklyRanking.getRank());
-                summary.put("weeklyScore", weeklyRanking.getScore());
-            }
-            if (totalRanking != null) {
-                summary.put("totalRank", totalRanking.getRank());
-                summary.put("totalScore", totalRanking.getScore());
-            }
-            
-            result.put("summary", summary);
-            
-            return Result.success("查询成功", result);
-        } catch (Exception e) {
-            return Result.error(e.getMessage());
-        }
+        // 1. 获取用户今日排名
+        Ranking todayRanking = rankingService.getUserTodayRanking(userId);
+        
+        // 2. 获取用户本周排名  
+        Ranking weeklyRanking = rankingService.getUserWeeklyRanking(userId);
+        
+        // 3. 获取用户总榜排名
+        Ranking totalRanking = rankingService.getUserTotalRanking(userId);
+        
+        // 4. 组装返回数据
+        Map<String, Object> result = new HashMap<>();
+        result.put("userId", userId);
+        result.put("dailyRanking", todayRanking);
+        result.put("weeklyRanking", weeklyRanking);
+        result.put("totalRanking", totalRanking);
+        
+        // 添加汇总信息
+//            Map<String, Object> summary = new HashMap<>();
+//            summary.put("hasDaily", todayRanking != null);
+//            summary.put("hasWeekly", weeklyRanking != null);
+//            summary.put("hasTotal", totalRanking != null);
+//
+//            if (todayRanking != null) {
+//                summary.put("todayRank", todayRanking.getRank());
+//                summary.put("todayScore", todayRanking.getScore());
+//            }
+//            if (weeklyRanking != null) {
+//                summary.put("weeklyRank", weeklyRanking.getRank());
+//                summary.put("weeklyScore", weeklyRanking.getScore());
+//            }
+//            if (totalRanking != null) {
+//                summary.put("totalRank", totalRanking.getRank());
+//                summary.put("totalScore", totalRanking.getScore());
+//            }
+        
+        //result.put("summary", summary);
+        
+        return Result.success("查询成功", result);
     }
     
     /**
@@ -137,49 +121,7 @@ public class RankingController {
      */
     @GetMapping("/my")
     public Result<Map<String, Object>> getMyRanking(HttpServletRequest request) {
-        try {
-            Long userId = UserContextUtil.requireCurrentUserId();
-            
-            // 1. 获取用户今日排名
-            Ranking todayRanking = rankingService.getUserTodayRanking(userId);
-            
-            // 2. 获取用户本周排名  
-            Ranking weeklyRanking = rankingService.getUserWeeklyRanking(userId);
-            
-            // 3. 获取用户总榜排名
-            Ranking totalRanking = rankingService.getUserTotalRanking(userId);
-            
-            // 4. 组装返回数据
-            Map<String, Object> result = new HashMap<>();
-            result.put("userId", userId);
-            result.put("dailyRanking", todayRanking);
-            result.put("weeklyRanking", weeklyRanking);
-            result.put("totalRanking", totalRanking);
-            
-            // 添加汇总信息
-            Map<String, Object> summary = new HashMap<>();
-            summary.put("hasDaily", todayRanking != null);
-            summary.put("hasWeekly", weeklyRanking != null);
-            summary.put("hasTotal", totalRanking != null);
-            
-            if (todayRanking != null) {
-                summary.put("todayRank", todayRanking.getRank());
-                summary.put("todayScore", todayRanking.getScore());
-            }
-            if (weeklyRanking != null) {
-                summary.put("weeklyRank", weeklyRanking.getRank());
-                summary.put("weeklyScore", weeklyRanking.getScore());
-            }
-            if (totalRanking != null) {
-                summary.put("totalRank", totalRanking.getRank());
-                summary.put("totalScore", totalRanking.getScore());
-            }
-            
-            result.put("summary", summary);
-            
-            return Result.success("查询成功", result);
-        } catch (Exception e) {
-            return Result.error(e.getMessage());
-        }
+        Long userId = UserContextUtil.requireCurrentUserId();
+        return getUserRanking(userId, request);
     }
 }

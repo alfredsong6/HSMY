@@ -3,10 +3,12 @@ package com.hsmy.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.hsmy.dto.SmsResult;
 import com.hsmy.entity.VerificationCode;
+import com.hsmy.exception.BusinessException;
 import com.hsmy.mapper.VerificationCodeMapper;
 import com.hsmy.service.EmailService;
 import com.hsmy.service.SmsServiceFactory;
 import com.hsmy.service.VerificationCodeService;
+import com.hsmy.utils.IdGenerator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -44,7 +46,7 @@ public class VerificationCodeServiceImpl implements VerificationCodeService {
             long seconds = ChronoUnit.SECONDS.between(lastSendTime, LocalDateTime.now());
             if (seconds < MIN_SEND_INTERVAL_SECONDS) {
                 log.warn("验证码发送过于频繁，account: {}", account);
-                throw new RuntimeException("验证码发送过于频繁，请" + (MIN_SEND_INTERVAL_SECONDS - seconds) + "秒后再试");
+                throw new BusinessException("验证码发送过于频繁，请" + (MIN_SEND_INTERVAL_SECONDS - seconds) + "秒后再试");
             }
         }
         
@@ -52,7 +54,7 @@ public class VerificationCodeServiceImpl implements VerificationCodeService {
         Integer todayCount = verificationCodeMapper.getTodaySendCount(account);
         if (todayCount != null && todayCount >= MAX_DAILY_SEND_COUNT) {
             log.warn("今日验证码发送次数已达上限，account: {}", account);
-            throw new RuntimeException("今日验证码发送次数已达上限");
+            throw new BusinessException("今日验证码发送次数已达上限");
         }
         
         // 生成验证码
@@ -60,12 +62,12 @@ public class VerificationCodeServiceImpl implements VerificationCodeService {
         
         // 保存到数据库
         VerificationCode verificationCode = new VerificationCode();
+        verificationCode.setId(IdGenerator.nextId());
         verificationCode.setAccount(account);
         verificationCode.setAccountType(accountType);
         verificationCode.setCode(code);
         verificationCode.setBusinessType(businessType);
         verificationCode.setUsed(false);
-        verificationCode.setCreateTime(LocalDateTime.now());
         verificationCode.setExpireTime(LocalDateTime.now().plusMinutes(CODE_EXPIRE_MINUTES));
         verificationCode.setIpAddress(ipAddress);
         
@@ -112,6 +114,23 @@ public class VerificationCodeServiceImpl implements VerificationCodeService {
         
         VerificationCode verificationCode = verificationCodeMapper.selectOne(wrapper);
         return verificationCode != null;
+    }
+    
+    @Override
+    @Transactional
+    public boolean verify(String account, String accountType, String code, String businessType) {
+        // 验证验证码
+        boolean isValid = verifyCode(account, code, businessType);
+        
+        if (isValid) {
+            // 验证成功后标记为已使用
+            markCodeAsUsed(account, code, businessType);
+            log.info("验证码验证成功并已标记为已使用，account: {}, businessType: {}", account, businessType);
+        } else {
+            log.warn("验证码验证失败，account: {}, code: {}, businessType: {}", account, code, businessType);
+        }
+        
+        return isValid;
     }
     
     @Override

@@ -1,8 +1,7 @@
 package com.hsmy.entity;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.hsmy.common.BaseEntity;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -11,11 +10,9 @@ import java.time.LocalDateTime;
  * 验证码实体
  */
 @Data
-@TableName("verification_code")
-public class VerificationCode {
-    
-    @TableId(type = IdType.AUTO)
-    private Long id;
+@TableName("t_verification_code")
+public class VerificationCode  extends BaseEntity {
+
     
     /**
      * 手机号或邮箱
@@ -41,11 +38,6 @@ public class VerificationCode {
      * 是否已使用
      */
     private Boolean used;
-    
-    /**
-     * 创建时间
-     */
-    private LocalDateTime createTime;
     
     /**
      * 过期时间

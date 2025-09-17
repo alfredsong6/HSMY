@@ -1,0 +1,629 @@
+2025-09-17 14:55:30.805 [main] DEBUG c.h.HsmyApplication - [logStarting,56] - Running with Spring Boot v2.7.14, Spring v5.3.29
+2025-09-17 14:55:33.743 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\AchievementMapper.class]
+2025-09-17 14:55:33.744 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\DonationMapper.class]
+2025-09-17 14:55:33.744 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\DonationProjectMapper.class]
+2025-09-17 14:55:33.745 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\ExchangeRecordMapper.class]
+2025-09-17 14:55:33.745 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\ItemMapper.class]
+2025-09-17 14:55:33.745 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\MeritLevelMapper.class]
+2025-09-17 14:55:33.745 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\MeritRecordMapper.class]
+2025-09-17 14:55:33.745 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\PurchaseRecordMapper.class]
+2025-09-17 14:55:33.745 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\RankingMapper.class]
+2025-09-17 14:55:33.746 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\TaskMapper.class]
+2025-09-17 14:55:33.746 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\UserAchievementMapper.class]
+2025-09-17 14:55:33.746 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\UserItemMapper.class]
+2025-09-17 14:55:33.747 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\UserMapper.class]
+2025-09-17 14:55:33.747 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\UserSettingMapper.class]
+2025-09-17 14:55:33.747 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\UserStatsMapper.class]
+2025-09-17 14:55:33.747 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\UserTaskMapper.class]
+2025-09-17 14:55:33.747 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\VerificationCodeMapper.class]
+2025-09-17 14:55:33.748 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'achievementMapper' and 'com.hsmy.mapper.AchievementMapper' mapperInterface
+2025-09-17 14:55:33.754 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'achievementMapper'.
+2025-09-17 14:55:33.754 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'donationMapper' and 'com.hsmy.mapper.DonationMapper' mapperInterface
+2025-09-17 14:55:33.756 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'donationMapper'.
+2025-09-17 14:55:33.756 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'donationProjectMapper' and 'com.hsmy.mapper.DonationProjectMapper' mapperInterface
+2025-09-17 14:55:33.757 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'donationProjectMapper'.
+2025-09-17 14:55:33.757 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'exchangeRecordMapper' and 'com.hsmy.mapper.ExchangeRecordMapper' mapperInterface
+2025-09-17 14:55:33.758 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'exchangeRecordMapper'.
+2025-09-17 14:55:33.758 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'itemMapper' and 'com.hsmy.mapper.ItemMapper' mapperInterface
+2025-09-17 14:55:33.763 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'itemMapper'.
+2025-09-17 14:55:33.764 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'meritLevelMapper' and 'com.hsmy.mapper.MeritLevelMapper' mapperInterface
+2025-09-17 14:55:33.766 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'meritLevelMapper'.
+2025-09-17 14:55:33.766 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'meritRecordMapper' and 'com.hsmy.mapper.MeritRecordMapper' mapperInterface
+2025-09-17 14:55:33.768 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'meritRecordMapper'.
+2025-09-17 14:55:33.768 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'purchaseRecordMapper' and 'com.hsmy.mapper.PurchaseRecordMapper' mapperInterface
+2025-09-17 14:55:33.770 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'purchaseRecordMapper'.
+2025-09-17 14:55:33.770 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'rankingMapper' and 'com.hsmy.mapper.RankingMapper' mapperInterface
+2025-09-17 14:55:33.771 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'rankingMapper'.
+2025-09-17 14:55:33.771 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'taskMapper' and 'com.hsmy.mapper.TaskMapper' mapperInterface
+2025-09-17 14:55:33.773 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'taskMapper'.
+2025-09-17 14:55:33.773 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'userAchievementMapper' and 'com.hsmy.mapper.UserAchievementMapper' mapperInterface
+2025-09-17 14:55:33.773 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'userAchievementMapper'.
+2025-09-17 14:55:33.773 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'userItemMapper' and 'com.hsmy.mapper.UserItemMapper' mapperInterface
+2025-09-17 14:55:33.775 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'userItemMapper'.
+2025-09-17 14:55:33.776 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'userMapper' and 'com.hsmy.mapper.UserMapper' mapperInterface
+2025-09-17 14:55:33.777 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'userMapper'.
+2025-09-17 14:55:33.777 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'userSettingMapper' and 'com.hsmy.mapper.UserSettingMapper' mapperInterface
+2025-09-17 14:55:33.778 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'userSettingMapper'.
+2025-09-17 14:55:33.778 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'userStatsMapper' and 'com.hsmy.mapper.UserStatsMapper' mapperInterface
+2025-09-17 14:55:33.779 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'userStatsMapper'.
+2025-09-17 14:55:33.779 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'userTaskMapper' and 'com.hsmy.mapper.UserTaskMapper' mapperInterface
+2025-09-17 14:55:33.782 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'userTaskMapper'.
+2025-09-17 14:55:33.782 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'verificationCodeMapper' and 'com.hsmy.mapper.VerificationCodeMapper' mapperInterface
+2025-09-17 14:55:33.783 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'verificationCodeMapper'.
+2025-09-17 14:55:50.918 [main] DEBUG c.h.HsmyApplication - [logStarting,56] - Running with Spring Boot v2.7.14, Spring v5.3.29
+2025-09-17 14:55:52.227 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\AchievementMapper.class]
+2025-09-17 14:55:52.228 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\DonationMapper.class]
+2025-09-17 14:55:52.228 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\DonationProjectMapper.class]
+2025-09-17 14:55:52.228 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\ExchangeRecordMapper.class]
+2025-09-17 14:55:52.228 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\ItemMapper.class]
+2025-09-17 14:55:52.228 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\MeritLevelMapper.class]
+2025-09-17 14:55:52.228 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\MeritRecordMapper.class]
+2025-09-17 14:55:52.228 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\PurchaseRecordMapper.class]
+2025-09-17 14:55:52.228 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\RankingMapper.class]
+2025-09-17 14:55:52.228 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\TaskMapper.class]
+2025-09-17 14:55:52.229 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\UserAchievementMapper.class]
+2025-09-17 14:55:52.229 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\UserItemMapper.class]
+2025-09-17 14:55:52.229 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\UserMapper.class]
+2025-09-17 14:55:52.229 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\UserSettingMapper.class]
+2025-09-17 14:55:52.229 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\UserStatsMapper.class]
+2025-09-17 14:55:52.229 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\UserTaskMapper.class]
+2025-09-17 14:55:52.229 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\VerificationCodeMapper.class]
+2025-09-17 14:55:52.230 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'achievementMapper' and 'com.hsmy.mapper.AchievementMapper' mapperInterface
+2025-09-17 14:55:52.235 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'achievementMapper'.
+2025-09-17 14:55:52.236 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'donationMapper' and 'com.hsmy.mapper.DonationMapper' mapperInterface
+2025-09-17 14:55:52.237 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'donationMapper'.
+2025-09-17 14:55:52.237 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'donationProjectMapper' and 'com.hsmy.mapper.DonationProjectMapper' mapperInterface
+2025-09-17 14:55:52.238 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'donationProjectMapper'.
+2025-09-17 14:55:52.238 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'exchangeRecordMapper' and 'com.hsmy.mapper.ExchangeRecordMapper' mapperInterface
+2025-09-17 14:55:52.239 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'exchangeRecordMapper'.
+2025-09-17 14:55:52.240 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'itemMapper' and 'com.hsmy.mapper.ItemMapper' mapperInterface
+2025-09-17 14:55:52.241 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'itemMapper'.
+2025-09-17 14:55:52.241 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'meritLevelMapper' and 'com.hsmy.mapper.MeritLevelMapper' mapperInterface
+2025-09-17 14:55:52.242 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'meritLevelMapper'.
+2025-09-17 14:55:52.243 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'meritRecordMapper' and 'com.hsmy.mapper.MeritRecordMapper' mapperInterface
+2025-09-17 14:55:52.244 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'meritRecordMapper'.
+2025-09-17 14:55:52.244 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'purchaseRecordMapper' and 'com.hsmy.mapper.PurchaseRecordMapper' mapperInterface
+2025-09-17 14:55:52.245 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'purchaseRecordMapper'.
+2025-09-17 14:55:52.245 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'rankingMapper' and 'com.hsmy.mapper.RankingMapper' mapperInterface
+2025-09-17 14:55:52.247 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'rankingMapper'.
+2025-09-17 14:55:52.247 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'taskMapper' and 'com.hsmy.mapper.TaskMapper' mapperInterface
+2025-09-17 14:55:52.248 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'taskMapper'.
+2025-09-17 14:55:52.248 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'userAchievementMapper' and 'com.hsmy.mapper.UserAchievementMapper' mapperInterface
+2025-09-17 14:55:52.251 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'userAchievementMapper'.
+2025-09-17 14:55:52.251 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'userItemMapper' and 'com.hsmy.mapper.UserItemMapper' mapperInterface
+2025-09-17 14:55:52.253 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'userItemMapper'.
+2025-09-17 14:55:52.254 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'userMapper' and 'com.hsmy.mapper.UserMapper' mapperInterface
+2025-09-17 14:55:52.255 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'userMapper'.
+2025-09-17 14:55:52.255 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'userSettingMapper' and 'com.hsmy.mapper.UserSettingMapper' mapperInterface
+2025-09-17 14:55:52.256 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'userSettingMapper'.
+2025-09-17 14:55:52.256 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'userStatsMapper' and 'com.hsmy.mapper.UserStatsMapper' mapperInterface
+2025-09-17 14:55:52.259 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'userStatsMapper'.
+2025-09-17 14:55:52.259 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'userTaskMapper' and 'com.hsmy.mapper.UserTaskMapper' mapperInterface
+2025-09-17 14:55:52.260 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'userTaskMapper'.
+2025-09-17 14:55:52.260 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'verificationCodeMapper' and 'com.hsmy.mapper.VerificationCodeMapper' mapperInterface
+2025-09-17 14:55:52.262 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'verificationCodeMapper'.
+2025-09-17 14:57:32.225 [main] DEBUG c.h.HsmyApplication - [logStarting,56] - Running with Spring Boot v2.7.14, Spring v5.3.29
+2025-09-17 14:57:33.324 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\AchievementMapper.class]
+2025-09-17 14:57:33.324 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\DonationMapper.class]
+2025-09-17 14:57:33.324 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\DonationProjectMapper.class]
+2025-09-17 14:57:33.325 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\ExchangeRecordMapper.class]
+2025-09-17 14:57:33.325 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\ItemMapper.class]
+2025-09-17 14:57:33.325 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\MeritLevelMapper.class]
+2025-09-17 14:57:33.325 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\MeritRecordMapper.class]
+2025-09-17 14:57:33.325 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\PurchaseRecordMapper.class]
+2025-09-17 14:57:33.325 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\RankingMapper.class]
+2025-09-17 14:57:33.325 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\TaskMapper.class]
+2025-09-17 14:57:33.325 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\UserAchievementMapper.class]
+2025-09-17 14:57:33.325 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\UserItemMapper.class]
+2025-09-17 14:57:33.326 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\UserMapper.class]
+2025-09-17 14:57:33.326 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\UserSettingMapper.class]
+2025-09-17 14:57:33.326 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\UserStatsMapper.class]
+2025-09-17 14:57:33.326 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\UserTaskMapper.class]
+2025-09-17 14:57:33.326 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\VerificationCodeMapper.class]
+2025-09-17 14:57:33.327 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'achievementMapper' and 'com.hsmy.mapper.AchievementMapper' mapperInterface
+2025-09-17 14:57:33.332 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'achievementMapper'.
+2025-09-17 14:57:33.332 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'donationMapper' and 'com.hsmy.mapper.DonationMapper' mapperInterface
+2025-09-17 14:57:33.333 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'donationMapper'.
+2025-09-17 14:57:33.333 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'donationProjectMapper' and 'com.hsmy.mapper.DonationProjectMapper' mapperInterface
+2025-09-17 14:57:33.334 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'donationProjectMapper'.
+2025-09-17 14:57:33.334 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'exchangeRecordMapper' and 'com.hsmy.mapper.ExchangeRecordMapper' mapperInterface
+2025-09-17 14:57:33.335 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'exchangeRecordMapper'.
+2025-09-17 14:57:33.336 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'itemMapper' and 'com.hsmy.mapper.ItemMapper' mapperInterface
+2025-09-17 14:57:33.337 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'itemMapper'.
+2025-09-17 14:57:33.337 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'meritLevelMapper' and 'com.hsmy.mapper.MeritLevelMapper' mapperInterface
+2025-09-17 14:57:33.338 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'meritLevelMapper'.
+2025-09-17 14:57:33.339 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'meritRecordMapper' and 'com.hsmy.mapper.MeritRecordMapper' mapperInterface
+2025-09-17 14:57:33.340 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'meritRecordMapper'.
+2025-09-17 14:57:33.340 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'purchaseRecordMapper' and 'com.hsmy.mapper.PurchaseRecordMapper' mapperInterface
+2025-09-17 14:57:33.341 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'purchaseRecordMapper'.
+2025-09-17 14:57:33.341 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'rankingMapper' and 'com.hsmy.mapper.RankingMapper' mapperInterface
+2025-09-17 14:57:33.342 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'rankingMapper'.
+2025-09-17 14:57:33.342 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'taskMapper' and 'com.hsmy.mapper.TaskMapper' mapperInterface
+2025-09-17 14:57:33.344 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'taskMapper'.
+2025-09-17 14:57:33.344 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'userAchievementMapper' and 'com.hsmy.mapper.UserAchievementMapper' mapperInterface
+2025-09-17 14:57:33.345 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'userAchievementMapper'.
+2025-09-17 14:57:33.346 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'userItemMapper' and 'com.hsmy.mapper.UserItemMapper' mapperInterface
+2025-09-17 14:57:33.347 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'userItemMapper'.
+2025-09-17 14:57:33.347 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'userMapper' and 'com.hsmy.mapper.UserMapper' mapperInterface
+2025-09-17 14:57:33.348 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'userMapper'.
+2025-09-17 14:57:33.348 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'userSettingMapper' and 'com.hsmy.mapper.UserSettingMapper' mapperInterface
+2025-09-17 14:57:33.349 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'userSettingMapper'.
+2025-09-17 14:57:33.349 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'userStatsMapper' and 'com.hsmy.mapper.UserStatsMapper' mapperInterface
+2025-09-17 14:57:33.351 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'userStatsMapper'.
+2025-09-17 14:57:33.351 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'userTaskMapper' and 'com.hsmy.mapper.UserTaskMapper' mapperInterface
+2025-09-17 14:57:33.352 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'userTaskMapper'.
+2025-09-17 14:57:33.352 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'verificationCodeMapper' and 'com.hsmy.mapper.VerificationCodeMapper' mapperInterface
+2025-09-17 14:57:33.353 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'verificationCodeMapper'.
+2025-09-17 14:57:39.090 [main] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerAdapter - [initControllerAdviceCache,625] - ControllerAdvice beans: 0 @ModelAttribute, 0 @InitBinder, 1 RequestBodyAdvice, 1 ResponseBodyAdvice
+2025-09-17 14:58:52.706 [main] DEBUG c.h.HsmyApplication - [logStarting,56] - Running with Spring Boot v2.7.14, Spring v5.3.29
+2025-09-17 14:58:56.047 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\AchievementMapper.class]
+2025-09-17 14:58:56.048 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\DonationMapper.class]
+2025-09-17 14:58:56.048 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\DonationProjectMapper.class]
+2025-09-17 14:58:56.048 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\ExchangeRecordMapper.class]
+2025-09-17 14:58:56.048 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\ItemMapper.class]
+2025-09-17 14:58:56.049 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\MeritLevelMapper.class]
+2025-09-17 14:58:56.049 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\MeritRecordMapper.class]
+2025-09-17 14:58:56.049 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\PurchaseRecordMapper.class]
+2025-09-17 14:58:56.049 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\RankingMapper.class]
+2025-09-17 14:58:56.049 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\TaskMapper.class]
+2025-09-17 14:58:56.049 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\UserAchievementMapper.class]
+2025-09-17 14:58:56.049 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\UserItemMapper.class]
+2025-09-17 14:58:56.050 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\UserMapper.class]
+2025-09-17 14:58:56.050 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\UserSettingMapper.class]
+2025-09-17 14:58:56.050 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\UserStatsMapper.class]
+2025-09-17 14:58:56.050 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\UserTaskMapper.class]
+2025-09-17 14:58:56.051 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\VerificationCodeMapper.class]
+2025-09-17 14:58:56.052 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'achievementMapper' and 'com.hsmy.mapper.AchievementMapper' mapperInterface
+2025-09-17 14:58:56.059 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'achievementMapper'.
+2025-09-17 14:58:56.059 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'donationMapper' and 'com.hsmy.mapper.DonationMapper' mapperInterface
+2025-09-17 14:58:56.061 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'donationMapper'.
+2025-09-17 14:58:56.061 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'donationProjectMapper' and 'com.hsmy.mapper.DonationProjectMapper' mapperInterface
+2025-09-17 14:58:56.062 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'donationProjectMapper'.
+2025-09-17 14:58:56.062 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'exchangeRecordMapper' and 'com.hsmy.mapper.ExchangeRecordMapper' mapperInterface
+2025-09-17 14:58:56.063 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'exchangeRecordMapper'.
+2025-09-17 14:58:56.064 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'itemMapper' and 'com.hsmy.mapper.ItemMapper' mapperInterface
+2025-09-17 14:58:56.065 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'itemMapper'.
+2025-09-17 14:58:56.065 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'meritLevelMapper' and 'com.hsmy.mapper.MeritLevelMapper' mapperInterface
+2025-09-17 14:58:56.066 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'meritLevelMapper'.
+2025-09-17 14:58:56.066 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'meritRecordMapper' and 'com.hsmy.mapper.MeritRecordMapper' mapperInterface
+2025-09-17 14:58:56.067 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'meritRecordMapper'.
+2025-09-17 14:58:56.068 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'purchaseRecordMapper' and 'com.hsmy.mapper.PurchaseRecordMapper' mapperInterface
+2025-09-17 14:58:56.070 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'purchaseRecordMapper'.
+2025-09-17 14:58:56.070 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'rankingMapper' and 'com.hsmy.mapper.RankingMapper' mapperInterface
+2025-09-17 14:58:56.071 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'rankingMapper'.
+2025-09-17 14:58:56.072 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'taskMapper' and 'com.hsmy.mapper.TaskMapper' mapperInterface
+2025-09-17 14:58:56.073 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'taskMapper'.
+2025-09-17 14:58:56.073 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'userAchievementMapper' and 'com.hsmy.mapper.UserAchievementMapper' mapperInterface
+2025-09-17 14:58:56.074 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'userAchievementMapper'.
+2025-09-17 14:58:56.074 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'userItemMapper' and 'com.hsmy.mapper.UserItemMapper' mapperInterface
+2025-09-17 14:58:56.076 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'userItemMapper'.
+2025-09-17 14:58:56.076 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'userMapper' and 'com.hsmy.mapper.UserMapper' mapperInterface
+2025-09-17 14:58:56.077 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'userMapper'.
+2025-09-17 14:58:56.077 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'userSettingMapper' and 'com.hsmy.mapper.UserSettingMapper' mapperInterface
+2025-09-17 14:58:56.078 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'userSettingMapper'.
+2025-09-17 14:58:56.078 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'userStatsMapper' and 'com.hsmy.mapper.UserStatsMapper' mapperInterface
+2025-09-17 14:58:56.079 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'userStatsMapper'.
+2025-09-17 14:58:56.080 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'userTaskMapper' and 'com.hsmy.mapper.UserTaskMapper' mapperInterface
+2025-09-17 14:58:56.081 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'userTaskMapper'.
+2025-09-17 14:58:56.081 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'verificationCodeMapper' and 'com.hsmy.mapper.VerificationCodeMapper' mapperInterface
+2025-09-17 14:58:56.082 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'verificationCodeMapper'.
+2025-09-17 14:59:01.038 [main] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerAdapter - [initControllerAdviceCache,625] - ControllerAdvice beans: 0 @ModelAttribute, 0 @InitBinder, 1 RequestBodyAdvice, 1 ResponseBodyAdvice
+2025-09-17 15:01:02.738 [main] DEBUG c.h.HsmyApplication - [logStarting,56] - Running with Spring Boot v2.7.14, Spring v5.3.29
+2025-09-17 15:01:04.568 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\AchievementMapper.class]
+2025-09-17 15:01:04.569 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\DonationMapper.class]
+2025-09-17 15:01:04.569 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\DonationProjectMapper.class]
+2025-09-17 15:01:04.569 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\ExchangeRecordMapper.class]
+2025-09-17 15:01:04.569 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\ItemMapper.class]
+2025-09-17 15:01:04.569 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\MeritLevelMapper.class]
+2025-09-17 15:01:04.569 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\MeritRecordMapper.class]
+2025-09-17 15:01:04.569 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\PurchaseRecordMapper.class]
+2025-09-17 15:01:04.569 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\RankingMapper.class]
+2025-09-17 15:01:04.569 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\TaskMapper.class]
+2025-09-17 15:01:04.570 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\UserAchievementMapper.class]
+2025-09-17 15:01:04.570 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\UserItemMapper.class]
+2025-09-17 15:01:04.570 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\UserMapper.class]
+2025-09-17 15:01:04.570 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\UserSettingMapper.class]
+2025-09-17 15:01:04.570 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\UserStatsMapper.class]
+2025-09-17 15:01:04.570 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\UserTaskMapper.class]
+2025-09-17 15:01:04.570 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\VerificationCodeMapper.class]
+2025-09-17 15:01:04.571 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'achievementMapper' and 'com.hsmy.mapper.AchievementMapper' mapperInterface
+2025-09-17 15:01:04.576 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'achievementMapper'.
+2025-09-17 15:01:04.577 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'donationMapper' and 'com.hsmy.mapper.DonationMapper' mapperInterface
+2025-09-17 15:01:04.578 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'donationMapper'.
+2025-09-17 15:01:04.578 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'donationProjectMapper' and 'com.hsmy.mapper.DonationProjectMapper' mapperInterface
+2025-09-17 15:01:04.579 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'donationProjectMapper'.
+2025-09-17 15:01:04.579 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'exchangeRecordMapper' and 'com.hsmy.mapper.ExchangeRecordMapper' mapperInterface
+2025-09-17 15:01:04.579 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'exchangeRecordMapper'.
+2025-09-17 15:01:04.579 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'itemMapper' and 'com.hsmy.mapper.ItemMapper' mapperInterface
+2025-09-17 15:01:04.581 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'itemMapper'.
+2025-09-17 15:01:04.581 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'meritLevelMapper' and 'com.hsmy.mapper.MeritLevelMapper' mapperInterface
+2025-09-17 15:01:04.583 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'meritLevelMapper'.
+2025-09-17 15:01:04.583 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'meritRecordMapper' and 'com.hsmy.mapper.MeritRecordMapper' mapperInterface
+2025-09-17 15:01:04.586 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'meritRecordMapper'.
+2025-09-17 15:01:04.587 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'purchaseRecordMapper' and 'com.hsmy.mapper.PurchaseRecordMapper' mapperInterface
+2025-09-17 15:01:04.589 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'purchaseRecordMapper'.
+2025-09-17 15:01:04.589 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'rankingMapper' and 'com.hsmy.mapper.RankingMapper' mapperInterface
+2025-09-17 15:01:04.590 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'rankingMapper'.
+2025-09-17 15:01:04.591 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'taskMapper' and 'com.hsmy.mapper.TaskMapper' mapperInterface
+2025-09-17 15:01:04.592 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'taskMapper'.
+2025-09-17 15:01:04.592 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'userAchievementMapper' and 'com.hsmy.mapper.UserAchievementMapper' mapperInterface
+2025-09-17 15:01:04.593 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'userAchievementMapper'.
+2025-09-17 15:01:04.593 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'userItemMapper' and 'com.hsmy.mapper.UserItemMapper' mapperInterface
+2025-09-17 15:01:04.594 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'userItemMapper'.
+2025-09-17 15:01:04.594 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'userMapper' and 'com.hsmy.mapper.UserMapper' mapperInterface
+2025-09-17 15:01:04.596 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'userMapper'.
+2025-09-17 15:01:04.596 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'userSettingMapper' and 'com.hsmy.mapper.UserSettingMapper' mapperInterface
+2025-09-17 15:01:04.598 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'userSettingMapper'.
+2025-09-17 15:01:04.598 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'userStatsMapper' and 'com.hsmy.mapper.UserStatsMapper' mapperInterface
+2025-09-17 15:01:04.601 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'userStatsMapper'.
+2025-09-17 15:01:04.601 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'userTaskMapper' and 'com.hsmy.mapper.UserTaskMapper' mapperInterface
+2025-09-17 15:01:04.603 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'userTaskMapper'.
+2025-09-17 15:01:04.603 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'verificationCodeMapper' and 'com.hsmy.mapper.VerificationCodeMapper' mapperInterface
+2025-09-17 15:01:04.605 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'verificationCodeMapper'.
+2025-09-17 15:01:11.735 [main] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerAdapter - [initControllerAdviceCache,625] - ControllerAdvice beans: 0 @ModelAttribute, 0 @InitBinder, 1 RequestBodyAdvice, 1 ResponseBodyAdvice
+2025-09-17 15:02:40.001 [main] DEBUG c.h.HsmyApplication - [logStarting,56] - Running with Spring Boot v2.7.14, Spring v5.3.29
+2025-09-17 15:02:41.110 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\AchievementMapper.class]
+2025-09-17 15:02:41.110 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\DonationMapper.class]
+2025-09-17 15:02:41.110 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\DonationProjectMapper.class]
+2025-09-17 15:02:41.111 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\ExchangeRecordMapper.class]
+2025-09-17 15:02:41.111 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\ItemMapper.class]
+2025-09-17 15:02:41.111 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\MeritLevelMapper.class]
+2025-09-17 15:02:41.111 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\MeritRecordMapper.class]
+2025-09-17 15:02:41.111 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\PurchaseRecordMapper.class]
+2025-09-17 15:02:41.111 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\RankingMapper.class]
+2025-09-17 15:02:41.111 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\TaskMapper.class]
+2025-09-17 15:02:41.111 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\UserAchievementMapper.class]
+2025-09-17 15:02:41.112 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\UserItemMapper.class]
+2025-09-17 15:02:41.112 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\UserMapper.class]
+2025-09-17 15:02:41.112 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\UserSettingMapper.class]
+2025-09-17 15:02:41.112 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\UserStatsMapper.class]
+2025-09-17 15:02:41.112 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\UserTaskMapper.class]
+2025-09-17 15:02:41.112 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\VerificationCodeMapper.class]
+2025-09-17 15:02:41.113 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'achievementMapper' and 'com.hsmy.mapper.AchievementMapper' mapperInterface
+2025-09-17 15:02:41.118 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'achievementMapper'.
+2025-09-17 15:02:41.118 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'donationMapper' and 'com.hsmy.mapper.DonationMapper' mapperInterface
+2025-09-17 15:02:41.119 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'donationMapper'.
+2025-09-17 15:02:41.120 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'donationProjectMapper' and 'com.hsmy.mapper.DonationProjectMapper' mapperInterface
+2025-09-17 15:02:41.121 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'donationProjectMapper'.
+2025-09-17 15:02:41.121 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'exchangeRecordMapper' and 'com.hsmy.mapper.ExchangeRecordMapper' mapperInterface
+2025-09-17 15:02:41.122 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'exchangeRecordMapper'.
+2025-09-17 15:02:41.122 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'itemMapper' and 'com.hsmy.mapper.ItemMapper' mapperInterface
+2025-09-17 15:02:41.123 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'itemMapper'.
+2025-09-17 15:02:41.123 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'meritLevelMapper' and 'com.hsmy.mapper.MeritLevelMapper' mapperInterface
+2025-09-17 15:02:41.124 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'meritLevelMapper'.
+2025-09-17 15:02:41.124 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'meritRecordMapper' and 'com.hsmy.mapper.MeritRecordMapper' mapperInterface
+2025-09-17 15:02:41.125 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'meritRecordMapper'.
+2025-09-17 15:02:41.126 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'purchaseRecordMapper' and 'com.hsmy.mapper.PurchaseRecordMapper' mapperInterface
+2025-09-17 15:02:41.127 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'purchaseRecordMapper'.
+2025-09-17 15:02:41.127 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'rankingMapper' and 'com.hsmy.mapper.RankingMapper' mapperInterface
+2025-09-17 15:02:41.128 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'rankingMapper'.
+2025-09-17 15:02:41.128 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'taskMapper' and 'com.hsmy.mapper.TaskMapper' mapperInterface
+2025-09-17 15:02:41.130 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'taskMapper'.
+2025-09-17 15:02:41.130 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'userAchievementMapper' and 'com.hsmy.mapper.UserAchievementMapper' mapperInterface
+2025-09-17 15:02:41.131 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'userAchievementMapper'.
+2025-09-17 15:02:41.131 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'userItemMapper' and 'com.hsmy.mapper.UserItemMapper' mapperInterface
+2025-09-17 15:02:41.133 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'userItemMapper'.
+2025-09-17 15:02:41.133 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'userMapper' and 'com.hsmy.mapper.UserMapper' mapperInterface
+2025-09-17 15:02:41.134 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'userMapper'.
+2025-09-17 15:02:41.134 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'userSettingMapper' and 'com.hsmy.mapper.UserSettingMapper' mapperInterface
+2025-09-17 15:02:41.135 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'userSettingMapper'.
+2025-09-17 15:02:41.135 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'userStatsMapper' and 'com.hsmy.mapper.UserStatsMapper' mapperInterface
+2025-09-17 15:02:41.136 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'userStatsMapper'.
+2025-09-17 15:02:41.136 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'userTaskMapper' and 'com.hsmy.mapper.UserTaskMapper' mapperInterface
+2025-09-17 15:02:41.137 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'userTaskMapper'.
+2025-09-17 15:02:41.138 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'verificationCodeMapper' and 'com.hsmy.mapper.VerificationCodeMapper' mapperInterface
+2025-09-17 15:02:41.139 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'verificationCodeMapper'.
+2025-09-17 15:02:46.476 [main] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerAdapter - [initControllerAdviceCache,625] - ControllerAdvice beans: 0 @ModelAttribute, 0 @InitBinder, 1 RequestBodyAdvice, 1 ResponseBodyAdvice
+2025-09-17 15:03:55.233 [main] DEBUG c.h.HsmyApplication - [logStarting,56] - Running with Spring Boot v2.7.14, Spring v5.3.29
+2025-09-17 15:03:56.433 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\AchievementMapper.class]
+2025-09-17 15:03:56.433 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\DonationMapper.class]
+2025-09-17 15:03:56.433 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\DonationProjectMapper.class]
+2025-09-17 15:03:56.433 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\ExchangeRecordMapper.class]
+2025-09-17 15:03:56.433 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\ItemMapper.class]
+2025-09-17 15:03:56.434 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\MeritLevelMapper.class]
+2025-09-17 15:03:56.434 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\MeritRecordMapper.class]
+2025-09-17 15:03:56.434 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\PurchaseRecordMapper.class]
+2025-09-17 15:03:56.434 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\RankingMapper.class]
+2025-09-17 15:03:56.434 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\TaskMapper.class]
+2025-09-17 15:03:56.434 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\UserAchievementMapper.class]
+2025-09-17 15:03:56.434 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\UserItemMapper.class]
+2025-09-17 15:03:56.434 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\UserMapper.class]
+2025-09-17 15:03:56.434 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\UserSettingMapper.class]
+2025-09-17 15:03:56.434 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\UserStatsMapper.class]
+2025-09-17 15:03:56.435 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\UserTaskMapper.class]
+2025-09-17 15:03:56.435 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\VerificationCodeMapper.class]
+2025-09-17 15:03:56.437 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'achievementMapper' and 'com.hsmy.mapper.AchievementMapper' mapperInterface
+2025-09-17 15:03:56.442 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'achievementMapper'.
+2025-09-17 15:03:56.442 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'donationMapper' and 'com.hsmy.mapper.DonationMapper' mapperInterface
+2025-09-17 15:03:56.443 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'donationMapper'.
+2025-09-17 15:03:56.444 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'donationProjectMapper' and 'com.hsmy.mapper.DonationProjectMapper' mapperInterface
+2025-09-17 15:03:56.445 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'donationProjectMapper'.
+2025-09-17 15:03:56.445 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'exchangeRecordMapper' and 'com.hsmy.mapper.ExchangeRecordMapper' mapperInterface
+2025-09-17 15:03:56.446 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'exchangeRecordMapper'.
+2025-09-17 15:03:56.446 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'itemMapper' and 'com.hsmy.mapper.ItemMapper' mapperInterface
+2025-09-17 15:03:56.447 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'itemMapper'.
+2025-09-17 15:03:56.447 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'meritLevelMapper' and 'com.hsmy.mapper.MeritLevelMapper' mapperInterface
+2025-09-17 15:03:56.448 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'meritLevelMapper'.
+2025-09-17 15:03:56.449 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'meritRecordMapper' and 'com.hsmy.mapper.MeritRecordMapper' mapperInterface
+2025-09-17 15:03:56.450 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'meritRecordMapper'.
+2025-09-17 15:03:56.450 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'purchaseRecordMapper' and 'com.hsmy.mapper.PurchaseRecordMapper' mapperInterface
+2025-09-17 15:03:56.451 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'purchaseRecordMapper'.
+2025-09-17 15:03:56.451 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'rankingMapper' and 'com.hsmy.mapper.RankingMapper' mapperInterface
+2025-09-17 15:03:56.453 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'rankingMapper'.
+2025-09-17 15:03:56.453 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'taskMapper' and 'com.hsmy.mapper.TaskMapper' mapperInterface
+2025-09-17 15:03:56.455 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'taskMapper'.
+2025-09-17 15:03:56.455 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'userAchievementMapper' and 'com.hsmy.mapper.UserAchievementMapper' mapperInterface
+2025-09-17 15:03:56.456 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'userAchievementMapper'.
+2025-09-17 15:03:56.456 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'userItemMapper' and 'com.hsmy.mapper.UserItemMapper' mapperInterface
+2025-09-17 15:03:56.458 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'userItemMapper'.
+2025-09-17 15:03:56.458 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'userMapper' and 'com.hsmy.mapper.UserMapper' mapperInterface
+2025-09-17 15:03:56.459 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'userMapper'.
+2025-09-17 15:03:56.459 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'userSettingMapper' and 'com.hsmy.mapper.UserSettingMapper' mapperInterface
+2025-09-17 15:03:56.460 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'userSettingMapper'.
+2025-09-17 15:03:56.460 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'userStatsMapper' and 'com.hsmy.mapper.UserStatsMapper' mapperInterface
+2025-09-17 15:03:56.461 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'userStatsMapper'.
+2025-09-17 15:03:56.462 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'userTaskMapper' and 'com.hsmy.mapper.UserTaskMapper' mapperInterface
+2025-09-17 15:03:56.463 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'userTaskMapper'.
+2025-09-17 15:03:56.463 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'verificationCodeMapper' and 'com.hsmy.mapper.VerificationCodeMapper' mapperInterface
+2025-09-17 15:03:56.464 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'verificationCodeMapper'.
+2025-09-17 15:04:00.534 [main] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerAdapter - [initControllerAdviceCache,625] - ControllerAdvice beans: 0 @ModelAttribute, 0 @InitBinder, 1 RequestBodyAdvice, 1 ResponseBodyAdvice
+2025-09-17 15:04:00.748 [main] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - [handlerMethodsInitialized,367] - 84 mappings in 'requestMappingHandlerMapping'
+2025-09-17 15:04:00.806 [main] DEBUG o.s.w.s.h.SimpleUrlHandlerMapping - [logMappings,188] - Patterns [/webjars/**, /**, /api/file/uploads/**] in 'resourceHandlerMapping'
+2025-09-17 15:04:00.835 [main] DEBUG o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - [initExceptionHandlerAdviceCache,307] - ControllerAdvice beans: 1 @ExceptionHandler, 1 ResponseBodyAdvice
+2025-09-17 15:04:46.305 [http-nio-8080-exec-2] DEBUG o.s.w.s.DispatcherServlet - [initMultipartResolver,522] - Detected StandardServletMultipartResolver
+2025-09-17 15:04:46.305 [http-nio-8080-exec-2] DEBUG o.s.w.s.DispatcherServlet - [initLocaleResolver,546] - Detected AcceptHeaderLocaleResolver
+2025-09-17 15:04:46.305 [http-nio-8080-exec-2] DEBUG o.s.w.s.DispatcherServlet - [initThemeResolver,571] - Detected FixedThemeResolver
+2025-09-17 15:04:46.306 [http-nio-8080-exec-2] DEBUG o.s.w.s.DispatcherServlet - [initRequestToViewNameTranslator,721] - Detected org.springframework.web.servlet.view.DefaultRequestToViewNameTranslator@26865b57
+2025-09-17 15:04:46.306 [http-nio-8080-exec-2] DEBUG o.s.w.s.DispatcherServlet - [initFlashMapManager,785] - Detected org.springframework.web.servlet.support.SessionFlashMapManager@586737ff
+2025-09-17 15:04:46.307 [http-nio-8080-exec-2] DEBUG o.s.w.s.DispatcherServlet - [initServletBean,542] - enableLoggingRequestDetails='false': request parameters and headers will be masked to prevent unsafe logging of potentially sensitive data
+2025-09-17 15:04:46.336 [http-nio-8080-exec-2] DEBUG o.s.w.s.DispatcherServlet - [traceDebug,120] - POST "/api/auth/send-code", parameters={}
+2025-09-17 15:04:46.359 [http-nio-8080-exec-2] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - [getHandler,522] - Mapped to com.hsmy.controller.auth.AuthController#sendCode(SendCodeRequest, HttpServletRequest)
+2025-09-17 15:04:46.368 [http-nio-8080-exec-2] DEBUG c.h.i.LoginInterceptor - [preHandle,71] - 白名单路径放行: /auth/send-code
+2025-09-17 15:04:46.768 [http-nio-8080-exec-2] DEBUG o.s.w.s.m.m.a.RequestResponseBodyMethodProcessor - [traceDebug,120] - Read "application/json;charset=UTF-8" to [SendCodeRequest(account=17688701791, accountType=phone, businessType=register)]
+2025-09-17 15:04:47.762 [http-nio-8080-exec-2] DEBUG o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - [doResolveHandlerMethodException,416] - Using @ExceptionHandler com.hsmy.exception.GlobalExceptionHandler#handleRuntimeException(RuntimeException)
+2025-09-17 15:04:47.835 [http-nio-8080-exec-2] DEBUG o.s.w.s.m.m.a.RequestResponseBodyMethodProcessor - [writeWithMessageConverters,268] - Using 'application/json', given [*/*] and supported [application/json, application/*+json, application/json, application/*+json]
+2025-09-17 15:04:47.836 [http-nio-8080-exec-2] DEBUG o.s.w.s.m.m.a.RequestResponseBodyMethodProcessor - [traceDebug,120] - Writing [Result(code=500, message=系统内部错误，请稍后重试: Invalid bound statement (not found): com.hsmy.mapper.Verifica (truncated)...]
+2025-09-17 15:04:47.897 [http-nio-8080-exec-2] DEBUG o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - [resolveException,146] - Resolved [org.apache.ibatis.binding.BindingException: Invalid bound statement (not found): com.hsmy.mapper.VerificationCodeMapper.getLastSendTime]
+2025-09-17 15:04:47.897 [http-nio-8080-exec-2] DEBUG o.s.w.s.DispatcherServlet - [logResult,1131] - Completed 200 OK
+2025-09-17 15:13:07.923 [main] DEBUG c.h.HsmyApplication - [logStarting,56] - Running with Spring Boot v2.7.14, Spring v5.3.29
+2025-09-17 15:13:10.930 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\AchievementMapper.class]
+2025-09-17 15:13:10.930 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\DonationMapper.class]
+2025-09-17 15:13:10.930 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\DonationProjectMapper.class]
+2025-09-17 15:13:10.931 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\ExchangeRecordMapper.class]
+2025-09-17 15:13:10.931 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\ItemMapper.class]
+2025-09-17 15:13:10.931 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\MeritLevelMapper.class]
+2025-09-17 15:13:10.932 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\MeritRecordMapper.class]
+2025-09-17 15:13:10.932 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\PurchaseRecordMapper.class]
+2025-09-17 15:13:10.932 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\RankingMapper.class]
+2025-09-17 15:13:10.932 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\TaskMapper.class]
+2025-09-17 15:13:10.932 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\UserAchievementMapper.class]
+2025-09-17 15:13:10.932 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\UserItemMapper.class]
+2025-09-17 15:13:10.932 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\UserMapper.class]
+2025-09-17 15:13:10.932 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\UserSettingMapper.class]
+2025-09-17 15:13:10.932 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\UserStatsMapper.class]
+2025-09-17 15:13:10.933 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\UserTaskMapper.class]
+2025-09-17 15:13:10.933 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\VerificationCodeMapper.class]
+2025-09-17 15:13:10.935 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'achievementMapper' and 'com.hsmy.mapper.AchievementMapper' mapperInterface
+2025-09-17 15:13:10.941 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'achievementMapper'.
+2025-09-17 15:13:10.941 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'donationMapper' and 'com.hsmy.mapper.DonationMapper' mapperInterface
+2025-09-17 15:13:10.943 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'donationMapper'.
+2025-09-17 15:13:10.943 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'donationProjectMapper' and 'com.hsmy.mapper.DonationProjectMapper' mapperInterface
+2025-09-17 15:13:10.944 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'donationProjectMapper'.
+2025-09-17 15:13:10.944 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'exchangeRecordMapper' and 'com.hsmy.mapper.ExchangeRecordMapper' mapperInterface
+2025-09-17 15:13:10.946 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'exchangeRecordMapper'.
+2025-09-17 15:13:10.946 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'itemMapper' and 'com.hsmy.mapper.ItemMapper' mapperInterface
+2025-09-17 15:13:10.948 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'itemMapper'.
+2025-09-17 15:13:10.948 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'meritLevelMapper' and 'com.hsmy.mapper.MeritLevelMapper' mapperInterface
+2025-09-17 15:13:10.949 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'meritLevelMapper'.
+2025-09-17 15:13:10.950 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'meritRecordMapper' and 'com.hsmy.mapper.MeritRecordMapper' mapperInterface
+2025-09-17 15:13:10.951 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'meritRecordMapper'.
+2025-09-17 15:13:10.951 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'purchaseRecordMapper' and 'com.hsmy.mapper.PurchaseRecordMapper' mapperInterface
+2025-09-17 15:13:10.952 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'purchaseRecordMapper'.
+2025-09-17 15:13:10.953 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'rankingMapper' and 'com.hsmy.mapper.RankingMapper' mapperInterface
+2025-09-17 15:13:10.954 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'rankingMapper'.
+2025-09-17 15:13:10.954 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'taskMapper' and 'com.hsmy.mapper.TaskMapper' mapperInterface
+2025-09-17 15:13:10.956 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'taskMapper'.
+2025-09-17 15:13:10.956 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'userAchievementMapper' and 'com.hsmy.mapper.UserAchievementMapper' mapperInterface
+2025-09-17 15:13:10.957 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'userAchievementMapper'.
+2025-09-17 15:13:10.958 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'userItemMapper' and 'com.hsmy.mapper.UserItemMapper' mapperInterface
+2025-09-17 15:13:10.959 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'userItemMapper'.
+2025-09-17 15:13:10.959 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'userMapper' and 'com.hsmy.mapper.UserMapper' mapperInterface
+2025-09-17 15:13:10.960 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'userMapper'.
+2025-09-17 15:13:10.960 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'userSettingMapper' and 'com.hsmy.mapper.UserSettingMapper' mapperInterface
+2025-09-17 15:13:10.962 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'userSettingMapper'.
+2025-09-17 15:13:10.962 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'userStatsMapper' and 'com.hsmy.mapper.UserStatsMapper' mapperInterface
+2025-09-17 15:13:10.964 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'userStatsMapper'.
+2025-09-17 15:13:10.964 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'userTaskMapper' and 'com.hsmy.mapper.UserTaskMapper' mapperInterface
+2025-09-17 15:13:10.965 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'userTaskMapper'.
+2025-09-17 15:13:10.966 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'verificationCodeMapper' and 'com.hsmy.mapper.VerificationCodeMapper' mapperInterface
+2025-09-17 15:13:10.967 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'verificationCodeMapper'.
+2025-09-17 15:13:16.550 [main] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerAdapter - [initControllerAdviceCache,625] - ControllerAdvice beans: 0 @ModelAttribute, 0 @InitBinder, 1 RequestBodyAdvice, 1 ResponseBodyAdvice
+2025-09-17 15:13:16.731 [main] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - [handlerMethodsInitialized,367] - 84 mappings in 'requestMappingHandlerMapping'
+2025-09-17 15:13:16.765 [main] DEBUG o.s.w.s.h.SimpleUrlHandlerMapping - [logMappings,188] - Patterns [/webjars/**, /**, /api/file/uploads/**] in 'resourceHandlerMapping'
+2025-09-17 15:13:16.781 [main] DEBUG o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - [initExceptionHandlerAdviceCache,307] - ControllerAdvice beans: 1 @ExceptionHandler, 1 ResponseBodyAdvice
+2025-09-17 15:13:34.485 [http-nio-8080-exec-1] DEBUG o.s.w.s.DispatcherServlet - [initMultipartResolver,522] - Detected StandardServletMultipartResolver
+2025-09-17 15:13:34.485 [http-nio-8080-exec-1] DEBUG o.s.w.s.DispatcherServlet - [initLocaleResolver,546] - Detected AcceptHeaderLocaleResolver
+2025-09-17 15:13:34.485 [http-nio-8080-exec-1] DEBUG o.s.w.s.DispatcherServlet - [initThemeResolver,571] - Detected FixedThemeResolver
+2025-09-17 15:13:34.486 [http-nio-8080-exec-1] DEBUG o.s.w.s.DispatcherServlet - [initRequestToViewNameTranslator,721] - Detected org.springframework.web.servlet.view.DefaultRequestToViewNameTranslator@d13379e
+2025-09-17 15:13:34.486 [http-nio-8080-exec-1] DEBUG o.s.w.s.DispatcherServlet - [initFlashMapManager,785] - Detected org.springframework.web.servlet.support.SessionFlashMapManager@428eb3d5
+2025-09-17 15:13:34.487 [http-nio-8080-exec-1] DEBUG o.s.w.s.DispatcherServlet - [initServletBean,542] - enableLoggingRequestDetails='false': request parameters and headers will be masked to prevent unsafe logging of potentially sensitive data
+2025-09-17 15:13:34.523 [http-nio-8080-exec-1] DEBUG o.s.w.s.DispatcherServlet - [traceDebug,120] - POST "/api/auth/send-code", parameters={}
+2025-09-17 15:13:34.543 [http-nio-8080-exec-1] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - [getHandler,522] - Mapped to com.hsmy.controller.auth.AuthController#sendCode(SendCodeRequest, HttpServletRequest)
+2025-09-17 15:13:34.545 [http-nio-8080-exec-1] DEBUG c.h.i.LoginInterceptor - [preHandle,71] - 白名单路径放行: /auth/send-code
+2025-09-17 15:13:34.796 [http-nio-8080-exec-1] DEBUG o.s.w.s.m.m.a.RequestResponseBodyMethodProcessor - [traceDebug,120] - Read "application/json;charset=UTF-8" to [SendCodeRequest(account=17688701791, accountType=phone, businessType=register)]
+2025-09-17 15:13:35.657 [http-nio-8080-exec-1] DEBUG o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - [doResolveHandlerMethodException,416] - Using @ExceptionHandler com.hsmy.exception.GlobalExceptionHandler#handleRuntimeException(RuntimeException)
+2025-09-17 15:13:35.708 [http-nio-8080-exec-1] DEBUG o.s.w.s.m.m.a.RequestResponseBodyMethodProcessor - [writeWithMessageConverters,268] - Using 'application/json', given [*/*] and supported [application/json, application/*+json, application/json, application/*+json]
+2025-09-17 15:13:35.709 [http-nio-8080-exec-1] DEBUG o.s.w.s.m.m.a.RequestResponseBodyMethodProcessor - [traceDebug,120] - Writing [Result(code=500, message=系统内部错误，请稍后重试: <EOL><EOL>### Error updating database.  Cause: java.sql.SQLException: (truncated)...]
+2025-09-17 15:13:35.797 [http-nio-8080-exec-1] DEBUG o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - [resolveException,146] - Resolved [org.springframework.dao.DataIntegrityViolationException: <EOL><EOL>### Error updating database.  Cause: java.sql.SQLException: Field 'id' doesn't have a default value<EOL><EOL>### The error may exist in com/hsmy/mapper/VerificationCodeMapper.java (best guess)<EOL><EOL>### The error may involve com.hsmy.mapper.VerificationCodeMapper.insert-Inline<EOL><EOL>### The error occurred while setting parameters<EOL><EOL>### SQL: INSERT INTO t_verification_code  ( account, account_type, code, business_type, used, create_time, expire_time,  ip_address )  VALUES  ( ?, ?, ?, ?, ?, ?, ?,  ? )<EOL><EOL>### Cause: java.sql.SQLException: Field 'id' doesn't have a default value<EOL>; Field 'id' doesn't have a default value; nested exception is java.sql.SQLException: Field 'id' doesn't have a default value]
+2025-09-17 15:13:35.798 [http-nio-8080-exec-1] DEBUG o.s.w.s.DispatcherServlet - [logResult,1131] - Completed 200 OK
+2025-09-17 15:18:13.435 [main] DEBUG c.h.HsmyApplication - [logStarting,56] - Running with Spring Boot v2.7.14, Spring v5.3.29
+2025-09-17 15:18:15.193 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\AchievementMapper.class]
+2025-09-17 15:18:15.194 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\DonationMapper.class]
+2025-09-17 15:18:15.194 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\DonationProjectMapper.class]
+2025-09-17 15:18:15.194 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\ExchangeRecordMapper.class]
+2025-09-17 15:18:15.194 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\ItemMapper.class]
+2025-09-17 15:18:15.194 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\MeritLevelMapper.class]
+2025-09-17 15:18:15.194 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\MeritRecordMapper.class]
+2025-09-17 15:18:15.194 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\PurchaseRecordMapper.class]
+2025-09-17 15:18:15.195 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\RankingMapper.class]
+2025-09-17 15:18:15.195 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\TaskMapper.class]
+2025-09-17 15:18:15.195 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\UserAchievementMapper.class]
+2025-09-17 15:18:15.195 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\UserItemMapper.class]
+2025-09-17 15:18:15.195 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\UserMapper.class]
+2025-09-17 15:18:15.195 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\UserSettingMapper.class]
+2025-09-17 15:18:15.196 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\UserStatsMapper.class]
+2025-09-17 15:18:15.196 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\UserTaskMapper.class]
+2025-09-17 15:18:15.196 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\VerificationCodeMapper.class]
+2025-09-17 15:18:15.197 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'achievementMapper' and 'com.hsmy.mapper.AchievementMapper' mapperInterface
+2025-09-17 15:18:15.203 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'achievementMapper'.
+2025-09-17 15:18:15.203 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'donationMapper' and 'com.hsmy.mapper.DonationMapper' mapperInterface
+2025-09-17 15:18:15.206 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'donationMapper'.
+2025-09-17 15:18:15.206 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'donationProjectMapper' and 'com.hsmy.mapper.DonationProjectMapper' mapperInterface
+2025-09-17 15:18:15.208 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'donationProjectMapper'.
+2025-09-17 15:18:15.209 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'exchangeRecordMapper' and 'com.hsmy.mapper.ExchangeRecordMapper' mapperInterface
+2025-09-17 15:18:15.211 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'exchangeRecordMapper'.
+2025-09-17 15:18:15.211 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'itemMapper' and 'com.hsmy.mapper.ItemMapper' mapperInterface
+2025-09-17 15:18:15.216 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'itemMapper'.
+2025-09-17 15:18:15.216 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'meritLevelMapper' and 'com.hsmy.mapper.MeritLevelMapper' mapperInterface
+2025-09-17 15:18:15.218 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'meritLevelMapper'.
+2025-09-17 15:18:15.218 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'meritRecordMapper' and 'com.hsmy.mapper.MeritRecordMapper' mapperInterface
+2025-09-17 15:18:15.219 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'meritRecordMapper'.
+2025-09-17 15:18:15.220 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'purchaseRecordMapper' and 'com.hsmy.mapper.PurchaseRecordMapper' mapperInterface
+2025-09-17 15:18:15.222 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'purchaseRecordMapper'.
+2025-09-17 15:18:15.222 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'rankingMapper' and 'com.hsmy.mapper.RankingMapper' mapperInterface
+2025-09-17 15:18:15.223 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'rankingMapper'.
+2025-09-17 15:18:15.223 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'taskMapper' and 'com.hsmy.mapper.TaskMapper' mapperInterface
+2025-09-17 15:18:15.225 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'taskMapper'.
+2025-09-17 15:18:15.225 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'userAchievementMapper' and 'com.hsmy.mapper.UserAchievementMapper' mapperInterface
+2025-09-17 15:18:15.226 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'userAchievementMapper'.
+2025-09-17 15:18:15.226 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'userItemMapper' and 'com.hsmy.mapper.UserItemMapper' mapperInterface
+2025-09-17 15:18:15.228 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'userItemMapper'.
+2025-09-17 15:18:15.229 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'userMapper' and 'com.hsmy.mapper.UserMapper' mapperInterface
+2025-09-17 15:18:15.230 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'userMapper'.
+2025-09-17 15:18:15.231 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'userSettingMapper' and 'com.hsmy.mapper.UserSettingMapper' mapperInterface
+2025-09-17 15:18:15.232 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'userSettingMapper'.
+2025-09-17 15:18:15.233 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'userStatsMapper' and 'com.hsmy.mapper.UserStatsMapper' mapperInterface
+2025-09-17 15:18:15.235 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'userStatsMapper'.
+2025-09-17 15:18:15.235 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'userTaskMapper' and 'com.hsmy.mapper.UserTaskMapper' mapperInterface
+2025-09-17 15:18:15.237 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'userTaskMapper'.
+2025-09-17 15:18:15.238 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'verificationCodeMapper' and 'com.hsmy.mapper.VerificationCodeMapper' mapperInterface
+2025-09-17 15:18:15.239 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'verificationCodeMapper'.
+2025-09-17 15:18:20.958 [main] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerAdapter - [initControllerAdviceCache,625] - ControllerAdvice beans: 0 @ModelAttribute, 0 @InitBinder, 1 RequestBodyAdvice, 1 ResponseBodyAdvice
+2025-09-17 15:18:21.168 [main] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - [handlerMethodsInitialized,367] - 84 mappings in 'requestMappingHandlerMapping'
+2025-09-17 15:18:21.202 [main] DEBUG o.s.w.s.h.SimpleUrlHandlerMapping - [logMappings,188] - Patterns [/webjars/**, /**, /api/file/uploads/**] in 'resourceHandlerMapping'
+2025-09-17 15:18:21.216 [main] DEBUG o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - [initExceptionHandlerAdviceCache,307] - ControllerAdvice beans: 1 @ExceptionHandler, 1 ResponseBodyAdvice
+2025-09-17 15:18:38.455 [http-nio-8080-exec-2] DEBUG o.s.w.s.DispatcherServlet - [initMultipartResolver,522] - Detected StandardServletMultipartResolver
+2025-09-17 15:18:38.455 [http-nio-8080-exec-2] DEBUG o.s.w.s.DispatcherServlet - [initLocaleResolver,546] - Detected AcceptHeaderLocaleResolver
+2025-09-17 15:18:38.455 [http-nio-8080-exec-2] DEBUG o.s.w.s.DispatcherServlet - [initThemeResolver,571] - Detected FixedThemeResolver
+2025-09-17 15:18:38.456 [http-nio-8080-exec-2] DEBUG o.s.w.s.DispatcherServlet - [initRequestToViewNameTranslator,721] - Detected org.springframework.web.servlet.view.DefaultRequestToViewNameTranslator@45fb2354
+2025-09-17 15:18:38.456 [http-nio-8080-exec-2] DEBUG o.s.w.s.DispatcherServlet - [initFlashMapManager,785] - Detected org.springframework.web.servlet.support.SessionFlashMapManager@279c4e3b
+2025-09-17 15:18:38.456 [http-nio-8080-exec-2] DEBUG o.s.w.s.DispatcherServlet - [initServletBean,542] - enableLoggingRequestDetails='false': request parameters and headers will be masked to prevent unsafe logging of potentially sensitive data
+2025-09-17 15:18:38.484 [http-nio-8080-exec-2] DEBUG o.s.w.s.DispatcherServlet - [traceDebug,120] - POST "/api/auth/send-code", parameters={}
+2025-09-17 15:18:38.499 [http-nio-8080-exec-2] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - [getHandler,522] - Mapped to com.hsmy.controller.auth.AuthController#sendCode(SendCodeRequest, HttpServletRequest)
+2025-09-17 15:18:38.502 [http-nio-8080-exec-2] DEBUG c.h.i.LoginInterceptor - [preHandle,71] - 白名单路径放行: /auth/send-code
+2025-09-17 15:18:38.776 [http-nio-8080-exec-2] DEBUG o.s.w.s.m.m.a.RequestResponseBodyMethodProcessor - [traceDebug,120] - Read "application/json;charset=UTF-8" to [SendCodeRequest(account=17688701791, accountType=phone, businessType=register)]
+2025-09-17 15:18:41.580 [http-nio-8080-exec-2] DEBUG o.s.w.s.m.m.a.RequestResponseBodyMethodProcessor - [writeWithMessageConverters,268] - Using 'application/json', given [*/*] and supported [application/json, application/*+json, application/json, application/*+json]
+2025-09-17 15:18:41.583 [http-nio-8080-exec-2] DEBUG o.s.w.s.m.m.a.RequestResponseBodyMethodProcessor - [traceDebug,120] - Writing [Result(code=200, message=操作成功, data=验证码已发送，请查收)]
+2025-09-17 15:18:41.657 [http-nio-8080-exec-2] DEBUG o.s.w.s.DispatcherServlet - [logResult,1131] - Completed 200 OK
+2025-09-17 15:19:09.444 [http-nio-8080-exec-3] DEBUG o.s.w.s.DispatcherServlet - [traceDebug,120] - POST "/api/auth/register-by-code", parameters={}
+2025-09-17 15:19:09.445 [http-nio-8080-exec-3] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - [getHandler,522] - Mapped to com.hsmy.controller.auth.AuthController#registerByCode(RegisterByCodeRequest, HttpServletRequest)
+2025-09-17 15:19:09.445 [http-nio-8080-exec-3] DEBUG c.h.i.LoginInterceptor - [preHandle,71] - 白名单路径放行: /auth/register-by-code
+2025-09-17 15:19:09.449 [http-nio-8080-exec-3] DEBUG o.s.w.s.m.m.a.RequestResponseBodyMethodProcessor - [traceDebug,120] - Read "application/json;charset=UTF-8" to [RegisterByCodeRequest(account=17688701791, accountType=phone, code=264464, nickname=测试用户1)]
+2025-09-17 15:19:09.611 [http-nio-8080-exec-3] DEBUG o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - [doResolveHandlerMethodException,416] - Using @ExceptionHandler com.hsmy.exception.GlobalExceptionHandler#handleRuntimeException(RuntimeException)
+2025-09-17 15:19:09.612 [http-nio-8080-exec-3] DEBUG o.s.w.s.m.m.a.RequestResponseBodyMethodProcessor - [writeWithMessageConverters,268] - Using 'application/json', given [*/*] and supported [application/json, application/*+json, application/json, application/*+json]
+2025-09-17 15:19:09.612 [http-nio-8080-exec-3] DEBUG o.s.w.s.m.m.a.RequestResponseBodyMethodProcessor - [traceDebug,120] - Writing [Result(code=500, message=系统内部错误，请稍后重试, data=null)]
+2025-09-17 15:19:09.616 [http-nio-8080-exec-3] DEBUG o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - [resolveException,146] - Resolved [org.springframework.dao.DataIntegrityViolationException: <EOL><EOL>### Error updating database.  Cause: java.sql.SQLException: Field 'password' doesn't have a default value<EOL><EOL>### The error may exist in com/hsmy/mapper/UserMapper.java (best guess)<EOL><EOL>### The error may involve com.hsmy.mapper.UserMapper.insert-Inline<EOL><EOL>### The error occurred while setting parameters<EOL><EOL>### SQL: INSERT INTO t_user  ( id, username,  nickname,   phone,   register_time,  status, vip_level,  create_by, create_time, update_by, update_time, is_deleted )  VALUES  ( ?, ?,  ?,   ?,   ?,  ?, ?,  ?, ?, ?, ?, ? )<EOL><EOL>### Cause: java.sql.SQLException: Field 'password' doesn't have a default value<EOL>; Field 'password' doesn't have a default value; nested exception is java.sql.SQLException: Field 'password' doesn't have a default value]
+2025-09-17 15:19:09.617 [http-nio-8080-exec-3] DEBUG o.s.w.s.DispatcherServlet - [logResult,1131] - Completed 200 OK
+2025-09-17 15:20:39.384 [http-nio-8080-exec-8] DEBUG o.s.w.s.DispatcherServlet - [traceDebug,120] - POST "/api/auth/register-by-code", parameters={}
+2025-09-17 15:20:39.385 [http-nio-8080-exec-8] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - [getHandler,522] - Mapped to com.hsmy.controller.auth.AuthController#registerByCode(RegisterByCodeRequest, HttpServletRequest)
+2025-09-17 15:20:39.386 [http-nio-8080-exec-8] DEBUG c.h.i.LoginInterceptor - [preHandle,71] - 白名单路径放行: /auth/register-by-code
+2025-09-17 15:20:39.386 [http-nio-8080-exec-8] DEBUG o.s.w.s.m.m.a.RequestResponseBodyMethodProcessor - [traceDebug,120] - Read "application/json;charset=UTF-8" to [RegisterByCodeRequest(account=17688701791, accountType=phone, code=264464, nickname=测试用户1)]
+2025-09-17 15:20:39.566 [http-nio-8080-exec-8] DEBUG o.s.w.s.m.m.a.RequestResponseBodyMethodProcessor - [writeWithMessageConverters,268] - Using 'application/json', given [*/*] and supported [application/json, application/*+json, application/json, application/*+json]
+2025-09-17 15:20:39.566 [http-nio-8080-exec-8] DEBUG o.s.w.s.m.m.a.RequestResponseBodyMethodProcessor - [traceDebug,120] - Writing [Result(code=200, message=操作成功, data=LoginResponse(sessionId=bbfa115f2f0b4f66b49bac8c3e9dd40b_1758093 (truncated)...]
+2025-09-17 15:20:39.577 [http-nio-8080-exec-8] DEBUG o.s.w.s.DispatcherServlet - [logResult,1131] - Completed 200 OK
+2025-09-17 15:21:25.989 [http-nio-8080-exec-7] DEBUG o.s.w.s.DispatcherServlet - [traceDebug,120] - GET "/api/auth/user-info", parameters={}
+2025-09-17 15:21:25.989 [http-nio-8080-exec-7] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - [getHandler,522] - Mapped to com.hsmy.controller.auth.AuthController#getUserInfo()
+2025-09-17 15:21:26.399 [http-nio-8080-exec-7] DEBUG o.s.w.s.DispatcherServlet - [logResult,1131] - Completed 401 UNAUTHORIZED
+2025-09-17 15:22:05.976 [http-nio-8080-exec-9] DEBUG o.s.w.s.DispatcherServlet - [traceDebug,120] - GET "/api/auth/user-info", parameters={}
+2025-09-17 15:22:05.976 [http-nio-8080-exec-9] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - [getHandler,522] - Mapped to com.hsmy.controller.auth.AuthController#getUserInfo()
+2025-09-17 15:22:06.147 [http-nio-8080-exec-9] DEBUG c.h.i.LoginInterceptor - [preHandle,104] - 用户认证成功，userId: 1968213494687993856, username: 1706, token: bbfa115f2f0b4f66b49bac8c3e9dd40b_1758093639527, 请求路径: /auth/user-info, IP: 0:0:0:0:0:0:0:1
+2025-09-17 15:22:06.150 [http-nio-8080-exec-9] DEBUG o.s.w.s.m.m.a.RequestResponseBodyMethodProcessor - [writeWithMessageConverters,268] - Using 'application/json', given [*/*] and supported [application/json, application/*+json, application/json, application/*+json]
+2025-09-17 15:22:06.151 [http-nio-8080-exec-9] DEBUG o.s.w.s.m.m.a.RequestResponseBodyMethodProcessor - [traceDebug,120] - Writing [Result(code=200, message=操作成功, data=UserSessionContext(userId=1968213494687993856, username=1706, ni (truncated)...]
+2025-09-17 15:22:06.155 [http-nio-8080-exec-9] DEBUG o.s.w.s.DispatcherServlet - [logResult,1131] - Completed 200 OK
+2025-09-17 17:07:21.910 [main] DEBUG c.h.HsmyApplication - [logStarting,56] - Running with Spring Boot v2.7.14, Spring v5.3.29
+2025-09-17 17:07:25.769 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\AchievementMapper.class]
+2025-09-17 17:07:25.769 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\DonationMapper.class]
+2025-09-17 17:07:25.769 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\DonationProjectMapper.class]
+2025-09-17 17:07:25.770 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\ExchangeRecordMapper.class]
+2025-09-17 17:07:25.770 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\ItemMapper.class]
+2025-09-17 17:07:25.771 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\MeritLevelMapper.class]
+2025-09-17 17:07:25.771 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\MeritRecordMapper.class]
+2025-09-17 17:07:25.772 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\PurchaseRecordMapper.class]
+2025-09-17 17:07:25.772 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\RankingMapper.class]
+2025-09-17 17:07:25.773 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\TaskMapper.class]
+2025-09-17 17:07:25.773 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\UserAchievementMapper.class]
+2025-09-17 17:07:25.773 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\UserItemMapper.class]
+2025-09-17 17:07:25.773 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\UserMapper.class]
+2025-09-17 17:07:25.774 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\UserSettingMapper.class]
+2025-09-17 17:07:25.774 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\UserStatsMapper.class]
+2025-09-17 17:07:25.774 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\UserTaskMapper.class]
+2025-09-17 17:07:25.774 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [scanCandidateComponents,435] - Identified candidate component class: file [F:\ftxy_project\HSMY\target\classes\com\hsmy\mapper\VerificationCodeMapper.class]
+2025-09-17 17:07:25.776 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'achievementMapper' and 'com.hsmy.mapper.AchievementMapper' mapperInterface
+2025-09-17 17:07:25.782 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'achievementMapper'.
+2025-09-17 17:07:25.782 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'donationMapper' and 'com.hsmy.mapper.DonationMapper' mapperInterface
+2025-09-17 17:07:25.784 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'donationMapper'.
+2025-09-17 17:07:25.784 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'donationProjectMapper' and 'com.hsmy.mapper.DonationProjectMapper' mapperInterface
+2025-09-17 17:07:25.786 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'donationProjectMapper'.
+2025-09-17 17:07:25.787 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'exchangeRecordMapper' and 'com.hsmy.mapper.ExchangeRecordMapper' mapperInterface
+2025-09-17 17:07:25.789 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'exchangeRecordMapper'.
+2025-09-17 17:07:25.789 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'itemMapper' and 'com.hsmy.mapper.ItemMapper' mapperInterface
+2025-09-17 17:07:25.792 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'itemMapper'.
+2025-09-17 17:07:25.792 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'meritLevelMapper' and 'com.hsmy.mapper.MeritLevelMapper' mapperInterface
+2025-09-17 17:07:25.795 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'meritLevelMapper'.
+2025-09-17 17:07:25.795 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'meritRecordMapper' and 'com.hsmy.mapper.MeritRecordMapper' mapperInterface
+2025-09-17 17:07:25.797 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'meritRecordMapper'.
+2025-09-17 17:07:25.797 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'purchaseRecordMapper' and 'com.hsmy.mapper.PurchaseRecordMapper' mapperInterface
+2025-09-17 17:07:25.799 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'purchaseRecordMapper'.
+2025-09-17 17:07:25.799 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'rankingMapper' and 'com.hsmy.mapper.RankingMapper' mapperInterface
+2025-09-17 17:07:25.801 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'rankingMapper'.
+2025-09-17 17:07:25.801 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'taskMapper' and 'com.hsmy.mapper.TaskMapper' mapperInterface
+2025-09-17 17:07:25.803 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'taskMapper'.
+2025-09-17 17:07:25.804 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'userAchievementMapper' and 'com.hsmy.mapper.UserAchievementMapper' mapperInterface
+2025-09-17 17:07:25.807 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'userAchievementMapper'.
+2025-09-17 17:07:25.807 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'userItemMapper' and 'com.hsmy.mapper.UserItemMapper' mapperInterface
+2025-09-17 17:07:25.810 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'userItemMapper'.
+2025-09-17 17:07:25.810 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'userMapper' and 'com.hsmy.mapper.UserMapper' mapperInterface
+2025-09-17 17:07:25.812 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'userMapper'.
+2025-09-17 17:07:25.813 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'userSettingMapper' and 'com.hsmy.mapper.UserSettingMapper' mapperInterface
+2025-09-17 17:07:25.816 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'userSettingMapper'.
+2025-09-17 17:07:25.816 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'userStatsMapper' and 'com.hsmy.mapper.UserStatsMapper' mapperInterface
+2025-09-17 17:07:25.819 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'userStatsMapper'.
+2025-09-17 17:07:25.819 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'userTaskMapper' and 'com.hsmy.mapper.UserTaskMapper' mapperInterface
+2025-09-17 17:07:25.824 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'userTaskMapper'.
+2025-09-17 17:07:25.824 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Creating MapperFactoryBean with name 'verificationCodeMapper' and 'com.hsmy.mapper.VerificationCodeMapper' mapperInterface
+2025-09-17 17:07:25.827 [main] DEBUG o.m.s.m.ClassPathMapperScanner - [debug,49] - Enabling autowire by type for MapperFactoryBean with name 'verificationCodeMapper'.
+2025-09-17 17:07:32.959 [main] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerAdapter - [initControllerAdviceCache,625] - ControllerAdvice beans: 0 @ModelAttribute, 0 @InitBinder, 1 RequestBodyAdvice, 1 ResponseBodyAdvice
+2025-09-17 17:07:33.207 [main] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - [handlerMethodsInitialized,367] - 84 mappings in 'requestMappingHandlerMapping'
+2025-09-17 17:07:33.250 [main] DEBUG o.s.w.s.h.SimpleUrlHandlerMapping - [logMappings,188] - Patterns [/webjars/**, /**, /api/file/uploads/**] in 'resourceHandlerMapping'
+2025-09-17 17:07:33.269 [main] DEBUG o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - [initExceptionHandlerAdviceCache,307] - ControllerAdvice beans: 1 @ExceptionHandler, 1 ResponseBodyAdvice
+2025-09-17 17:08:11.690 [http-nio-8080-exec-2] DEBUG o.s.w.s.DispatcherServlet - [initMultipartResolver,522] - Detected StandardServletMultipartResolver
+2025-09-17 17:08:11.690 [http-nio-8080-exec-2] DEBUG o.s.w.s.DispatcherServlet - [initLocaleResolver,546] - Detected AcceptHeaderLocaleResolver
+2025-09-17 17:08:11.690 [http-nio-8080-exec-2] DEBUG o.s.w.s.DispatcherServlet - [initThemeResolver,571] - Detected FixedThemeResolver
+2025-09-17 17:08:11.691 [http-nio-8080-exec-2] DEBUG o.s.w.s.DispatcherServlet - [initRequestToViewNameTranslator,721] - Detected org.springframework.web.servlet.view.DefaultRequestToViewNameTranslator@45fb2354
+2025-09-17 17:08:11.691 [http-nio-8080-exec-2] DEBUG o.s.w.s.DispatcherServlet - [initFlashMapManager,785] - Detected org.springframework.web.servlet.support.SessionFlashMapManager@279c4e3b
+2025-09-17 17:08:11.692 [http-nio-8080-exec-2] DEBUG o.s.w.s.DispatcherServlet - [initServletBean,542] - enableLoggingRequestDetails='false': request parameters and headers will be masked to prevent unsafe logging of potentially sensitive data
+2025-09-17 17:08:11.733 [http-nio-8080-exec-2] DEBUG o.s.w.s.DispatcherServlet - [traceDebug,120] - POST "/api/auth/send-code", parameters={}
+2025-09-17 17:08:11.755 [http-nio-8080-exec-2] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - [getHandler,522] - Mapped to com.hsmy.controller.auth.AuthController#sendCode(SendCodeRequest, HttpServletRequest)
+2025-09-17 17:08:11.758 [http-nio-8080-exec-2] DEBUG c.h.i.LoginInterceptor - [preHandle,71] - 白名单路径放行: /auth/send-code
+2025-09-17 17:08:12.079 [http-nio-8080-exec-2] DEBUG o.s.w.s.m.m.a.RequestResponseBodyMethodProcessor - [traceDebug,120] - Read "application/json;charset=UTF-8" to [SendCodeRequest(account=17688701791, accountType=phone, businessType=register)]
+2025-09-17 17:08:12.958 [http-nio-8080-exec-2] DEBUG o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - [doResolveHandlerMethodException,416] - Using @ExceptionHandler com.hsmy.exception.GlobalExceptionHandler#handleBusinessException(BusinessException)
+2025-09-17 17:08:13.031 [http-nio-8080-exec-2] DEBUG o.s.w.s.m.m.a.RequestResponseBodyMethodProcessor - [writeWithMessageConverters,268] - Using 'application/json', given [*/*] and supported [application/json, application/*+json, application/json, application/*+json]
+2025-09-17 17:08:13.033 [http-nio-8080-exec-2] DEBUG o.s.w.s.m.m.a.RequestResponseBodyMethodProcessor - [traceDebug,120] - Writing [Result(code=500, message=该手机号已被注册, data=null)]
+2025-09-17 17:08:13.110 [http-nio-8080-exec-2] DEBUG o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - [resolveException,146] - Resolved [com.hsmy.exception.BusinessException: 该手机号已被注册]
+2025-09-17 17:08:13.112 [http-nio-8080-exec-2] DEBUG o.s.w.s.DispatcherServlet - [logResult,1131] - Completed 200 OK
+2025-09-17 17:08:21.743 [http-nio-8080-exec-3] DEBUG o.s.w.s.DispatcherServlet - [traceDebug,120] - GET "/api/auth/user-info", parameters={}
+2025-09-17 17:08:21.744 [http-nio-8080-exec-3] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - [getHandler,522] - Mapped to com.hsmy.controller.auth.AuthController#getUserInfo()
+2025-09-17 17:08:23.337 [http-nio-8080-exec-3] DEBUG c.h.i.LoginInterceptor - [preHandle,104] - 用户认证成功，userId: 1968213494687993856, username: 1706, token: bbfa115f2f0b4f66b49bac8c3e9dd40b_1758093639527, 请求路径: /auth/user-info, IP: 0:0:0:0:0:0:0:1
+2025-09-17 17:08:23.343 [http-nio-8080-exec-3] DEBUG o.s.w.s.m.m.a.RequestResponseBodyMethodProcessor - [writeWithMessageConverters,268] - Using 'application/json', given [*/*] and supported [application/json, application/*+json, application/json, application/*+json]
+2025-09-17 17:08:23.343 [http-nio-8080-exec-3] DEBUG o.s.w.s.m.m.a.RequestResponseBodyMethodProcessor - [traceDebug,120] - Writing [Result(code=200, message=操作成功, data=UserSessionContext(userId=1968213494687993856, username=1706, ni (truncated)...]
+2025-09-17 17:08:23.348 [http-nio-8080-exec-3] DEBUG o.s.w.s.DispatcherServlet - [logResult,1131] - Completed 200 OK

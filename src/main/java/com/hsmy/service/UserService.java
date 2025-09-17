@@ -181,4 +181,23 @@ public interface UserService {
      * @return 是否成功
      */
     Boolean updateAvatar(Long userId, String avatarUrl);
+    
+    /**
+     * 初始化密码（仅当用户密码为空时允许）
+     * 
+     * @param userId 用户ID
+     * @param password 新密码
+     * @return 是否成功
+     */
+    Boolean initializePassword(Long userId, String password);
+    
+    /**
+     * 通过短信验证码重置密码
+     * 
+     * @param phone 手机号
+     * @param code 验证码
+     * @param newPassword 新密码
+     * @return 是否成功
+     */
+    Boolean resetPasswordWithSms(String phone, String code, String newPassword);
 }

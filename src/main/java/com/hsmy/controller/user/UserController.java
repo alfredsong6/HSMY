@@ -211,4 +211,53 @@ public class UserController {
         // TODO: 清除Token等登出逻辑
         return Result.success("登出成功", null);
     }
+    
+    /**
+     * 初始化密码
+     * 
+     * @param initializePasswordVO 初始化密码信息
+     * @return 结果
+     */
+    @PostMapping("/initializePassword")
+    public Result<Boolean> initializePassword(@Validated @RequestBody InitializePasswordVO initializePasswordVO) {
+        // 验证两次密码是否一致
+        if (!initializePasswordVO.getPassword().equals(initializePasswordVO.getConfirmPassword())) {
+            return Result.error("两次密码输入不一致");
+        }
+        
+        try {
+            Boolean result = userService.initializePassword(
+                initializePasswordVO.getUserId(),
+                initializePasswordVO.getPassword()
+            );
+            return result ? Result.success("密码初始化成功", true) : Result.error("密码初始化失败");
+        } catch (Exception e) {
+            return Result.error(e.getMessage());
+        }
+    }
+    
+    /**
+     * 通过短信验证码重置密码
+     * 
+     * @param resetPasswordVO 重置密码信息
+     * @return 结果
+     */
+    @PostMapping("/resetPasswordWithSms")
+    public Result<Boolean> resetPasswordWithSms(@Validated @RequestBody ResetPasswordWithSmsVO resetPasswordVO) {
+        // 验证两次密码是否一致
+        if (!resetPasswordVO.getPassword().equals(resetPasswordVO.getConfirmPassword())) {
+            return Result.error("两次密码输入不一致");
+        }
+        
+        try {
+            Boolean result = userService.resetPasswordWithSms(
+                resetPasswordVO.getPhone(),
+                resetPasswordVO.getCode(),
+                resetPasswordVO.getPassword()
+            );
+            return result ? Result.success("密码重置成功", true) : Result.error("密码重置失败");
+        } catch (Exception e) {
+            return Result.error(e.getMessage());
+        }
+    }
 }

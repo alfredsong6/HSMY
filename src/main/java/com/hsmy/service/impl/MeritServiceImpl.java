@@ -1,12 +1,12 @@
 package com.hsmy.service.impl;
 
-import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.IdUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.hsmy.entity.ExchangeRecord;
 import com.hsmy.entity.MeritRecord;
 import com.hsmy.entity.UserStats;
+import com.hsmy.exception.BusinessException;
 import com.hsmy.mapper.ExchangeRecordMapper;
 import com.hsmy.mapper.MeritRecordMapper;
 import com.hsmy.mapper.UserStatsMapper;
@@ -21,7 +21,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -97,12 +96,12 @@ public class MeritServiceImpl implements MeritService {
         // 查询用户统计信息
         UserStats userStats = userStatsMapper.selectByUserId(exchangeVO.getUserId());
         if (userStats == null) {
-            throw new RuntimeException("用户统计信息不存在");
+            throw new BusinessException("用户统计信息不存在");
         }
         
         // 检查功德值是否足够
         if (userStats.getTotalMerit() < exchangeVO.getMeritAmount()) {
-            throw new RuntimeException("功德值不足");
+            throw new BusinessException("功德值不足");
         }
         
         // 计算兑换功德币（比例1000:1）
@@ -238,7 +237,7 @@ public class MeritServiceImpl implements MeritService {
     public Integer getMeritCoins(Long userId) {
         // 从用户统计表获取功德币数量
         UserStats userStats = userStatsMapper.selectByUserId(userId);
-        return userStats != null ? userStats.getMeritCoins() : 0;
+        return userStats != null ? userStats.getMeritCoins().intValue() : 0;
     }
     
     @Override

@@ -12,9 +12,19 @@ import lombok.Data;
 public class LoginResponse {
     
     /**
-     * 会话ID
+     * 会话ID（保留字段，兼容旧版本）
      */
     private String sessionId;
+    
+    /**
+     * 访问令牌
+     */
+    private String token;
+    
+    /**
+     * 令牌类型
+     */
+    private String tokenType = "Bearer";
     
     /**
      * 用户ID

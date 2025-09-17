@@ -1,0 +1,625 @@
+{
+  "info": {
+    "_postman_id": "hsmy-api-collection-v1",
+    "name": "HSMY API Collection",
+    "description": "HSMY项目接口集合 - 包含认证、用户、排行榜等核心接口",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "认证模块",
+      "item": [
+        {
+          "name": "发送验证码",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"account\": \"13800138000\",\n    \"accountType\": \"phone\",\n    \"businessType\": \"register\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/send-code",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "send-code"
+              ]
+            },
+            "description": "发送验证码接口\n\n参数说明：\n- account: 手机号或邮箱\n- accountType: phone(手机) 或 email(邮箱)\n- businessType: register(注册)、login(登录)、reset_password(重置密码)"
+          }
+        },
+        {
+          "name": "手机号验证码注册",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"account\": \"13800138000\",\n    \"accountType\": \"phone\",\n    \"code\": \"123456\",\n    \"nickname\": \"测试用户\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register-by-code",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "register-by-code"
+              ]
+            },
+            "description": "使用验证码注册新用户\n\n参数说明：\n- account: 手机号或邮箱\n- accountType: phone(手机) 或 email(邮箱)\n- code: 6位数字验证码\n- nickname: 昵称（可选）"
+          }
+        },
+        {
+          "name": "手机号密码登录",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"loginAccount\": \"13800138000\",\n    \"loginType\": \"password\",\n    \"password\": \"123456\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "description": "使用手机号和密码登录\n\n参数说明：\n- loginAccount: 用户名/手机号/邮箱\n- loginType: password(密码登录)\n- password: 用户密码"
+          }
+        },
+        {
+          "name": "手机号验证码登录",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"loginAccount\": \"13800138000\",\n    \"loginType\": \"code\",\n    \"code\": \"123456\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "description": "使用手机号和验证码登录\n\n参数说明：\n- loginAccount: 手机号\n- loginType: code(验证码登录)\n- code: 6位数字验证码"
+          }
+        },
+        {
+          "name": "获取个人信息",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Session-Id",
+                "value": "{{sessionId}}",
+                "type": "text",
+                "description": "登录后获取的sessionId"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/user-info",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "user-info"
+              ]
+            },
+            "description": "获取当前登录用户的个人信息\n\n需要在Header中传递X-Session-Id\n\n返回信息包括：\n- userId: 用户ID\n- username: 用户名\n- nickname: 昵称\n- phone: 手机号\n- email: 邮箱\n- currentLevel: 当前等级\n- meritCoins: 功德币\n- totalMerit: 总功德值\n- loginTime: 登录时间\n- lastAccessTime: 最后访问时间"
+          }
+        },
+        {
+          "name": "退出登录",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Session-Id",
+                "value": "{{sessionId}}",
+                "type": "text",
+                "description": "登录后获取的sessionId"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/logout",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "logout"
+              ]
+            },
+            "description": "退出登录，清除会话信息"
+          }
+        }
+      ]
+    },
+    {
+      "name": "排行榜模块",
+      "item": [
+        {
+          "name": "日榜",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Session-Id",
+                "value": "{{sessionId}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/rankings/daily?limit=100",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "rankings",
+                "daily"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "100",
+                  "description": "查询条数，默认100"
+                }
+              ]
+            },
+            "description": "获取今日排行榜\n\n参数：\n- limit: 查询条数（默认100）"
+          }
+        },
+        {
+          "name": "周榜",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Session-Id",
+                "value": "{{sessionId}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/rankings/weekly?limit=100",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "rankings",
+                "weekly"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "100",
+                  "description": "查询条数，默认100"
+                }
+              ]
+            },
+            "description": "获取本周排行榜\n\n参数：\n- limit: 查询条数（默认100）"
+          }
+        },
+        {
+          "name": "总榜",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Session-Id",
+                "value": "{{sessionId}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/rankings/total?limit=100",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "rankings",
+                "total"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "100",
+                  "description": "查询条数，默认100"
+                }
+              ]
+            },
+            "description": "获取总排行榜\n\n参数：\n- limit: 查询条数（默认100）"
+          }
+        },
+        {
+          "name": "我的排名",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Session-Id",
+                "value": "{{sessionId}}",
+                "type": "text",
+                "description": "必须登录后才能查看"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/rankings/my",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "rankings",
+                "my"
+              ]
+            },
+            "description": "获取当前用户的排名信息\n\n返回内容包括：\n- dailyRanking: 日榜排名信息\n- weeklyRanking: 周榜排名信息\n- totalRanking: 总榜排名信息\n- summary: 汇总信息"
+          }
+        },
+        {
+          "name": "指定用户排名",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Session-Id",
+                "value": "{{sessionId}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/rankings/user/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "rankings",
+                "user",
+                "1"
+              ]
+            },
+            "description": "获取指定用户的排名信息\n\n路径参数：\n- userId: 用户ID\n\n返回内容包括：\n- userId: 用户ID\n- dailyRanking: 日榜排名信息\n- weeklyRanking: 周榜排名信息\n- totalRanking: 总榜排名信息\n- summary: 汇总信息"
+          }
+        }
+      ]
+    },
+    {
+      "name": "功德统计模块",
+      "item": [
+        {
+          "name": "功德余额",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Session-Id",
+                "value": "{{sessionId}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"userId\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/merit/balance",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "merit",
+                "balance"
+              ]
+            },
+            "description": "查询用户功德余额"
+          }
+        },
+        {
+          "name": "功德历史记录",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Session-Id",
+                "value": "{{sessionId}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/merit/history?userId=1&page=1&pageSize=20",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "merit",
+                "history"
+              ],
+              "query": [
+                {
+                  "key": "userId",
+                  "value": "1",
+                  "description": "用户ID"
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "页码"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "20",
+                  "description": "每页数量"
+                }
+              ]
+            },
+            "description": "查询功德历史记录"
+          }
+        },
+        {
+          "name": "功德统计汇总",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Session-Id",
+                "value": "{{sessionId}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/merit/summary",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "merit",
+                "summary"
+              ]
+            },
+            "description": "获取当前用户功德统计汇总"
+          }
+        },
+        {
+          "name": "今日功德统计",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Session-Id",
+                "value": "{{sessionId}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/merit/today/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "merit",
+                "today",
+                "1"
+              ]
+            },
+            "description": "获取指定用户今日功德统计\n\n路径参数：\n- userId: 用户ID"
+          }
+        },
+        {
+          "name": "本周功德统计",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Session-Id",
+                "value": "{{sessionId}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/merit/weekly/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "merit",
+                "weekly",
+                "1"
+              ]
+            },
+            "description": "获取指定用户本周功德统计\n\n路径参数：\n- userId: 用户ID"
+          }
+        },
+        {
+          "name": "本月功德统计",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Session-Id",
+                "value": "{{sessionId}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/merit/monthly/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "merit",
+                "monthly",
+                "1"
+              ]
+            },
+            "description": "获取指定用户本月功德统计\n\n路径参数：\n- userId: 用户ID"
+          }
+        }
+      ]
+    },
+    {
+      "name": "敲木鱼模块",
+      "item": [
+        {
+          "name": "手动敲木鱼",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Session-Id",
+                "value": "{{sessionId}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"knockCount\": 1,\n    \"isCritical\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/knock/manual",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "knock",
+                "manual"
+              ]
+            },
+            "description": "手动敲木鱼获得功德\n\n参数说明：\n- knockCount: 敲击次数\n- isCritical: 是否暴击"
+          }
+        },
+        {
+          "name": "敲木鱼统计",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Session-Id",
+                "value": "{{sessionId}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/knock/stats",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "knock",
+                "stats"
+              ]
+            },
+            "description": "获取当前用户敲木鱼统计信息"
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "sessionId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "event": [
+    {
+      "listen": "test",
+      "script": {
+        "exec": [
+          "// 自动保存登录后的sessionId",
+          "if (pm.request.url.path.includes('/login') || pm.request.url.path.includes('/register-by-code')) {",
+          "    var jsonData = pm.response.json();",
+          "    if (jsonData.code === 200 && jsonData.data && jsonData.data.sessionId) {",
+          "        pm.collectionVariables.set('sessionId', jsonData.data.sessionId);",
+          "        console.log('SessionId saved: ' + jsonData.data.sessionId);",
+          "    }",
+          "}"
+        ],
+        "type": "text/javascript"
+      }
+    }
+  ]
+}

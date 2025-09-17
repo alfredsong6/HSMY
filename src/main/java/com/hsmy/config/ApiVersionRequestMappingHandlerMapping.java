@@ -2,7 +2,6 @@ package com.hsmy.config;
 
 import com.hsmy.annotation.ApiVersion;
 import org.springframework.core.annotation.AnnotationUtils;
-import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
@@ -47,9 +46,9 @@ public class ApiVersionRequestMappingHandlerMapping extends RequestMappingHandle
                     .methods(info.getMethodsCondition().getMethods().toArray(new RequestMethod[0]))
                     .params(info.getParamsCondition().getExpressions().toArray(new String[0]))
                     .headers(info.getHeadersCondition().getExpressions().toArray(new String[0]))
-                    .consumes(info.getConsumesCondition().getExpressions().toArray(new MediaType[0]))
-                    .produces(info.getProducesCondition().getExpressions().toArray(new MediaType[0]))
-                    .mappingName(info.getName())
+//                    .consumes(info.getConsumesCondition().getExpressions().toArray(new MediaType[0]))
+//                    .produces(info.getProducesCondition().getExpressions().toArray(new MediaType[0]))
+//                    .mappingName(info.getName())
                     .build();
         }
 

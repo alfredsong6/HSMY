@@ -1,0 +1,74 @@
+server:
+  port: ${SERVER_PORT:8080}
+
+spring:
+  datasource:
+    url: ${DB_URL:jdbc:mysql://prod-db.hsmy.com:3306/hsmy_db?useUnicode=true&characterEncoding=utf-8&useSSL=true&serverTimezone=GMT%2B8}
+    username: ${DB_USERNAME:hsmy_prod}
+    password: ${DB_PASSWORD:}
+    druid:
+      initial-size: 10
+      min-idle: 10
+      max-active: 50
+      max-wait: 30000
+      validation-query-timeout: 2
+  
+  redis:
+    host: ${REDIS_HOST:prod-redis.hsmy.com}
+    port: ${REDIS_PORT:6379}
+    database: ${REDIS_DATABASE:0}
+    password: ${REDIS_PASSWORD:}
+    timeout: 3000ms
+    jedis:
+      pool:
+        max-active: 32
+        max-wait: 3000ms
+        max-idle: 32
+        min-idle: 5
+
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.nologging.NoLoggingImpl
+    cache-enabled: true
+
+logging:
+  level:
+    root: warn
+    com.hsmy: info
+    org.springframework.web: warn
+    org.mybatis: warn
+  file:
+    name: logs/hsmy.log
+    max-size: 100MB
+    max-history: 30
+
+file:
+  storage:
+    type: ${FILE_STORAGE_TYPE:aliyun-oss}
+    max-file-size: 10485760
+    aliyun-oss:
+      access-key-id: ${ALIYUN_OSS_ACCESS_KEY_ID:}
+      access-key-secret: ${ALIYUN_OSS_ACCESS_KEY_SECRET:}
+      bucket-name: ${ALIYUN_OSS_BUCKET_NAME:hsmy-prod}
+      endpoint: ${ALIYUN_OSS_ENDPOINT:oss-cn-beijing.aliyuncs.com}
+      cdn-domain: ${ALIYUN_OSS_CDN_DOMAIN:https://cdn.hsmy.com}
+
+communication:
+  sms:
+    enabled: true
+    provider: ${SMS_PROVIDER:aliyun}
+    aliyun:
+      access-key-id: ${ALIYUN_SMS_ACCESS_KEY_ID:}
+      access-key-secret: ${ALIYUN_SMS_ACCESS_KEY_SECRET:}
+      sign-name: ${ALIYUN_SMS_SIGN_NAME:敲敲木鱼}
+      verification-template-id: ${ALIYUN_SMS_VERIFICATION_TEMPLATE_ID:}
+      endpoint: ${ALIYUN_SMS_ENDPOINT:dysmsapi.aliyuncs.com}
+  email:
+    enabled: true
+    host: ${EMAIL_HOST:smtp.exmail.qq.com}
+    port: ${EMAIL_PORT:465}
+    from: ${EMAIL_FROM:noreply@hsmy.com}
+    password: ${EMAIL_PASSWORD:}
+    from-name: ${EMAIL_FROM_NAME:敲敲木鱼}
+    ssl: true
+    tls: false

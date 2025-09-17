@@ -8,15 +8,18 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.hsmy.dto.RegisterByCodeRequest;
 import com.hsmy.entity.User;
 import com.hsmy.entity.UserStats;
+import com.hsmy.exception.BusinessException;
 import com.hsmy.mapper.UserMapper;
 import com.hsmy.mapper.UserStatsMapper;
 import com.hsmy.service.UserService;
+import com.hsmy.service.VerificationCodeService;
 import com.hsmy.utils.IdGenerator;
 import com.hsmy.vo.LoginVO;
 import com.hsmy.vo.RegisterVO;
 import com.hsmy.vo.UserQueryVO;
 import com.hsmy.vo.UserVO;
 import lombok.RequiredArgsConstructor;
+import org.apache.logging.log4j.util.Strings;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.DigestUtils;
@@ -36,36 +39,53 @@ public class UserServiceImpl implements UserService {
     
     private final UserMapper userMapper;
     private final UserStatsMapper userStatsMapper;
+    private final VerificationCodeService verificationCodeService;
     
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Long register(RegisterVO registerVO) {
+        // 如果用户名为空，生成随机用户名
+        String username = registerVO.getUsername();
+        if (StrUtil.isBlank(username)) {
+            // 生成随机用户名 nickname_xxxx
+            username = generateRandomUsername();
+            registerVO.setUsername(username);
+        }
+        
         // 检查用户名是否存在
-        if (checkUsernameExists(registerVO.getUsername())) {
-            throw new RuntimeException("用户名已存在");
+        if (checkUsernameExists(username)) {
+            throw new BusinessException("用户名已存在");
         }
         
         // 检查手机号是否存在
         if (StrUtil.isNotBlank(registerVO.getPhone()) && checkPhoneExists(registerVO.getPhone())) {
-            throw new RuntimeException("手机号已被注册");
+            throw new BusinessException("手机号已被注册");
         }
         
         // 检查邮箱是否存在
         if (StrUtil.isNotBlank(registerVO.getEmail()) && checkEmailExists(registerVO.getEmail())) {
-            throw new RuntimeException("邮箱已被注册");
+            throw new BusinessException("邮箱已被注册");
         }
         
         // 创建用户
         User user = new User();
         BeanUtil.copyProperties(registerVO, user);
         user.setId(IdGenerator.nextId());
-        user.setPassword(SecureUtil.md5(registerVO.getPassword()));
-        user.setNickname(StrUtil.isBlank(registerVO.getNickname()) ? registerVO.getUsername() : registerVO.getNickname());
+        
+        // 密码可以为空，如果不为空则加密
+        if (StrUtil.isNotBlank(registerVO.getPassword())) {
+            user.setPassword(SecureUtil.md5(registerVO.getPassword()));
+        } else {
+            user.setPassword(""); // 设置空密码
+        }
+        
+        // 用户名和昵称相同
+        user.setNickname(username);
         user.setRegisterTime(new Date());
         user.setStatus(1);
         user.setVipLevel(0);
-        user.setCreateBy(registerVO.getUsername());
-        user.setUpdateBy(registerVO.getUsername());
+        user.setCreateBy(username);
+        user.setUpdateBy(username);
         userMapper.insert(user);
         
         // 初始化用户统计数据
@@ -76,8 +96,8 @@ public class UserServiceImpl implements UserService {
         userStats.setMeritCoins(0L);
         userStats.setTotalKnocks(0L);
         userStats.setCurrentLevel(1);
-        userStats.setCreateBy(registerVO.getUsername());
-        userStats.setUpdateBy(registerVO.getUsername());
+        userStats.setCreateBy(username);
+        userStats.setUpdateBy(username);
         userStatsMapper.insert(userStats);
         
         return user.getId();
@@ -88,18 +108,18 @@ public class UserServiceImpl implements UserService {
         // 根据用户名查询用户
         User user = userMapper.selectByUsername(loginVO.getUsername());
         if (user == null) {
-            throw new RuntimeException("用户名或密码错误");
+            throw new BusinessException("用户名或密码错误");
         }
         
         // 验证密码
         String encryptPassword = SecureUtil.md5(loginVO.getPassword());
         if (!encryptPassword.equals(user.getPassword())) {
-            throw new RuntimeException("用户名或密码错误");
+            throw new BusinessException("用户名或密码错误");
         }
         
         // 检查用户状态
         if (user.getStatus() != 1) {
-            throw new RuntimeException("账号已被禁用或冻结");
+            throw new BusinessException("账号已被禁用或冻结");
         }
         
         // 更新最后登录时间
@@ -122,7 +142,11 @@ public class UserServiceImpl implements UserService {
         
         UserVO userVO = new UserVO();
         BeanUtil.copyProperties(user, userVO);
-        userVO.setPassword(null);
+        if (Strings.isBlank(userVO.getPassword())) {
+            userVO.setPassword("0");
+        } else {
+            user.setPassword("1");
+        }
         
         // 查询用户统计信息
         UserStats userStats = userStatsMapper.selectByUserId(userId);
@@ -181,13 +205,13 @@ public class UserServiceImpl implements UserService {
     public Boolean changePassword(Long userId, String oldPassword, String newPassword) {
         User user = userMapper.selectById(userId);
         if (user == null) {
-            throw new RuntimeException("用户不存在");
+            throw new BusinessException("用户不存在");
         }
         
         // 验证旧密码
         String encryptOldPassword = SecureUtil.md5(oldPassword);
         if (!encryptOldPassword.equals(user.getPassword())) {
-            throw new RuntimeException("原密码错误");
+            throw new BusinessException("原密码错误");
         }
         
         // 更新密码
@@ -257,11 +281,11 @@ public class UserServiceImpl implements UserService {
         // 检查账号是否已存在
         if ("phone".equals(request.getAccountType())) {
             if (checkPhoneExists(request.getAccount())) {
-                throw new RuntimeException("该手机号已被注册");
+                throw new BusinessException("该手机号已被注册");
             }
         } else if ("email".equals(request.getAccountType())) {
             if (checkEmailExists(request.getAccount())) {
-                throw new RuntimeException("该邮箱已被注册");
+                throw new BusinessException("该邮箱已被注册");
             }
         }
         
@@ -330,7 +354,7 @@ public class UserServiceImpl implements UserService {
     public Boolean setPassword(Long userId, String password) {
         User user = userMapper.selectById(userId);
         if (user == null) {
-            throw new RuntimeException("用户不存在");
+            throw new BusinessException("用户不存在");
         }
         
         // 使用MD5加密密码（与原有系统保持一致）
@@ -345,7 +369,7 @@ public class UserServiceImpl implements UserService {
     public Boolean updateAvatar(Long userId, String avatarUrl) {
         User user = userMapper.selectById(userId);
         if (user == null) {
-            throw new RuntimeException("用户不存在");
+            throw new BusinessException("用户不存在");
         }
         
         user.setAvatarUrl(avatarUrl);
@@ -394,5 +418,76 @@ public class UserServiceImpl implements UserService {
         }
         
         return username;
+    }
+    
+    /**
+     * 生成随机用户名
+     * 格式：nickname_xxxx
+     */
+    private String generateRandomUsername() {
+        String baseUsername = "nickname";
+        
+        // 生成4位随机数
+        Random random = new Random();
+        int randomNum = random.nextInt(9000) + 1000; // 1000-9999
+        
+        String username = baseUsername + "_" + randomNum;
+        
+        // 检查用户名是否存在，如果存在则重新生成
+        int retryCount = 0;
+        while (checkUsernameExists(username) && retryCount < 10) {
+            randomNum = random.nextInt(9000) + 1000;
+            username = baseUsername + "_" + randomNum;
+            retryCount++;
+        }
+        
+        // 如果重试10次后仍然存在，使用时间戳
+        if (checkUsernameExists(username)) {
+            username = baseUsername + "_" + System.currentTimeMillis() % 10000;
+        }
+        
+        return username;
+    }
+    
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Boolean initializePassword(Long userId, String password) {
+        User user = userMapper.selectById(userId);
+        if (user == null) {
+            throw new BusinessException("用户不存在");
+        }
+        
+        // 检查用户密码是否为空，只有密码为空时才允许初始化
+        if (StrUtil.isNotBlank(user.getPassword())) {
+            throw new BusinessException("用户已设置密码，无法初始化");
+        }
+        
+        // 设置密码
+        user.setPassword(SecureUtil.md5(password));
+        user.setUpdateTime(new Date());
+        
+        return userMapper.updateById(user) > 0;
+    }
+    
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Boolean resetPasswordWithSms(String phone, String code, String newPassword) {
+        // 验证短信验证码
+        boolean isValid = verificationCodeService.verify(phone, "phone", code, "reset");
+        if (!isValid) {
+            throw new BusinessException("验证码错误或已过期");
+        }
+        
+        // 根据手机号查找用户
+        User user = getUserByPhone(phone);
+        if (user == null) {
+            throw new BusinessException("该手机号未注册");
+        }
+        
+        // 重置密码
+        user.setPassword(SecureUtil.md5(newPassword));
+        user.setUpdateTime(new Date());
+        
+        return userMapper.updateById(user) > 0;
     }
 }

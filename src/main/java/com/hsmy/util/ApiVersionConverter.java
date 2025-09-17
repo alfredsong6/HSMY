@@ -1,10 +1,11 @@
 package com.hsmy.util;
 
 import com.hsmy.vo.ExchangeVO;
-import com.hsmy.vo.v1_1.ExchangeVOV1_1;
 import com.hsmy.vo.v1_1.BalanceResponseVOV1_1;
+import com.hsmy.vo.v1_1.ExchangeVOV1_1;
 import org.springframework.beans.BeanUtils;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**

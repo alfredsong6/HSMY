@@ -5,6 +5,7 @@ import com.hsmy.dto.SmsResult;
 import com.hsmy.service.SmsService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 /**
@@ -18,6 +19,9 @@ public class AliyunSmsServiceImpl implements SmsService {
     
     private final CommunicationProperties communicationProperties;
     
+    @Value("${spring.profiles.active:default}")
+    private String activeProfile;
+    
     // TODO: 需要引入阿里云短信SDK
     // import com.aliyuncs.DefaultAcsClient;
     // import com.aliyuncs.IAcsClient;
@@ -27,6 +31,12 @@ public class AliyunSmsServiceImpl implements SmsService {
     @Override
     public SmsResult sendVerificationCode(String phoneNumber, String code) {
         try {
+            // 开发环境直接输出到控制台
+            if ("dev".equals(activeProfile)) {
+                log.info("【开发环境】发送验证码到手机号: {}, 验证码: {}", phoneNumber, code);
+                return SmsResult.success("DEV_MESSAGE_ID_" + System.currentTimeMillis());
+            }
+            
             CommunicationProperties.AliyunSmsConfig smsConfig = communicationProperties.getSms().getAliyun();
             
             // 验证配置
@@ -63,7 +73,7 @@ public class AliyunSmsServiceImpl implements SmsService {
             }
             */
             
-            // 开发环境模拟发送成功
+            // 非开发环境模拟发送成功（实际应该调用阿里云SDK）
             log.info("【阿里云短信模拟】发送验证码到手机号: {}, 验证码: {}", phoneNumber, code);
             return SmsResult.success("MOCK_MESSAGE_ID_" + System.currentTimeMillis());
             

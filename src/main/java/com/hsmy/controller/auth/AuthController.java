@@ -5,6 +5,7 @@ import com.hsmy.common.Result;
 import com.hsmy.constant.ApiVersionConstant;
 import com.hsmy.dto.*;
 import com.hsmy.entity.User;
+import com.hsmy.exception.BusinessException;
 import com.hsmy.interceptor.LoginInterceptor;
 import com.hsmy.service.SessionService;
 import com.hsmy.service.UserService;
@@ -46,54 +47,46 @@ public class AuthController {
     @PostMapping("/send-code")
     public Result<String> sendCode(@RequestBody @Validated SendCodeRequest request,
                                    HttpServletRequest httpRequest) {
-        try {
-            String ipAddress = getClientIpAddress(httpRequest);
-            
-            // 验证账号格式
-            if ("phone".equals(request.getAccountType())) {
-                if (!request.getAccount().matches("^1[3-9]\\d{9}$")) {
-                    return Result.error("手机号格式不正确");
-                }
-            } else if ("email".equals(request.getAccountType())) {
-                if (!request.getAccount().matches("^[a-zA-Z0-9_-]+@[a-zA-Z0-9_-]+(\\.[a-zA-Z0-9_-]+)+$")) {
-                    return Result.error("邮箱格式不正确");
-                }
+        String ipAddress = getClientIpAddress(httpRequest);
+        
+        // 验证账号格式
+        if ("phone".equals(request.getAccountType())) {
+            if (!request.getAccount().matches("^1[3-9]\\d{9}$")) {
+                throw new BusinessException("手机号格式不正确");
             }
-            
-            // 如果是注册，检查账号是否已存在
-            if ("register".equals(request.getBusinessType())) {
-                User existingUser = null;
-                if ("phone".equals(request.getAccountType())) {
-                    existingUser = userService.getUserByPhone(request.getAccount());
-                } else if ("email".equals(request.getAccountType())) {
-                    existingUser = userService.getUserByEmail(request.getAccount());
-                }
-                
-                if (existingUser != null) {
-                    return Result.error("该" + ("phone".equals(request.getAccountType()) ? "手机号" : "邮箱") + "已被注册");
-                }
+        } else if ("email".equals(request.getAccountType())) {
+            if (!request.getAccount().matches("^[a-zA-Z0-9_-]+@[a-zA-Z0-9_-]+(\\.[a-zA-Z0-9_-]+)+$")) {
+                throw new BusinessException("邮箱格式不正确");
             }
-            
-            // 发送验证码
-            boolean success = verificationCodeService.sendCode(
-                request.getAccount(),
-                request.getAccountType(),
-                request.getBusinessType(),
-                ipAddress
-            );
-            
-            if (success) {
-                return Result.success("验证码已发送，请查收");
-            } else {
-                return Result.error("验证码发送失败，请稍后重试");
-            }
-        } catch (RuntimeException e) {
-            log.error("发送验证码失败：{}", e.getMessage());
-            return Result.error(e.getMessage());
-        } catch (Exception e) {
-            log.error("发送验证码失败", e);
-            return Result.error("发送失败：" + e.getMessage());
         }
+        
+        // 如果是注册，检查账号是否已存在
+        if ("register".equals(request.getBusinessType())) {
+            User existingUser = null;
+            if ("phone".equals(request.getAccountType())) {
+                existingUser = userService.getUserByPhone(request.getAccount());
+            } else if ("email".equals(request.getAccountType())) {
+                existingUser = userService.getUserByEmail(request.getAccount());
+            }
+            
+            if (existingUser != null) {
+                throw new BusinessException("该" + ("phone".equals(request.getAccountType()) ? "手机号" : "邮箱") + "已被注册");
+            }
+        }
+        
+        // 发送验证码
+        boolean success = verificationCodeService.sendCode(
+            request.getAccount(),
+            request.getAccountType(),
+            request.getBusinessType(),
+            ipAddress
+        );
+        
+        if (!success) {
+            throw new BusinessException("验证码发送失败，请稍后重试");
+        }
+        
+        return Result.success("验证码已发送，请查收");
     }
     
     /**
@@ -105,46 +98,40 @@ public class AuthController {
     @PostMapping("/register-by-code")
     public Result<LoginResponse> registerByCode(@RequestBody @Validated RegisterByCodeRequest request,
                                                HttpServletRequest httpRequest) {
-        try {
-            // 验证验证码
-            boolean valid = verificationCodeService.verifyCode(
-                request.getAccount(),
-                request.getCode(),
-                "register"
-            );
-            
-            if (!valid) {
-                return Result.error("验证码无效或已过期");
-            }
-            
-            // 调用用户服务进行注册
-            Long userId = userService.registerByCode(request);
-            
-            // 标记验证码已使用
-            verificationCodeService.markCodeAsUsed(request.getAccount(), request.getCode(), "register");
-            
-            // 自动登录
-            User user = userService.getUserById(userId);
-            String sessionId = sessionService.createSession(user, httpRequest);
-            
-            // 构建响应
-            LoginResponse response = new LoginResponse();
-            response.setSessionId(sessionId);
-            response.setUserId(user.getId());
-            response.setUsername(user.getUsername());
-            response.setNickname(user.getNickname());
-            response.setPhone(user.getPhone());
-            response.setEmail(user.getEmail());
-            
-            log.info("用户通过验证码注册成功，userId: {}, account: {}", userId, request.getAccount());
-            return Result.success(response);
-        } catch (RuntimeException e) {
-            log.error("验证码注册失败：{}", e.getMessage());
-            return Result.error(e.getMessage());
-        } catch (Exception e) {
-            log.error("验证码注册失败", e);
-            return Result.error("注册失败：" + e.getMessage());
+        // 验证验证码
+        boolean valid = verificationCodeService.verifyCode(
+            request.getAccount(),
+            request.getCode(),
+            "register"
+        );
+        
+        if (!valid) {
+            throw new BusinessException("验证码无效或已过期");
         }
+        
+        // 调用用户服务进行注册
+        Long userId = userService.registerByCode(request);
+        
+        // 标记验证码已使用
+        verificationCodeService.markCodeAsUsed(request.getAccount(), request.getCode(), "register");
+        
+        // 自动登录
+        User user = userService.getUserById(userId);
+        String sessionId = sessionService.createSession(user, httpRequest);
+        
+        // 构建响应
+        LoginResponse response = new LoginResponse();
+        response.setSessionId(sessionId);  // 兼容旧版本
+        response.setToken(sessionId);      // 作为token使用
+        response.setTokenType("Bearer");
+        response.setUserId(user.getId());
+        response.setUsername(user.getUsername());
+        response.setNickname(user.getNickname());
+        response.setPhone(user.getPhone());
+        response.setEmail(user.getEmail());
+        
+        log.info("用户通过验证码注册成功，userId: {}, account: {}", userId, request.getAccount());
+        return Result.success(response);
     }
     
     /**
@@ -155,27 +142,22 @@ public class AuthController {
      */
     @PostMapping("/set-password")
     public Result<String> setPassword(@RequestBody @Validated SetPasswordRequest request) {
-        try {
-            // 验证两次密码是否一致
-            if (!request.getPassword().equals(request.getConfirmPassword())) {
-                return Result.error("两次输入的密码不一致");
-            }
-            
-            // 获取当前用户
-            Long userId = UserContextUtil.getCurrentUserId();
-            if (userId == null) {
-                return Result.error("用户未登录");
-            }
-            
-            // 设置密码
-            userService.setPassword(userId, request.getPassword());
-            
-            log.info("用户设置密码成功，userId: {}", userId);
-            return Result.success("密码设置成功");
-        } catch (Exception e) {
-            log.error("设置密码失败", e);
-            return Result.error("设置失败：" + e.getMessage());
+        // 验证两次密码是否一致
+        if (!request.getPassword().equals(request.getConfirmPassword())) {
+            throw new BusinessException("两次输入的密码不一致");
         }
+        
+        // 获取当前用户
+        Long userId = UserContextUtil.getCurrentUserId();
+        if (userId == null) {
+            throw new BusinessException(401, "用户未登录");
+        }
+        
+        // 设置密码
+        userService.setPassword(userId, request.getPassword());
+        
+        log.info("用户设置密码成功，userId: {}", userId);
+        return Result.success("密码设置成功");
     }
     
 //    /**
@@ -216,83 +198,80 @@ public class AuthController {
     @PostMapping("/login")
     public Result<LoginResponse> loginV2(@RequestBody @Validated LoginRequestV2 loginRequest,
                                         HttpServletRequest request) {
-        try {
-            User user = null;
-            
-            if ("password".equals(loginRequest.getLoginType())) {
-                // 密码登录
-                if (!StringUtils.hasText(loginRequest.getPassword())) {
-                    return Result.error("密码不能为空");
-                }
-                
-                // 根据登录账号查找用户
-                user = userService.getUserByLoginAccount(loginRequest.getLoginAccount());
-                if (user == null) {
-                    return Result.error("用户不存在");
-                }
-                
-                // 验证密码
-                String encodedPassword = DigestUtils.md5DigestAsHex(loginRequest.getPassword().getBytes());
-                if (!encodedPassword.equals(user.getPassword())) {
-                    return Result.error("密码错误");
-                }
-            } else if ("code".equals(loginRequest.getLoginType())) {
-                // 验证码登录
-                if (!StringUtils.hasText(loginRequest.getCode())) {
-                    return Result.error("验证码不能为空");
-                }
-                
-                // 验证验证码
-                boolean valid = verificationCodeService.verifyCode(
-                    loginRequest.getLoginAccount(),
-                    loginRequest.getCode(),
-                    "login"
-                );
-                
-                if (!valid) {
-                    return Result.error("验证码无效或已过期");
-                }
-                
-                // 根据账号查找用户
-                user = userService.getUserByLoginAccount(loginRequest.getLoginAccount());
-                if (user == null) {
-                    return Result.error("用户不存在");
-                }
-                
-                // 标记验证码已使用
-                verificationCodeService.markCodeAsUsed(loginRequest.getLoginAccount(), loginRequest.getCode(), "login");
-            } else {
-                return Result.error("不支持的登录方式");
+        User user = null;
+        
+        if ("password".equals(loginRequest.getLoginType())) {
+            // 密码登录
+            if (!StringUtils.hasText(loginRequest.getPassword())) {
+                throw new BusinessException("密码不能为空");
             }
             
-            // 检查用户状态
-            if (user.getStatus() != 1) {
-                return Result.error("账号已被禁用");
+            // 根据登录账号查找用户
+            user = userService.getUserByLoginAccount(loginRequest.getLoginAccount());
+            if (user == null) {
+                throw new BusinessException("用户不存在");
             }
             
-            // 创建Session
-            String sessionId = sessionService.createSession(user, request);
-            if (sessionId == null) {
-                return Result.error("登录失败，请稍后重试");
+            // 验证密码
+            String encodedPassword = DigestUtils.md5DigestAsHex(loginRequest.getPassword().getBytes());
+            if (!encodedPassword.equals(user.getPassword())) {
+                throw new BusinessException("密码错误");
+            }
+        } else if ("code".equals(loginRequest.getLoginType())) {
+            // 验证码登录
+            if (!StringUtils.hasText(loginRequest.getCode())) {
+                throw new BusinessException("验证码不能为空");
             }
             
-            // 构建响应
-            LoginResponse response = new LoginResponse();
-            response.setSessionId(sessionId);
-            response.setUserId(user.getId());
-            response.setUsername(user.getUsername());
-            response.setNickname(user.getNickname());
-            response.setPhone(user.getPhone());
-            response.setEmail(user.getEmail());
+            // 验证验证码
+            boolean valid = verificationCodeService.verifyCode(
+                loginRequest.getLoginAccount(),
+                loginRequest.getCode(),
+                "login"
+            );
             
-            log.info("用户登录成功，userId: {}, username: {}, loginType: {}", 
-                    user.getId(), user.getUsername(), loginRequest.getLoginType());
+            if (!valid) {
+                throw new BusinessException("验证码无效或已过期");
+            }
             
-            return Result.success(response);
-        } catch (Exception e) {
-            log.error("登录失败", e);
-            return Result.error("登录失败：" + e.getMessage());
+            // 根据账号查找用户
+            user = userService.getUserByLoginAccount(loginRequest.getLoginAccount());
+            if (user == null) {
+                throw new BusinessException("用户不存在");
+            }
+            
+            // 标记验证码已使用
+            verificationCodeService.markCodeAsUsed(loginRequest.getLoginAccount(), loginRequest.getCode(), "login");
+        } else {
+            throw new BusinessException("不支持的登录方式");
         }
+        
+        // 检查用户状态
+        if (user.getStatus() != 1) {
+            throw new BusinessException("账号已被禁用");
+        }
+        
+        // 创建Session
+        String sessionId = sessionService.createSession(user, request);
+        if (sessionId == null) {
+            throw new BusinessException("登录失败，请稍后重试");
+        }
+        
+        // 构建响应
+        LoginResponse response = new LoginResponse();
+        response.setSessionId(sessionId);  // 兼容旧版本
+        response.setToken(sessionId);      // 作为token使用
+        response.setTokenType("Bearer");
+        response.setUserId(user.getId());
+        response.setUsername(user.getUsername());
+        response.setNickname(user.getNickname());
+        response.setPhone(user.getPhone());
+        response.setEmail(user.getEmail());
+        
+        log.info("用户登录成功，userId: {}, username: {}, loginType: {}", 
+                user.getId(), user.getUsername(), loginRequest.getLoginType());
+        
+        return Result.success(response);
     }
     
 //    /**
@@ -355,27 +334,27 @@ public class AuthController {
      */
     @PostMapping("/logout")
     public Result<String> logout(HttpServletRequest request) {
-        try {
-            // 获取sessionId
-            String sessionId = request.getHeader("X-Session-Id");
-            if (sessionId == null) {
-                sessionId = request.getParameter("sessionId");
-            }
-            
-            if (sessionId != null) {
-                // 删除Session
-                sessionService.removeSession(sessionId);
-                
-                // 获取用户ID用于日志
-                Long userId = (Long) request.getAttribute(LoginInterceptor.USER_ID_ATTRIBUTE);
-                log.info("用户登出成功，userId: {}", userId);
-            }
-            
-            return Result.success("登出成功");
-        } catch (Exception e) {
-            log.error("登出失败", e);
-            return Result.error("登出失败：" + e.getMessage());
+        // 获取Authorization头
+        String authorization = request.getHeader("Authorization");
+        String sessionId = null;
+        
+        // 支持 Bearer token 格式
+        if (authorization != null && authorization.startsWith("Bearer ")) {
+            sessionId = authorization.substring(7);
+        } else if (authorization != null) {
+            sessionId = authorization;
         }
+        
+        if (sessionId != null) {
+            // 删除Session
+            sessionService.removeSession(sessionId);
+            
+            // 获取用户ID用于日志
+            Long userId = (Long) request.getAttribute(LoginInterceptor.USER_ID_ATTRIBUTE);
+            log.info("用户登出成功，userId: {}", userId);
+        }
+        
+        return Result.success("登出成功");
     }
     
     /**
@@ -385,34 +364,29 @@ public class AuthController {
      */
     @GetMapping("/user-info")
     public Result<UserSessionContext> getUserInfo() {
-        try {
-            // 使用工具类获取当前用户会话上下文
-            UserSessionContext userSessionContext = UserContextUtil.getCurrentUserSessionContext();
-            
-            if (userSessionContext == null) {
-                return Result.error("获取用户信息失败");
-            }
-            
-            // 清空敏感信息（可选）
-            UserSessionContext safeContext = new UserSessionContext();
-            safeContext.setUserId(userSessionContext.getUserId());
-            safeContext.setUsername(userSessionContext.getUsername());
-            safeContext.setNickname(userSessionContext.getNickname());
-            safeContext.setPhone(userSessionContext.getPhone());
-            safeContext.setEmail(userSessionContext.getEmail());
-            safeContext.setCurrentLevel(userSessionContext.getCurrentLevel());
-            safeContext.setMeritCoins(userSessionContext.getMeritCoins());
-            safeContext.setTotalMerit(userSessionContext.getTotalMerit());
-            safeContext.setLoginTime(userSessionContext.getLoginTime());
-            safeContext.setLastAccessTime(userSessionContext.getLastAccessTime());
-            safeContext.setIsAdmin(userSessionContext.getIsAdmin());
-            // 不返回sessionId, loginIp, userAgent等敏感信息
-            
-            return Result.success(safeContext);
-        } catch (Exception e) {
-            log.error("获取用户信息失败", e);
-            return Result.error("获取用户信息失败：" + e.getMessage());
+        // 使用工具类获取当前用户会话上下文
+        UserSessionContext userSessionContext = UserContextUtil.getCurrentUserSessionContext();
+        
+        if (userSessionContext == null) {
+            throw new BusinessException(401, "获取用户信息失败");
         }
+        
+        // 清空敏感信息（可选）
+        UserSessionContext safeContext = new UserSessionContext();
+        safeContext.setUserId(userSessionContext.getUserId());
+        safeContext.setUsername(userSessionContext.getUsername());
+        safeContext.setNickname(userSessionContext.getNickname());
+        safeContext.setPhone(userSessionContext.getPhone());
+        safeContext.setEmail(userSessionContext.getEmail());
+        safeContext.setCurrentLevel(userSessionContext.getCurrentLevel());
+        safeContext.setMeritCoins(userSessionContext.getMeritCoins());
+        safeContext.setTotalMerit(userSessionContext.getTotalMerit());
+        safeContext.setLoginTime(userSessionContext.getLoginTime());
+        safeContext.setLastAccessTime(userSessionContext.getLastAccessTime());
+        safeContext.setIsAdmin(userSessionContext.getIsAdmin());
+        // 不返回sessionId, loginIp, userAgent等敏感信息
+        
+        return Result.success(safeContext);
     }
     
     /**
@@ -422,18 +396,13 @@ public class AuthController {
      */
     @GetMapping("/sessions")
     public Result<java.util.List<String>> getUserSessions() {
-        try {
-            Long userId = UserContextUtil.getCurrentUserId();
-            if (userId == null) {
-                return Result.error("用户未登录");
-            }
-            
-            java.util.List<String> sessions = sessionService.getUserSessions(userId);
-            return Result.success(sessions);
-        } catch (Exception e) {
-            log.error("获取用户Session列表失败", e);
-            return Result.error("获取Session列表失败：" + e.getMessage());
+        Long userId = UserContextUtil.getCurrentUserId();
+        if (userId == null) {
+            throw new BusinessException(401, "用户未登录");
         }
+        
+        java.util.List<String> sessions = sessionService.getUserSessions(userId);
+        return Result.success(sessions);
     }
     
     /**
@@ -444,36 +413,36 @@ public class AuthController {
      */
     @PostMapping("/kick-other-sessions")
     public Result<String> kickOtherSessions(HttpServletRequest request) {
-        try {
-            Long userId = UserContextUtil.getCurrentUserId();
-            if (userId == null) {
-                return Result.error("用户未登录");
-            }
-            
-            // 获取当前sessionId
-            String currentSessionId = request.getHeader("X-Session-Id");
-            if (currentSessionId == null) {
-                currentSessionId = request.getParameter("sessionId");
-            }
-            
-            // 获取所有session
-            java.util.List<String> allSessions = sessionService.getUserSessions(userId);
-            int kickedCount = 0;
-            
-            // 踢出除当前session外的所有session
-            for (String sessionId : allSessions) {
-                if (!sessionId.equals(currentSessionId)) {
-                    if (sessionService.removeSession(sessionId)) {
-                        kickedCount++;
-                    }
+        Long userId = UserContextUtil.getCurrentUserId();
+        if (userId == null) {
+            throw new BusinessException(401, "用户未登录");
+        }
+        
+        // 获取当前sessionId
+        String authorization = request.getHeader("Authorization");
+        String currentSessionId = null;
+        
+        // 支持 Bearer token 格式
+        if (authorization != null && authorization.startsWith("Bearer ")) {
+            currentSessionId = authorization.substring(7);
+        } else if (authorization != null) {
+            currentSessionId = authorization;
+        }
+        
+        // 获取所有session
+        java.util.List<String> allSessions = sessionService.getUserSessions(userId);
+        int kickedCount = 0;
+        
+        // 踢出除当前session外的所有session
+        for (String sessionId : allSessions) {
+            if (!sessionId.equals(currentSessionId)) {
+                if (sessionService.removeSession(sessionId)) {
+                    kickedCount++;
                 }
             }
-            
-            return Result.success("成功踢出 " + kickedCount + " 个其他登录会话");
-        } catch (Exception e) {
-            log.error("踢出其他Session失败", e);
-            return Result.error("操作失败：" + e.getMessage());
         }
+        
+        return Result.success("成功踢出 " + kickedCount + " 个其他登录会话");
     }
     
     /**
@@ -484,18 +453,13 @@ public class AuthController {
      */
     @PostMapping("/kick-user-sessions")
     public Result<String> kickUserSessions(@RequestParam Long userId) {
-        try {
-            // 检查当前用户是否是管理员
-            if (!UserContextUtil.isCurrentUserAdmin()) {
-                return Result.error("无权限执行此操作");
-            }
-            
-            Integer kickedCount = sessionService.kickOutUserSessions(userId);
-            return Result.success("成功踢出用户 " + userId + " 的 " + kickedCount + " 个登录会话");
-        } catch (Exception e) {
-            log.error("踢出用户Session失败，userId: {}", userId, e);
-            return Result.error("操作失败：" + e.getMessage());
+        // 检查当前用户是否是管理员
+        if (!UserContextUtil.isCurrentUserAdmin()) {
+            throw new BusinessException(403, "无权限执行此操作");
         }
+        
+        Integer kickedCount = sessionService.kickOutUserSessions(userId);
+        return Result.success("成功踢出用户 " + userId + " 的 " + kickedCount + " 个登录会话");
     }
     
     /**

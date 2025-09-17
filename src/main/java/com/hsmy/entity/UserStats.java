@@ -89,4 +89,8 @@ public class UserStats extends BaseEntity {
      * 最后登录日期
      */
     private Date lastLoginDate;
+
+    public Object getContinuousSignDays() {
+        return null;
+    }
 }

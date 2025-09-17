@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hsmy.mapper.VerificationCodeMapper">
+
+    <!-- 获取最近发送时间 -->
+    <select id="getLastSendTime" resultType="java.time.LocalDateTime">
+        SELECT create_time
+        FROM t_verification_code
+        WHERE account = #{account}
+          AND business_type = #{businessType}
+        ORDER BY create_time DESC
+        LIMIT 1
+    </select>
+    
+    <!-- 获取今日发送次数 -->
+    <select id="getTodaySendCount" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM t_verification_code
+        WHERE account = #{account}
+          AND DATE(create_time) = CURDATE()
+    </select>
+    
+</mapper>

@@ -584,7 +584,36 @@ CREATE TABLE IF NOT EXISTS `t_user_message` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户消息表';
 
 -- ========================================
--- 11. 系统日志相关表
+-- 11. 验证码系统相关表
+-- ========================================
+
+-- 验证码表
+CREATE TABLE IF NOT EXISTS `t_verification_code` (
+    `id` BIGINT NOT NULL COMMENT '主键ID，雪花算法生成',
+    `account` VARCHAR(100) NOT NULL COMMENT '账号（手机号或邮箱）',
+    `account_type` VARCHAR(20) NOT NULL COMMENT '账号类型：phone-手机号，email-邮箱',
+    `code` VARCHAR(10) NOT NULL COMMENT '验证码',
+    `business_type` VARCHAR(30) NOT NULL COMMENT '业务类型：register-注册，login-登录，reset-重置密码，bind-绑定',
+    `used` TINYINT DEFAULT 0 COMMENT '是否已使用：0-未使用，1-已使用',
+    `use_time` DATETIME DEFAULT NULL COMMENT '使用时间',
+    `expire_time` DATETIME NOT NULL COMMENT '过期时间',
+    `ip_address` VARCHAR(50) DEFAULT NULL COMMENT '请求IP地址',
+    `device_info` VARCHAR(200) DEFAULT NULL COMMENT '设备信息',
+    `create_by` VARCHAR(50) DEFAULT 'system' COMMENT '创建人',
+    `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `update_by` VARCHAR(50) DEFAULT 'system' COMMENT '更新人',
+    `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    `is_deleted` TINYINT DEFAULT 0 COMMENT '是否删除：0-未删除，1-已删除',
+    PRIMARY KEY (`id`),
+    KEY `idx_account` (`account`),
+    KEY `idx_code` (`code`),
+    KEY `idx_business_type` (`business_type`),
+    KEY `idx_create_time` (`create_time`),
+    KEY `idx_expire_time` (`expire_time`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='验证码表';
+
+-- ========================================
+-- 12. 系统日志相关表
 -- ========================================
 
 -- 操作日志表
@@ -638,7 +667,210 @@ CREATE TABLE IF NOT EXISTS `t_knock_session` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='敲击会话表';
 
 -- ========================================
--- 12. 充值支付相关表
+-- 13. 钱包系统相关表
+-- ========================================
+
+-- 用户钱包表（简化版，只管理功德币）
+CREATE TABLE IF NOT EXISTS `t_wallet` (
+    `id` BIGINT NOT NULL COMMENT '主键ID，雪花算法生成',
+    `user_id` BIGINT NOT NULL COMMENT '用户ID',
+    `merit_coins` BIGINT DEFAULT 0 COMMENT '功德币余额',
+    `frozen_coins` BIGINT DEFAULT 0 COMMENT '冻结功德币',
+    `total_recharge_amount` DECIMAL(10,2) DEFAULT 0.00 COMMENT '累计充值金额（元）',
+    `total_coins_earned` BIGINT DEFAULT 0 COMMENT '累计获得功德币（含赠送）',
+    `total_coins_spent` BIGINT DEFAULT 0 COMMENT '累计消费功德币',
+    `first_recharge_time` DATETIME DEFAULT NULL COMMENT '首次充值时间',
+    `last_recharge_time` DATETIME DEFAULT NULL COMMENT '最后充值时间',
+    `wallet_status` TINYINT DEFAULT 1 COMMENT '钱包状态：0-冻结，1-正常，2-异常',
+    `create_by` VARCHAR(50) DEFAULT 'system' COMMENT '创建人',
+    `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `update_by` VARCHAR(50) DEFAULT 'system' COMMENT '更新人',
+    `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    `is_deleted` TINYINT DEFAULT 0 COMMENT '是否删除：0-未删除，1-已删除',
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_user_id` (`user_id`),
+    KEY `idx_wallet_status` (`wallet_status`),
+    KEY `idx_update_time` (`update_time`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户钱包表';
+
+-- 充值活动表
+CREATE TABLE IF NOT EXISTS `t_recharge_activity` (
+    `id` BIGINT NOT NULL COMMENT '主键ID，雪花算法生成',
+    `activity_name` VARCHAR(100) NOT NULL COMMENT '活动名称',
+    `activity_type` VARCHAR(30) NOT NULL COMMENT '活动类型：threshold-满额赠送，multiply-倍数活动，first-首充活动，daily-每日首充',
+    `activity_rule` VARCHAR(50) NOT NULL COMMENT '活动规则：如threshold_50表示满50元',
+    `threshold_amount` DECIMAL(10,2) DEFAULT NULL COMMENT '门槛金额（元）',
+    `bonus_type` VARCHAR(20) NOT NULL COMMENT '奖励类型：fixed-固定数量，percent-百分比',
+    `bonus_value` INT NOT NULL COMMENT '奖励值：固定数量或百分比',
+    `max_bonus` INT DEFAULT NULL COMMENT '最大奖励数量',
+    `daily_limit` INT DEFAULT NULL COMMENT '每日参与限制：NULL表示不限',
+    `total_limit` INT DEFAULT NULL COMMENT '总参与次数限制：NULL表示不限',
+    `description` VARCHAR(500) DEFAULT NULL COMMENT '活动描述',
+    `banner_url` VARCHAR(500) DEFAULT NULL COMMENT '活动横幅URL',
+    `start_time` DATETIME NOT NULL COMMENT '开始时间',
+    `end_time` DATETIME DEFAULT NULL COMMENT '结束时间，NULL表示长期',
+    `is_stackable` TINYINT DEFAULT 0 COMMENT '是否可叠加：0-不可叠加，1-可叠加',
+    `priority` INT DEFAULT 0 COMMENT '优先级，数值越大优先级越高',
+    `status` TINYINT DEFAULT 1 COMMENT '状态：0-未开始，1-进行中，2-已结束，3-已下线',
+    `create_by` VARCHAR(50) DEFAULT 'system' COMMENT '创建人',
+    `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `update_by` VARCHAR(50) DEFAULT 'system' COMMENT '更新人',
+    `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    `is_deleted` TINYINT DEFAULT 0 COMMENT '是否删除：0-未删除，1-已删除',
+    PRIMARY KEY (`id`),
+    KEY `idx_activity_type` (`activity_type`),
+    KEY `idx_status` (`status`),
+    KEY `idx_start_end_time` (`start_time`, `end_time`),
+    KEY `idx_priority` (`priority`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='充值活动表';
+
+-- 充值套餐表
+CREATE TABLE IF NOT EXISTS `t_recharge_package` (
+    `id` BIGINT NOT NULL COMMENT '主键ID，雪花算法生成',
+    `package_name` VARCHAR(100) NOT NULL COMMENT '套餐名称',
+    `amount` DECIMAL(10,2) NOT NULL COMMENT '充值金额（元）',
+    `base_coins` INT NOT NULL COMMENT '基础功德币（1:10比例）',
+    `bonus_coins` INT DEFAULT 0 COMMENT '套餐赠送功德币',
+    `total_coins` INT NOT NULL COMMENT '总功德币（基础+赠送）',
+    `description` VARCHAR(500) DEFAULT NULL COMMENT '套餐描述',
+    `tag` VARCHAR(50) DEFAULT NULL COMMENT '标签：hot-热门，recommend-推荐，limited-限时',
+    `icon_url` VARCHAR(500) DEFAULT NULL COMMENT '套餐图标URL',
+    `sort_order` INT DEFAULT 0 COMMENT '排序序号',
+    `is_active` TINYINT DEFAULT 1 COMMENT '是否启用：0-禁用，1-启用',
+    `start_time` DATETIME DEFAULT NULL COMMENT '生效时间',
+    `end_time` DATETIME DEFAULT NULL COMMENT '失效时间',
+    `create_by` VARCHAR(50) DEFAULT 'system' COMMENT '创建人',
+    `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `update_by` VARCHAR(50) DEFAULT 'system' COMMENT '更新人',
+    `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    `is_deleted` TINYINT DEFAULT 0 COMMENT '是否删除：0-未删除，1-已删除',
+    PRIMARY KEY (`id`),
+    KEY `idx_amount` (`amount`),
+    KEY `idx_is_active` (`is_active`),
+    KEY `idx_sort_order` (`sort_order`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='充值套餐表';
+
+-- 充值记录表（记录充值兑换功德币）
+CREATE TABLE IF NOT EXISTS `t_recharge_record` (
+    `id` BIGINT NOT NULL COMMENT '主键ID，雪花算法生成',
+    `recharge_no` VARCHAR(50) NOT NULL COMMENT '充值单号',
+    `user_id` BIGINT NOT NULL COMMENT '用户ID',
+    `wallet_id` BIGINT NOT NULL COMMENT '钱包ID',
+    `package_id` BIGINT DEFAULT NULL COMMENT '充值套餐ID',
+    `amount` DECIMAL(10,2) NOT NULL COMMENT '充值金额（元）',
+    `base_coins` INT NOT NULL COMMENT '基础功德币',
+    `package_bonus` INT DEFAULT 0 COMMENT '套餐赠送功德币',
+    `activity_bonus` INT DEFAULT 0 COMMENT '活动赠送功德币',
+    `total_coins` INT NOT NULL COMMENT '总获得功德币',
+    `activity_ids` VARCHAR(200) DEFAULT NULL COMMENT '参与的活动ID列表，逗号分隔',
+    `payment_method` VARCHAR(30) NOT NULL COMMENT '支付方式：alipay-支付宝，wechat-微信，bank-银行卡',
+    `payment_channel` VARCHAR(50) DEFAULT NULL COMMENT '支付渠道：具体的支付通道',
+    `recharge_status` TINYINT DEFAULT 0 COMMENT '充值状态：0-待支付，1-支付成功，2-支付失败，3-已退款，4-已取消',
+    `payment_time` DATETIME DEFAULT NULL COMMENT '支付时间',
+    `success_time` DATETIME DEFAULT NULL COMMENT '成功时间',
+    `third_party_no` VARCHAR(100) DEFAULT NULL COMMENT '第三方交易号',
+    `fail_reason` VARCHAR(500) DEFAULT NULL COMMENT '失败原因',
+    `device_info` VARCHAR(200) DEFAULT NULL COMMENT '设备信息',
+    `ip_address` VARCHAR(50) DEFAULT NULL COMMENT 'IP地址',
+    `remark` VARCHAR(500) DEFAULT NULL COMMENT '备注',
+    `create_by` VARCHAR(50) DEFAULT 'system' COMMENT '创建人',
+    `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `update_by` VARCHAR(50) DEFAULT 'system' COMMENT '更新人',
+    `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    `is_deleted` TINYINT DEFAULT 0 COMMENT '是否删除：0-未删除，1-已删除',
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_recharge_no` (`recharge_no`),
+    KEY `idx_user_id` (`user_id`),
+    KEY `idx_wallet_id` (`wallet_id`),
+    KEY `idx_recharge_status` (`recharge_status`),
+    KEY `idx_payment_time` (`payment_time`),
+    KEY `idx_third_party_no` (`third_party_no`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='充值记录表';
+
+-- 充值活动参与记录表
+CREATE TABLE IF NOT EXISTS `t_recharge_activity_record` (
+    `id` BIGINT NOT NULL COMMENT '主键ID，雪花算法生成',
+    `user_id` BIGINT NOT NULL COMMENT '用户ID',
+    `activity_id` BIGINT NOT NULL COMMENT '活动ID',
+    `recharge_id` BIGINT NOT NULL COMMENT '充值记录ID',
+    `recharge_amount` DECIMAL(10,2) NOT NULL COMMENT '充值金额',
+    `bonus_coins` INT NOT NULL COMMENT '获得奖励功德币',
+    `participate_time` DATETIME NOT NULL COMMENT '参与时间',
+    `create_by` VARCHAR(50) DEFAULT 'system' COMMENT '创建人',
+    `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `update_by` VARCHAR(50) DEFAULT 'system' COMMENT '更新人',
+    `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    `is_deleted` TINYINT DEFAULT 0 COMMENT '是否删除：0-未删除，1-已删除',
+    PRIMARY KEY (`id`),
+    KEY `idx_user_id` (`user_id`),
+    KEY `idx_activity_id` (`activity_id`),
+    KEY `idx_recharge_id` (`recharge_id`),
+    KEY `idx_participate_time` (`participate_time`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='充值活动参与记录表';
+
+-- 功德币交易记录表（简化版）
+CREATE TABLE IF NOT EXISTS `t_coin_transaction` (
+    `id` BIGINT NOT NULL COMMENT '主键ID，雪花算法生成',
+    `transaction_no` VARCHAR(50) NOT NULL COMMENT '交易号',
+    `user_id` BIGINT NOT NULL COMMENT '用户ID',
+    `wallet_id` BIGINT NOT NULL COMMENT '钱包ID',
+    `transaction_type` VARCHAR(30) NOT NULL COMMENT '交易类型：recharge-充值获得，consume-消费，reward-奖励，exchange-兑换',
+    `transaction_subtype` VARCHAR(50) DEFAULT NULL COMMENT '交易子类型：purchase_item-购买道具，donate-捐赠等',
+    `merit_coins` BIGINT NOT NULL COMMENT '交易功德币数量（正数为增加，负数为减少）',
+    `before_coins` BIGINT DEFAULT 0 COMMENT '交易前功德币',
+    `after_coins` BIGINT DEFAULT 0 COMMENT '交易后功德币',
+    `related_id` BIGINT DEFAULT NULL COMMENT '关联ID：充值记录ID、购买记录ID等',
+    `related_type` VARCHAR(30) DEFAULT NULL COMMENT '关联类型：recharge-充值，purchase-购买等',
+    `description` VARCHAR(500) DEFAULT NULL COMMENT '交易描述',
+    `transaction_time` DATETIME NOT NULL COMMENT '交易时间',
+    `create_by` VARCHAR(50) DEFAULT 'system' COMMENT '创建人',
+    `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `update_by` VARCHAR(50) DEFAULT 'system' COMMENT '更新人',
+    `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    `is_deleted` TINYINT DEFAULT 0 COMMENT '是否删除：0-未删除，1-已删除',
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_transaction_no` (`transaction_no`),
+    KEY `idx_user_id` (`user_id`),
+    KEY `idx_wallet_id` (`wallet_id`),
+    KEY `idx_transaction_type` (`transaction_type`),
+    KEY `idx_transaction_time` (`transaction_time`),
+    KEY `idx_related_id_type` (`related_id`, `related_type`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='功德币交易记录表';
+
+-- 功德币消费记录表
+CREATE TABLE IF NOT EXISTS `t_coin_consumption` (
+    `id` BIGINT NOT NULL COMMENT '主键ID，雪花算法生成',
+    `consumption_no` VARCHAR(50) NOT NULL COMMENT '消费单号',
+    `user_id` BIGINT NOT NULL COMMENT '用户ID',
+    `wallet_id` BIGINT NOT NULL COMMENT '钱包ID',
+    `consumption_type` VARCHAR(30) NOT NULL COMMENT '消费类型：purchase-购买，donate-捐赠，exchange-兑换',
+    `consumption_name` VARCHAR(200) NOT NULL COMMENT '消费名称',
+    `merit_coins` BIGINT NOT NULL COMMENT '消费功德币数量',
+    `related_id` BIGINT DEFAULT NULL COMMENT '关联ID：道具ID、捐赠项目ID等',
+    `related_type` VARCHAR(30) DEFAULT NULL COMMENT '关联类型：item-道具，project-项目等',
+    `related_order_no` VARCHAR(50) DEFAULT NULL COMMENT '关联订单号',
+    `consumption_status` TINYINT DEFAULT 1 COMMENT '消费状态：0-待处理，1-成功，2-失败，3-已退款',
+    `consumption_time` DATETIME NOT NULL COMMENT '消费时间',
+    `refund_time` DATETIME DEFAULT NULL COMMENT '退款时间',
+    `refund_coins` BIGINT DEFAULT NULL COMMENT '退款功德币',
+    `description` VARCHAR(500) DEFAULT NULL COMMENT '消费描述',
+    `create_by` VARCHAR(50) DEFAULT 'system' COMMENT '创建人',
+    `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `update_by` VARCHAR(50) DEFAULT 'system' COMMENT '更新人',
+    `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    `is_deleted` TINYINT DEFAULT 0 COMMENT '是否删除：0-未删除，1-已删除',
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_consumption_no` (`consumption_no`),
+    KEY `idx_user_id` (`user_id`),
+    KEY `idx_wallet_id` (`wallet_id`),
+    KEY `idx_consumption_type` (`consumption_type`),
+    KEY `idx_consumption_status` (`consumption_status`),
+    KEY `idx_consumption_time` (`consumption_time`),
+    KEY `idx_related_order_no` (`related_order_no`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='功德币消费记录表';
+
+-- ========================================
+-- 13. 充值支付相关表（原12节内容）
 -- ========================================
 
 -- 充值订单表
@@ -732,9 +964,31 @@ INSERT INTO `t_donation_project` (`id`, `project_name`, `project_type`, `descrip
 (3, '助学善缘基金', 'education', '帮助贫困地区儿童接受教育', 1),
 (4, '环保护生项目', 'environment', '保护环境，爱护生命', 1);
 
+-- 插入充值套餐（1元=10功德币基础比例）
+INSERT INTO `t_recharge_package` (`id`, `package_name`, `amount`, `base_coins`, `bonus_coins`, `total_coins`, `description`, `tag`, `sort_order`, `is_active`) VALUES
+(1, '小额充值', 6.00, 60, 0, 60, '充值6元获得60功德币', NULL, 1, 1),
+(2, '基础充值', 30.00, 300, 30, 330, '充值30元获得330功德币（额外赠送30）', 'recommend', 2, 1),
+(3, '超值充值', 68.00, 680, 100, 780, '充值68元获得780功德币（额外赠送100）', 'hot', 3, 1),
+(4, '豪华充值', 128.00, 1280, 280, 1560, '充值128元获得1560功德币（额外赠送280）', 'hot', 4, 1),
+(5, '至尊充值', 328.00, 3280, 1000, 4280, '充值328元获得4280功德币（额外赠送1000）', 'recommend', 5, 1),
+(6, '限时特惠', 648.00, 6480, 2500, 8980, '充值648元获得8980功德币（额外赠送2500）', 'limited', 6, 1);
+
+-- 插入充值活动
+INSERT INTO `t_recharge_activity` (`id`, `activity_name`, `activity_type`, `activity_rule`, `threshold_amount`, `bonus_type`, `bonus_value`, `max_bonus`, `description`, `start_time`, `status`) VALUES
+(1, '首充双倍', 'first', 'first_recharge', NULL, 'percent', 100, 1000, '首次充值获得双倍功德币（最高奖励1000）', '2025-01-01 00:00:00', 1),
+(2, '满50送10', 'threshold', 'threshold_50', 50.00, 'fixed', 100, NULL, '单笔充值满50元额外赠送100功德币', '2025-01-01 00:00:00', 1),
+(3, '满100送30', 'threshold', 'threshold_100', 100.00, 'fixed', 300, NULL, '单笔充值满100元额外赠送300功德币', '2025-01-01 00:00:00', 1),
+(4, '满200送80', 'threshold', 'threshold_200', 200.00, 'fixed', 800, NULL, '单笔充值满200元额外赠送800功德币', '2025-01-01 00:00:00', 1),
+(5, '每日首充', 'daily', 'daily_first', NULL, 'percent', 20, 200, '每日首次充值额外获得20%功德币（最高奖励200）', '2025-01-01 00:00:00', 1),
+(6, '周末特惠', 'multiply', 'weekend_bonus', NULL, 'percent', 50, 500, '周末充值额外获得50%功德币（最高奖励500）', '2025-01-01 00:00:00', 1);
+
 -- 创建索引优化查询性能
 CREATE INDEX idx_merit_record_session ON t_merit_record(session_id, create_time);
 CREATE INDEX idx_user_stats_daily ON t_user_stats(last_login_date, today_merit);
 CREATE INDEX idx_ranking_composite ON t_ranking(rank_type, snapshot_date, ranking_position);
+CREATE INDEX idx_coin_transaction_composite ON t_coin_transaction(user_id, transaction_type, transaction_time);
+CREATE INDEX idx_recharge_record_composite ON t_recharge_record(user_id, recharge_status, payment_time);
+CREATE INDEX idx_coin_consumption_composite ON t_coin_consumption(user_id, consumption_type, consumption_time);
+CREATE INDEX idx_recharge_activity_composite ON t_recharge_activity(activity_type, status, start_time);
 
 -- 数据库初始化完成

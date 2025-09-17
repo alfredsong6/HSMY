@@ -32,9 +32,19 @@ public class LoginInterceptor implements HandlerInterceptor {
     private final AuthWhiteListProperties authWhiteListProperties;
     
     /**
-     * Session头名称
+     * Session头名称（兼容旧版本）
      */
     private static final String SESSION_HEADER = "X-Session-Id";
+    
+    /**
+     * 授权头名称
+     */
+    private static final String AUTHORIZATION_HEADER = "Authorization";
+    
+    /**
+     * Bearer 前缀
+     */
+    private static final String BEARER_PREFIX = "Bearer ";
     
     /**
      * 用户ID请求属性名
@@ -62,19 +72,19 @@ public class LoginInterceptor implements HandlerInterceptor {
             return true;
         }
         
-        // 获取sessionId
-        String sessionId = getSessionId(request);
+        // 获取token
+        String token = getToken(request);
         
-        if (!StringUtils.hasText(sessionId)) {
-            log.warn("请求未携带sessionId，请求路径: {}", requestPath);
+        if (!StringUtils.hasText(token)) {
+            log.warn("请求未携带token，请求路径: {}", requestPath);
             writeErrorResponse(response, "未登录或登录已过期");
             return false;
         }
         
-        // 验证session并获取用户会话上下文
-        UserSessionContext userSessionContext = sessionService.getUserSessionContext(sessionId);
+        // 验证token并获取用户会话上下文
+        UserSessionContext userSessionContext = sessionService.getUserSessionContext(token);
         if (userSessionContext == null) {
-            log.warn("无效的sessionId: {}, 请求路径: {}", sessionId, requestPath);
+            log.warn("无效的token: {}, 请求路径: {}", token, requestPath);
             writeErrorResponse(response, "登录已过期，请重新登录");
             return false;
         }
@@ -91,8 +101,8 @@ public class LoginInterceptor implements HandlerInterceptor {
         request.setAttribute(USER_ID_ATTRIBUTE, userSessionContext.getUserId());
         request.setAttribute(USER_SESSION_CONTEXT_ATTRIBUTE, userSessionContext);
         
-        log.debug("用户认证成功，userId: {}, username: {}, sessionId: {}, 请求路径: {}, IP: {}", 
-                userSessionContext.getUserId(), userSessionContext.getUsername(), sessionId, requestPath, userSessionContext.getLoginIp());
+        log.debug("用户认证成功，userId: {}, username: {}, token: {}, 请求路径: {}, IP: {}", 
+                userSessionContext.getUserId(), userSessionContext.getUsername(), token, requestPath, userSessionContext.getLoginIp());
         
         return true;
     }
@@ -113,19 +123,30 @@ public class LoginInterceptor implements HandlerInterceptor {
     }
     
     /**
-     * 获取sessionId
-     * 优先从Header中获取，其次从参数中获取
+     * 获取token
+     * 优先从Authorization头获取，支持Bearer格式
+     * 兼容旧版本的X-Session-Id头
      */
-    private String getSessionId(HttpServletRequest request) {
-        // 优先从请求头获取
-        String sessionId = request.getHeader(SESSION_HEADER);
-        
-        if (!StringUtils.hasText(sessionId)) {
-            // 从请求参数获取
-            sessionId = request.getParameter("sessionId");
+    private String getToken(HttpServletRequest request) {
+        // 优先从Authorization头获取
+        String authorization = request.getHeader(AUTHORIZATION_HEADER);
+        if (StringUtils.hasText(authorization)) {
+            // 支持Bearer token格式
+            if (authorization.startsWith(BEARER_PREFIX)) {
+                return authorization.substring(BEARER_PREFIX.length());
+            }
+            // 直接返回没有Bearer前缀的token
+            return authorization;
         }
         
-        return sessionId;
+        // 兼容旧版本，从X-Session-Id头获取
+        String sessionId = request.getHeader(SESSION_HEADER);
+        if (StringUtils.hasText(sessionId)) {
+            return sessionId;
+        }
+        
+        // 从请求参数获取（不推荐，仅作为兼容）
+        return request.getParameter("sessionId");
     }
     
     /**
