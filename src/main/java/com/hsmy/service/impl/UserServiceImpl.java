@@ -142,10 +142,10 @@ public class UserServiceImpl implements UserService {
         
         UserVO userVO = new UserVO();
         BeanUtil.copyProperties(user, userVO);
-        if (Strings.isBlank(userVO.getPassword())) {
+        if (userVO.getPassword() == null || Strings.isBlank(userVO.getPassword())) {
             userVO.setPassword("0");
         } else {
-            user.setPassword("1");
+            userVO.setPassword("1");
         }
         
         // 查询用户统计信息
@@ -473,7 +473,7 @@ public class UserServiceImpl implements UserService {
     @Transactional(rollbackFor = Exception.class)
     public Boolean resetPasswordWithSms(String phone, String code, String newPassword) {
         // 验证短信验证码
-        boolean isValid = verificationCodeService.verify(phone, "phone", code, "reset");
+        boolean isValid = verificationCodeService.verify(phone, "phone", code, "reset_password");
         if (!isValid) {
             throw new BusinessException("验证码错误或已过期");
         }

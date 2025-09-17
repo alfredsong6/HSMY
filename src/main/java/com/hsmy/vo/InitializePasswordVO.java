@@ -3,7 +3,6 @@ package com.hsmy.vo;
 import lombok.Data;
 
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
 
 /**
  * 初始化密码VO
@@ -14,7 +13,7 @@ public class InitializePasswordVO {
     /**
      * 用户ID
      */
-    @NotNull(message = "用户ID不能为空")
+    //@NotNull(message = "用户ID不能为空")
     private Long userId;
     
     /**

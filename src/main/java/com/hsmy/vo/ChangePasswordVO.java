@@ -3,7 +3,6 @@ package com.hsmy.vo;
 import lombok.Data;
 
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 
 /**
@@ -20,7 +19,7 @@ public class ChangePasswordVO implements Serializable {
     /**
      * 用户ID
      */
-    @NotNull(message = "用户ID不能为空")
+    //@NotNull(message = "用户ID不能为空")
     private Long userId;
     
     /**
