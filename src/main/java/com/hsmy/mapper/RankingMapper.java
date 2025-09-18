@@ -5,7 +5,7 @@ import com.hsmy.entity.Ranking;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
-import java.time.LocalDate;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -25,8 +25,8 @@ public interface RankingMapper extends BaseMapper<Ranking> {
      * @param limit 查询条数
      * @return 排行榜列表
      */
-    List<Ranking> selectByTypeAndDate(@Param("rankType") String rankType, 
-                                     @Param("snapshotDate") LocalDate snapshotDate, 
+    List<Ranking> selectByTypeAndDate(@Param("rankType") String rankType,
+                                     @Param("snapshotDate") Date snapshotDate,
                                      @Param("limit") Integer limit);
     
     /**
@@ -37,9 +37,9 @@ public interface RankingMapper extends BaseMapper<Ranking> {
      * @param snapshotDate 快照日期
      * @return 用户排名信息
      */
-    Ranking selectUserRanking(@Param("userId") Long userId, 
-                             @Param("rankType") String rankType, 
-                             @Param("snapshotDate") LocalDate snapshotDate);
+    Ranking selectUserRanking(@Param("userId") Long userId,
+                             @Param("rankType") String rankType,
+                             @Param("snapshotDate") Date snapshotDate);
     
     /**
      * 批量插入排行榜数据
@@ -55,5 +55,5 @@ public interface RankingMapper extends BaseMapper<Ranking> {
      * @param beforeDate 截止日期
      * @return 影响行数
      */
-    int deleteBeforeDate(@Param("beforeDate") LocalDate beforeDate);
+    int deleteBeforeDate(@Param("beforeDate") Date beforeDate);
 }

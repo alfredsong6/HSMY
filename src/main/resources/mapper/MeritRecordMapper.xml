@@ -69,6 +69,14 @@
         ORDER BY create_time
     </select>
     
+    <!-- 统计用户总功德 -->
+    <select id="sumTotalMerit" resultType="java.lang.Long">
+        SELECT IFNULL(SUM(merit_gained), 0)
+        FROM t_merit_record
+        WHERE user_id = #{userId}
+        AND is_deleted = 0
+    </select>
+
     <!-- 获取最大连击数 -->
     <select id="getMaxCombo" resultType="java.lang.Integer">
         SELECT IFNULL(MAX(combo_count), 0)
@@ -76,5 +84,5 @@
         WHERE user_id = #{userId}
         AND is_deleted = 0
     </select>
-    
+
 </mapper>

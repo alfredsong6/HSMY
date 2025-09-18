@@ -190,20 +190,20 @@ public class MeritController {
      * @return 统计信息汇总
      */
     @GetMapping("/summary")
-    public Result<Map<String, Object>> getMeritSummary(HttpServletRequest request) {
+    public Result<Map<String, Object>> getMeritSummary() {
         try {
             Long userId = UserContextUtil.requireCurrentUserId();
             
             Map<String, Object> summary = new HashMap<>();
-            summary.put("userId", userId);
+            //summary.put("userId", userId);
             summary.put("totalMerit", meritService.getTotalMerit(userId));
             summary.put("todayMerit", meritService.getTodayMerit(userId));
             summary.put("weeklyMerit", meritService.getWeeklyMerit(userId));
             summary.put("monthlyMerit", meritService.getMonthlyMerit(userId));
             summary.put("meritCoins", meritService.getMeritCoins(userId));
             summary.put("userStats", meritService.getMeritStats(userId));
-            summary.put("apiVersion", "v1.1");
-            summary.put("newFeatures", new String[]{"详细余额信息", "兑换前后对比", "统计汇总接口"});
+            //summary.put("apiVersion", "v1.1");
+            //summary.put("newFeatures", new String[]{"详细余额信息", "兑换前后对比", "统计汇总接口"});
             
             return Result.success("查询成功", summary);
         } catch (Exception e) {

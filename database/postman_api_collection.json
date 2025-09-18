@@ -1,0 +1,443 @@
+{
+  "info": {
+    "_postman_id": "hsmy-api-collection-v1",
+    "name": "HSMY API Collection",
+    "description": "HSMY项目API接口集合，包含排行榜和功德管理接口",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "排行榜接口",
+      "item": [
+        {
+          "name": "获取日榜",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Api-Version",
+                "value": "v1.0",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/rankings/daily?limit=100",
+              "host": ["{{baseUrl}}"],
+              "path": ["rankings", "daily"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "100",
+                  "description": "查询条数（默认100）"
+                }
+              ]
+            },
+            "description": "获取今日功德排行榜"
+          }
+        },
+        {
+          "name": "获取周榜",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Api-Version",
+                "value": "v1.0",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/rankings/weekly?limit=100",
+              "host": ["{{baseUrl}}"],
+              "path": ["rankings", "weekly"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "100",
+                  "description": "查询条数（默认100）"
+                }
+              ]
+            },
+            "description": "获取本周功德排行榜"
+          }
+        },
+        {
+          "name": "获取总榜",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Api-Version",
+                "value": "v1.0",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/rankings/total?limit=100",
+              "host": ["{{baseUrl}}"],
+              "path": ["rankings", "total"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "100",
+                  "description": "查询条数（默认100）"
+                }
+              ]
+            },
+            "description": "获取总功德排行榜"
+          }
+        },
+        {
+          "name": "获取用户排名信息",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Api-Version",
+                "value": "v1.0",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/rankings/user/1968213494687993856",
+              "host": ["{{baseUrl}}"],
+              "path": ["rankings", "user", "1968213494687993856"]
+            },
+            "description": "获取指定用户在各榜单中的排名"
+          }
+        },
+        {
+          "name": "获取我的排名信息",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Api-Version",
+                "value": "v1.0",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text",
+                "description": "用户认证token"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/rankings/my",
+              "host": ["{{baseUrl}}"],
+              "path": ["rankings", "my"]
+            },
+            "description": "获取当前登录用户的排名信息"
+          }
+        }
+      ]
+    },
+    {
+      "name": "功德管理接口 V1.1",
+      "item": [
+        {
+          "name": "获取功德和功德币余额",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Api-Version",
+                "value": "v1.1",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "{{baseUrl}}/merit/balance",
+              "host": ["{{baseUrl}}"],
+              "path": ["merit", "balance"]
+            },
+            "description": "获取当前用户的功德余额信息，包括总功德、今日功德、本周功德、本月功德和功德币"
+          }
+        },
+        {
+          "name": "功德兑换功德币",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Api-Version",
+                "value": "v1.1",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"meritAmount\": 1000,\n  \"exchangeRate\": 10\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/merit/exchange",
+              "host": ["{{baseUrl}}"],
+              "path": ["merit", "exchange"]
+            },
+            "description": "将功德兑换为功德币，返回兑换前后的余额对比"
+          }
+        },
+        {
+          "name": "获取功德获取历史",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Api-Version",
+                "value": "v1.1",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/merit/history?startDate=2024-11-01&endDate=2025-01-31&pageNum=1&pageSize=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["merit", "history"],
+              "query": [
+                {
+                  "key": "startDate",
+                  "value": "2024-11-01",
+                  "description": "开始日期 (yyyy-MM-dd)"
+                },
+                {
+                  "key": "endDate",
+                  "value": "2025-01-31",
+                  "description": "结束日期 (yyyy-MM-dd)"
+                },
+                {
+                  "key": "pageNum",
+                  "value": "1",
+                  "description": "页码 (默认1)"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "10",
+                  "description": "每页大小 (默认10)"
+                }
+              ]
+            },
+            "description": "分页获取功德获取历史记录"
+          }
+        },
+        {
+          "name": "获取功德统计汇总",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Api-Version",
+                "value": "v1.1",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/merit/summary",
+              "host": ["{{baseUrl}}"],
+              "path": ["merit", "summary"]
+            },
+            "description": "获取当前用户的功德统计汇总信息 (V1.1新增接口)"
+          }
+        },
+        {
+          "name": "获取功德统计",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Api-Version",
+                "value": "v1.1",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/merit/stats/1968213494687993856",
+              "host": ["{{baseUrl}}"],
+              "path": ["merit", "stats", "1968213494687993856"]
+            },
+            "description": "获取指定用户的功德统计信息"
+          }
+        },
+        {
+          "name": "获取功德记录",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Api-Version",
+                "value": "v1.1",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/merit/records?userId=1968213494687993856&startDate=2024-11-01&endDate=2025-01-31&pageNum=1&pageSize=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["merit", "records"],
+              "query": [
+                {
+                  "key": "userId",
+                  "value": "1968213494687993856",
+                  "description": "用户ID"
+                },
+                {
+                  "key": "startDate",
+                  "value": "2024-11-01",
+                  "description": "开始日期 (yyyy-MM-dd)"
+                },
+                {
+                  "key": "endDate",
+                  "value": "2025-01-31",
+                  "description": "结束日期 (yyyy-MM-dd)"
+                },
+                {
+                  "key": "pageNum",
+                  "value": "1",
+                  "description": "页码 (默认1)"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "10",
+                  "description": "每页大小 (默认10)"
+                }
+              ]
+            },
+            "description": "获取指定用户的功德记录"
+          }
+        },
+        {
+          "name": "获取今日功德",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Api-Version",
+                "value": "v1.1",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/merit/today/1968213494687993856",
+              "host": ["{{baseUrl}}"],
+              "path": ["merit", "today", "1968213494687993856"]
+            },
+            "description": "获取指定用户的今日功德值"
+          }
+        },
+        {
+          "name": "获取本周功德",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Api-Version",
+                "value": "v1.1",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/merit/weekly/1968213494687993856",
+              "host": ["{{baseUrl}}"],
+              "path": ["merit", "weekly", "1968213494687993856"]
+            },
+            "description": "获取指定用户的本周功德值"
+          }
+        },
+        {
+          "name": "获取本月功德",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Api-Version",
+                "value": "v1.1",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/merit/monthly/1968213494687993856",
+              "host": ["{{baseUrl}}"],
+              "path": ["merit", "monthly", "1968213494687993856"]
+            },
+            "description": "获取指定用户的本月功德值"
+          }
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string",
+      "description": "用户认证token，需要在登录后获取并设置"
+    }
+  ]
+}
