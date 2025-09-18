@@ -1,9 +1,7 @@
 package com.hsmy.controller.user;
 
 import com.hsmy.common.Result;
-import com.hsmy.dto.FileUploadResult;
 import com.hsmy.dto.UpdateAvatarRequest;
-import com.hsmy.service.FileStorageService;
 import com.hsmy.service.FileStorageServiceFactory;
 import com.hsmy.service.UserService;
 import com.hsmy.utils.UserContextUtil;
@@ -11,7 +9,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 /**
  * 用户头像管理Controller
@@ -25,41 +22,41 @@ public class AvatarController {
     private final UserService userService;
     private final FileStorageServiceFactory fileStorageServiceFactory;
     
-    /**
-     * 上传头像并自动更新用户信息
-     */
-    @PostMapping("/avatar/upload")
-    public Result<String> uploadAndUpdateAvatar(@RequestParam("file") MultipartFile file) {
-        try {
-            // 检查用户是否登录
-            Long userId = UserContextUtil.getCurrentUserId();
-            if (userId == null) {
-                return Result.error("用户未登录");
-            }
-            
-            // 上传文件
-            FileStorageService storageService = fileStorageServiceFactory.getFileStorageService();
-            FileUploadResult uploadResult = storageService.uploadFile(file, "avatar");
-            
-            // 更新用户头像
-            Boolean updateSuccess = userService.updateAvatar(userId, uploadResult.getUrl());
-            
-            if (updateSuccess) {
-                log.info("用户头像上传并更新成功，userId: {}, avatarUrl: {}", userId, uploadResult.getUrl());
-                return Result.success(uploadResult.getUrl());
-            } else {
-                // 如果更新失败，删除已上传的文件
-                storageService.deleteFile(uploadResult.getFilePath());
-                return Result.error("头像更新失败");
-            }
-        } catch (IllegalArgumentException e) {
-            log.warn("头像上传失败：{}", e.getMessage());
-            return Result.error(e.getMessage());
-        } catch (Exception e) {
-            log.error("头像上传失败", e);
-            return Result.error("上传失败：" + e.getMessage());
-        }
-    }
+//    /**
+//     * 上传头像并自动更新用户信息
+//     */
+//    @PostMapping("/avatar/upload")
+//    public Result<String> uploadAndUpdateAvatar(@RequestParam("file") MultipartFile file) {
+//        try {
+//            // 检查用户是否登录
+//            Long userId = UserContextUtil.getCurrentUserId();
+//            if (userId == null) {
+//                return Result.error("用户未登录");
+//            }
+//
+//            // 上传文件
+//            FileStorageService storageService = fileStorageServiceFactory.getFileStorageService();
+//            FileUploadResult uploadResult = storageService.uploadFile(file, "avatar");
+//
+//            // 更新用户头像
+//            Boolean updateSuccess = userService.updateAvatar(userId, uploadResult.getUrl());
+//
+//            if (updateSuccess) {
+//                log.info("用户头像上传并更新成功，userId: {}, avatarUrl: {}", userId, uploadResult.getUrl());
+//                return Result.success(uploadResult.getUrl());
+//            } else {
+//                // 如果更新失败，删除已上传的文件
+//                storageService.deleteFile(uploadResult.getFilePath());
+//                return Result.error("头像更新失败");
+//            }
+//        } catch (IllegalArgumentException e) {
+//            log.warn("头像上传失败：{}", e.getMessage());
+//            return Result.error(e.getMessage());
+//        } catch (Exception e) {
+//            log.error("头像上传失败", e);
+//            return Result.error("上传失败：" + e.getMessage());
+//        }
+//    }
     
     /**
      * 更新头像URL

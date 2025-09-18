@@ -30,7 +30,7 @@ logging:
 file:
   storage:
     local:
-      root-path: ./uploads/dev
+      root-path: ./uploads
       url-prefix: /api/file/uploads
 
 communication:
