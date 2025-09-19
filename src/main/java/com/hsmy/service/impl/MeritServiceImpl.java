@@ -12,6 +12,7 @@ import com.hsmy.mapper.MeritRecordMapper;
 import com.hsmy.mapper.UserStatsMapper;
 import com.hsmy.service.MeritService;
 import com.hsmy.utils.IdGenerator;
+import com.hsmy.utils.UserLockManager;
 import com.hsmy.vo.ExchangeVO;
 import com.hsmy.vo.KnockVO;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -36,40 +38,92 @@ public class MeritServiceImpl implements MeritService {
     private final MeritRecordMapper meritRecordMapper;
     private final UserStatsMapper userStatsMapper;
     private final ExchangeRecordMapper exchangeRecordMapper;
+    private final UserLockManager userLockManager;
     
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Integer manualKnock(KnockVO knockVO) {
-        // 计算功德值
+        // 使用用户锁确保同一用户的功德累计操作串行化
+        return userLockManager.executeWithUserLock(knockVO.getUserId(), () -> {
+            return executeKnockOperation(knockVO);
+        });
+    }
+
+    /**
+     * 执行敲击操作的核心逻辑（已被锁保护）
+     */
+    private Integer executeKnockOperation(KnockVO knockVO) {
+        // 使用前端传入的敲击时间，如果没有则使用当前时间
+        Date knockTime = knockVO.getKnockTime() != null ? knockVO.getKnockTime() : new Date();
+
+        // 计算当前小时的时间范围
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(knockTime);
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.MILLISECOND, 0);
+        Date hourStart = cal.getTime();
+
+        cal.add(Calendar.HOUR_OF_DAY, 1);
+        cal.add(Calendar.MILLISECOND, -1);
+        Date hourEnd = cal.getTime();
+
+        // 查询该用户在这个小时内是否已有记录
+        LambdaQueryWrapper<MeritRecord> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(MeritRecord::getUserId, knockVO.getUserId())
+               .eq(MeritRecord::getKnockType, "manual")
+               .eq(MeritRecord::getSource, "knock")
+               .ge(MeritRecord::getCreateTime, hourStart)
+               .le(MeritRecord::getCreateTime, hourEnd);
+
+        MeritRecord existingRecord = meritRecordMapper.selectOne(wrapper);
+
+        // 计算本次功德值
         Integer baseMerit = knockVO.getKnockCount();
         BigDecimal bonusRate = BigDecimal.ONE;
-        
-        // 连击加成
-        if (knockVO.getComboCount() != null && knockVO.getComboCount() > 5) {
-            bonusRate = bonusRate.add(new BigDecimal("0.1"));
-        }
-        
+
+        // 暂时不使用连击加成，因为现在按小时聚合
         Integer totalMerit = bonusRate.multiply(new BigDecimal(baseMerit)).intValue();
-        
-        // 创建功德记录
-        MeritRecord record = new MeritRecord();
-        record.setId(IdGenerator.nextId());
-        record.setUserId(knockVO.getUserId());
-        record.setMeritGained(totalMerit);
-        record.setKnockType("manual");
-        record.setSource("knock");
-        record.setSessionId(knockVO.getSessionId() != null ? knockVO.getSessionId() : IdUtil.simpleUUID());
-        record.setComboCount(knockVO.getComboCount() != null ? knockVO.getComboCount() : 0);
-        record.setBonusRate(bonusRate);
-        record.setDescription("手动敲击获得功德");
-        meritRecordMapper.insert(record);
-        
-        // 更新用户统计
-        userStatsMapper.updateKnockStats(knockVO.getUserId(), 
-                                        knockVO.getKnockCount().longValue(), 
-                                        totalMerit.longValue());
-        
-        return totalMerit;
+
+        if (existingRecord != null) {
+            // 更新现有记录：累加功德值
+            Integer newTotalMerit = existingRecord.getMeritGained() + totalMerit;
+            existingRecord.setMeritGained(newTotalMerit);
+            existingRecord.setDescription("手动敲击获得功德(本小时累计功德: " + newTotalMerit + ")");
+            meritRecordMapper.updateById(existingRecord);
+
+            // 更新用户统计
+            userStatsMapper.updateKnockStats(knockVO.getUserId(),
+                                            knockVO.getKnockCount().longValue(),
+                                            totalMerit.longValue());
+
+            return totalMerit;
+        } else {
+            // 创建新的功德记录
+            MeritRecord record = new MeritRecord();
+            record.setId(IdGenerator.nextId());
+            record.setUserId(knockVO.getUserId());
+            record.setMeritGained(totalMerit);
+            record.setKnockType("manual");
+            record.setSource("knock");
+            // 会话ID、连击数、加成倍率字段保留但暂不使用
+            record.setSessionId(knockVO.getSessionId() != null ? knockVO.getSessionId() : IdUtil.simpleUUID());
+            record.setComboCount(0); // 暂不使用连击数
+            record.setBonusRate(bonusRate);
+            record.setDescription("手动敲击获得功德");
+
+            // 设置创建时间为敲击时间所在小时的开始时间，便于按小时分组
+            record.setCreateTime(hourStart);
+
+            meritRecordMapper.insert(record);
+
+            // 更新用户统计
+            userStatsMapper.updateKnockStats(knockVO.getUserId(),
+                                            knockVO.getKnockCount().longValue(),
+                                            totalMerit.longValue());
+
+            return totalMerit;
+        }
     }
     
     @Override
@@ -91,23 +145,33 @@ public class MeritServiceImpl implements MeritService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Map<String, Object> exchangeMerit(ExchangeVO exchangeVO) {
+        // 使用用户锁确保兑换操作的原子性
+        return userLockManager.executeWithUserLock(exchangeVO.getUserId(), () -> {
+            return executeExchangeOperation(exchangeVO);
+        });
+    }
+
+    /**
+     * 执行兑换操作的核心逻辑（已被锁保护）
+     */
+    private Map<String, Object> executeExchangeOperation(ExchangeVO exchangeVO) {
         Map<String, Object> result = new HashMap<>();
-        
+
         // 查询用户统计信息
         UserStats userStats = userStatsMapper.selectByUserId(exchangeVO.getUserId());
         if (userStats == null) {
             throw new BusinessException("用户统计信息不存在");
         }
-        
+
         // 检查功德值是否足够
         if (userStats.getTotalMerit() < exchangeVO.getMeritAmount()) {
             throw new BusinessException("功德值不足");
         }
-        
+
         // 计算兑换功德币（比例1000:1）
         Integer exchangeRate = 1000;
         Integer meritCoins = exchangeVO.getMeritAmount().intValue() / exchangeRate;
-        
+
         // 创建兑换记录
         ExchangeRecord record = new ExchangeRecord();
         record.setId(IdGenerator.nextId());
@@ -117,17 +181,17 @@ public class MeritServiceImpl implements MeritService {
         record.setExchangeRate(exchangeRate);
         record.setExchangeTime(new Date());
         exchangeRecordMapper.insert(record);
-        
+
         // 更新用户统计
         userStats.setTotalMerit(userStats.getTotalMerit() - exchangeVO.getMeritAmount());
         userStats.setMeritCoins(userStats.getMeritCoins() + meritCoins);
         userStatsMapper.updateById(userStats);
-        
+
         result.put("meritUsed", exchangeVO.getMeritAmount());
         result.put("meritCoinsGained", meritCoins);
         result.put("remainingMerit", userStats.getTotalMerit());
         result.put("totalMeritCoins", userStats.getMeritCoins());
-        
+
         return result;
     }
     
@@ -243,18 +307,21 @@ public class MeritServiceImpl implements MeritService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Boolean addMeritRecord(Long userId, Integer merit, String source, String description) {
-        MeritRecord record = new MeritRecord();
-        record.setId(IdGenerator.nextId());
-        record.setUserId(userId);
-        record.setMeritGained(merit);
-        record.setSource(source);
-        record.setDescription(description);
-        record.setBonusRate(BigDecimal.ONE);
-        meritRecordMapper.insert(record);
-        
-        // 更新用户统计
-        userStatsMapper.addMerit(userId, merit.longValue());
-        
-        return true;
+        // 使用用户锁确保功德记录添加的原子性
+        return userLockManager.executeWithUserLock(userId, () -> {
+            MeritRecord record = new MeritRecord();
+            record.setId(IdGenerator.nextId());
+            record.setUserId(userId);
+            record.setMeritGained(merit);
+            record.setSource(source);
+            record.setDescription(description);
+            record.setBonusRate(BigDecimal.ONE);
+            meritRecordMapper.insert(record);
+
+            // 更新用户统计
+            userStatsMapper.addMerit(userId, merit.longValue());
+
+            return true;
+        });
     }
 }

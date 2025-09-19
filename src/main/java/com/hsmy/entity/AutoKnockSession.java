@@ -77,4 +77,24 @@ public class AutoKnockSession {
      * 是否已结算
      */
     private Boolean settled;
+
+    /**
+     * 倍率值（功德加成）
+     */
+    private Double multiplier;
+
+    /**
+     * 最后心跳时间
+     */
+    private LocalDateTime lastHeartbeatTime;
+
+    /**
+     * 客户端报告的累计敲击次数
+     */
+    private Integer clientKnockCount;
+
+    /**
+     * 来源类型
+     */
+    private Integer source;
 }

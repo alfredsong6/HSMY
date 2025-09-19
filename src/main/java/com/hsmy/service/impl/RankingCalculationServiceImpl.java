@@ -3,7 +3,7 @@ package com.hsmy.service.impl;
 import com.hsmy.entity.Ranking;
 import com.hsmy.mapper.RankingMapper;
 import com.hsmy.service.RankingCalculationService;
-import com.hsmy.utils.SnowflakeIdGenerator;
+import com.hsmy.utils.IdGenerator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -31,7 +31,6 @@ public class RankingCalculationServiceImpl implements RankingCalculationService 
 
     private final RankingMapper rankingMapper;
     private final JdbcTemplate jdbcTemplate;
-    private final SnowflakeIdGenerator idGenerator;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -59,7 +58,7 @@ public class RankingCalculationServiceImpl implements RankingCalculationService 
         int position = 1;
         for (Map<String, Object> result : results) {
             Ranking ranking = new Ranking();
-            ranking.setId(idGenerator.nextId());
+            ranking.setId(IdGenerator.nextId());
             ranking.setUserId(((Number) result.get("user_id")).longValue());
             ranking.setRankType("daily");
             ranking.setMeritValue(((Number) result.get("total_merit")).longValue());
@@ -115,7 +114,7 @@ public class RankingCalculationServiceImpl implements RankingCalculationService 
         int position = 1;
         for (Map<String, Object> result : results) {
             Ranking ranking = new Ranking();
-            ranking.setId(idGenerator.nextId());
+            ranking.setId(IdGenerator.nextId());
             ranking.setUserId(((Number) result.get("user_id")).longValue());
             ranking.setRankType("weekly");
             ranking.setMeritValue(((Number) result.get("total_merit")).longValue());
@@ -168,7 +167,7 @@ public class RankingCalculationServiceImpl implements RankingCalculationService 
         int position = 1;
         for (Map<String, Object> result : results) {
             Ranking ranking = new Ranking();
-            ranking.setId(idGenerator.nextId());
+            ranking.setId(IdGenerator.nextId());
             ranking.setUserId(((Number) result.get("user_id")).longValue());
             ranking.setRankType("monthly");
             ranking.setMeritValue(((Number) result.get("total_merit")).longValue());
@@ -213,7 +212,7 @@ public class RankingCalculationServiceImpl implements RankingCalculationService 
         int position = 1;
         for (Map<String, Object> result : results) {
             Ranking ranking = new Ranking();
-            ranking.setId(idGenerator.nextId());
+            ranking.setId(IdGenerator.nextId());
             ranking.setUserId(((Number) result.get("user_id")).longValue());
             ranking.setRankType("total");
             ranking.setMeritValue(((Number) result.get("total_merit")).longValue());

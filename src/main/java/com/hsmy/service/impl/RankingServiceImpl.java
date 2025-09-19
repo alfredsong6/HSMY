@@ -4,6 +4,7 @@ import com.hsmy.entity.Ranking;
 import com.hsmy.mapper.RankingMapper;
 import com.hsmy.mapper.UserStatsMapper;
 import com.hsmy.service.RankingService;
+import com.hsmy.utils.DateUtil;
 import com.hsmy.utils.IdGenerator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -29,12 +30,12 @@ public class RankingServiceImpl implements RankingService {
     
     @Override
     public List<Ranking> getRankingList(String rankType, LocalDate snapshotDate, Integer limit) {
-        return rankingMapper.selectByTypeAndDate(rankType, snapshotDate, limit);
+        return rankingMapper.selectByTypeAndDate(rankType, DateUtil.localDateToDate(snapshotDate), limit);
     }
     
     @Override
     public Ranking getUserRanking(Long userId, String rankType, LocalDate snapshotDate) {
-        return rankingMapper.selectUserRanking(userId, rankType, snapshotDate);
+        return rankingMapper.selectUserRanking(userId, rankType, DateUtil.localDateToDate(snapshotDate));
     }
     
     @Override
@@ -101,7 +102,7 @@ public class RankingServiceImpl implements RankingService {
                     Ranking ranking = rankings.get(i);
                     ranking.setId(IdGenerator.nextId());
                     ranking.setRankingPosition(i + 1);
-                    ranking.setSnapshotDate(convertLocalDateToDate(snapshotDate));
+                    ranking.setSnapshotDate(DateUtil.localDateToDate(snapshotDate));
                 }
                 
                 // 批量插入排行榜数据
@@ -117,13 +118,6 @@ public class RankingServiceImpl implements RankingService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Integer cleanExpiredRankings(LocalDate beforeDate) {
-        return rankingMapper.deleteBeforeDate(beforeDate);
-    }
-    
-    /**
-     * 将LocalDate转换为Date
-     */
-    private Date convertLocalDateToDate(LocalDate localDate) {
-        return Date.from(localDate.atStartOfDay().atZone(java.time.ZoneId.systemDefault()).toInstant());
+        return rankingMapper.deleteBeforeDate(DateUtil.localDateToDate(beforeDate));
     }
 }

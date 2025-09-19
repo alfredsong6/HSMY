@@ -1,0 +1,926 @@
+{
+	"info": {
+		"name": "HSMY API Collection-V2",
+		"_postman_id": "0fcb089d-d685-6d8d-e8d1-6f20946b5c57",
+		"description": "HSMY项目接口集合V2 - 使用Authorization头进行鉴权",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "认证模块",
+			"item": [
+				{
+					"name": "发送验证码",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Skip-Auth",
+								"value": "true"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"account\": \"17688701791\",\n    \"accountType\": \"phone\",\n    \"businessType\": \"login\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/send-code",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"send-code"
+							]
+						},
+						"description": "发送验证码接口\n\n参数说明：\n- account: 手机号或邮箱\n- accountType: phone(手机) 或 email(邮箱)\n- businessType: register(注册)、login(登录)、reset_password(重置密码)"
+					},
+					"response": []
+				},
+				{
+					"name": "手机号验证码注册",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Skip-Auth",
+								"value": "true"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"account\": \"17688701791\",\n    \"accountType\": \"phone\",\n    \"code\": \"264464\",\n    \"nickname\": \"测试用户1\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/register-by-code",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"register-by-code"
+							]
+						},
+						"description": "使用验证码注册新用户\n\n参数说明：\n- account: 手机号或邮箱\n- accountType: phone(手机) 或 email(邮箱)\n- code: 6位数字验证码\n- nickname: 昵称（可选）\n\n返回：\n- token: 访问令牌（用于后续请求的Authorization头）\n- tokenType: none\n- sessionId: 会话ID（兼容旧版本）"
+					},
+					"response": []
+				},
+				{
+					"name": "手机号密码登录",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Skip-Auth",
+								"value": "true"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"loginAccount\": \"17688701791\",\n    \"loginType\": \"password\",\n    \"password\": \"654321\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						},
+						"description": "使用手机号和密码登录\n\n参数说明：\n- loginAccount: 用户名/手机号/邮箱\n- loginType: password(密码登录)\n- password: 用户密码\n\n返回：\n- token: 访问令牌（用于后续请求的Authorization头）\n- tokenType: none\n- sessionId: 会话ID（兼容旧版本）"
+					},
+					"response": []
+				},
+				{
+					"name": "手机号验证码登录",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Skip-Auth",
+								"value": "true"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"loginAccount\": \"17688701791\",\n    \"loginType\": \"code\",\n    \"code\": \"028102\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						},
+						"description": "使用手机号和验证码登录\n\n参数说明：\n- loginAccount: 手机号\n- loginType: code(验证码登录)\n- code: 6位数字验证码\n\n返回：\n- token: 访问令牌（用于后续请求的Authorization头）\n- tokenType: none"
+					},
+					"response": []
+				},
+				{
+					"name": "获取个人信息",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{baseUrl}}/user/self/info",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"user",
+								"self",
+								"info"
+							]
+						},
+						"description": "获取当前登录用户的个人信息\n\n需要在Authorization头中传递token（不带 Bearer 前缀）\n\n返回信息包括：\n- userId: 用户ID\n- username: 用户名\n- nickname: 昵称\n- phone: 手机号\n- email: 邮箱\n- currentLevel: 当前等级\n- meritCoins: 功德币\n- totalMerit: 总功德值\n- loginTime: 登录时间\n- lastAccessTime: 最后访问时间"
+					},
+					"response": []
+				},
+				{
+					"name": "退出登录",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/logout",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"logout"
+							]
+						},
+						"description": "退出登录，清除会话信息\n\n需要在Authorization头中传递token（不带 Bearer 前缀）"
+					},
+					"response": []
+				},
+				{
+					"name": "初始化密码",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"password\":\"123456\",\n\t\"confirmPassword\":\"123456\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/user/initializePassword",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"user",
+								"initializePassword"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "重置密码",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"code\": \"246838\",\n    \"phone\": \"17688701791\",\n    \"password\": \"654321\",\n    \"confirmPassword\": \"654321\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/user/resetPasswordWithSms",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"user",
+								"resetPasswordWithSms"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "修改密码",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"oldPassword\": \"654321\",\n    \"newPassword\": \"654321\",\n    \"confirmPassword\": \"654321\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/user/changePassword",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"user",
+								"changePassword"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "排行榜模块",
+			"item": [
+				{
+					"name": "日榜",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{baseUrl}}/rankings/daily?limit=100",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"rankings",
+								"daily"
+							],
+							"query": [
+								{
+									"key": "limit",
+									"value": "100",
+									"equals": true,
+									"description": "查询条数，默认100"
+								}
+							]
+						},
+						"description": "获取今日排行榜\n\n参数：\n- limit: 查询条数（默认100）"
+					},
+					"response": []
+				},
+				{
+					"name": "周榜",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{baseUrl}}/rankings/weekly?limit=100",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"rankings",
+								"weekly"
+							],
+							"query": [
+								{
+									"key": "limit",
+									"value": "100",
+									"description": "查询条数，默认100"
+								}
+							]
+						},
+						"description": "获取本周排行榜\n\n参数：\n- limit: 查询条数（默认100）"
+					},
+					"response": []
+				},
+				{
+					"name": "总榜",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{baseUrl}}/rankings/total?limit=100",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"rankings",
+								"total"
+							],
+							"query": [
+								{
+									"key": "limit",
+									"value": "100",
+									"description": "查询条数，默认100"
+								}
+							]
+						},
+						"description": "获取总排行榜\n\n参数：\n- limit: 查询条数（默认100）"
+					},
+					"response": []
+				},
+				{
+					"name": "我的排名",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{baseUrl}}/rankings/my",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"rankings",
+								"my"
+							]
+						},
+						"description": "获取当前用户的排名信息\n\n需要登录（Authorization头）\n\n返回内容包括：\n- dailyRanking: 日榜排名信息\n- weeklyRanking: 周榜排名信息\n- totalRanking: 总榜排名信息"
+					},
+					"response": []
+				},
+				{
+					"name": "指定用户排名",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{baseUrl}}/rankings/user/1",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"rankings",
+								"user",
+								"1"
+							]
+						},
+						"description": "获取指定用户的排名信息\n\n路径参数：\n- userId: 用户ID\n\n返回内容包括：\n- userId: 用户ID\n- dailyRanking: 日榜排名信息\n- weeklyRanking: 周榜排名信息\n- totalRanking: 总榜排名信息"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "功德统计模块",
+			"item": [
+				{
+					"name": "功德余额",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"userId\": 1\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/merit/balance",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"merit",
+								"balance"
+							]
+						},
+						"description": "查询用户功德余额"
+					},
+					"response": []
+				},
+				{
+					"name": "功德历史记录",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{baseUrl}}/merit/history?userId=1&page=1&pageSize=20",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"merit",
+								"history"
+							],
+							"query": [
+								{
+									"key": "userId",
+									"value": "1",
+									"equals": true,
+									"description": "用户ID"
+								},
+								{
+									"key": "page",
+									"value": "1",
+									"equals": true,
+									"description": "页码"
+								},
+								{
+									"key": "pageSize",
+									"value": "20",
+									"equals": true,
+									"description": "每页数量"
+								}
+							]
+						},
+						"description": "查询功德历史记录"
+					},
+					"response": []
+				},
+				{
+					"name": "功德统计汇总",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{baseUrl}}/merit/summary",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"merit",
+								"summary"
+							]
+						},
+						"description": "获取当前用户功德统计汇总"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "敲木鱼模块",
+			"item": [
+				{
+					"name": "手动敲木鱼",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"knockCount\": 32,\n    \"source\": 1,\n    \"knockTime\": \"2025-09-19 12:13:12\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/knock/manual",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"knock",
+								"manual"
+							]
+						},
+						"description": "手动敲木鱼获得功德\n\n参数说明：\n- knockCount: 敲击次数\n- isCritical: 是否暴击"
+					},
+					"response": []
+				},
+				{
+					"name": "敲木鱼统计",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{baseUrl}}/knock/stats",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"knock",
+								"stats"
+							]
+						},
+						"description": "获取当前用户敲木鱼统计信息"
+					},
+					"response": []
+				},
+				{
+					"name": "自动开始木鱼",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": " {\r\n    \"duration\": 60,\r\n    \"knocksPerSecond\": 3,\r\n    \"multiplier\": 1.5,\r\n    \"source\": 1,\r\n    \"knockType\": 1\r\n  }\r\n\r\n  无限时长示例：\r\n  {\r\n    \"duration\": -1,\r\n    \"knocksPerSecond\": 5,\r\n    \"multiplier\": 2.0,\r\n    \"source\": 2,\r\n    \"knockType\": 1\r\n  }\r\n"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/knock/auto/start",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"knock",
+								"auto",
+								"start"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "心跳检测",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "\r\n  {\r\n    \"sessionId\": \"abc123def456\",\r\n    \"currentKnockCount\": 45,\r\n    \"heartbeatTime\": \"2025-09-19T17:35:00\",\r\n    \"clientStatus\": \"active\"\r\n  }\r\n\r\n  10秒后的心跳示例：\r\n  {\r\n    \"sessionId\": \"abc123def456\",\r\n    \"currentKnockCount\": 75,\r\n    \"clientStatus\": \"active\"\r\n  }\r\n"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/knock/auto/stop",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"knock",
+								"auto",
+								"stop"
+							]
+						},
+						"description": ""
+					},
+					"response": []
+				},
+				{
+					"name": "停止自动",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "  {\r\n    \"sessionId\": \"abc123def456\",\r\n    \"knockCount\": 180,\r\n    \"actualDuration\": 60\r\n  }"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/knock/auto/stop",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"knock",
+								"auto",
+								"stop"
+							]
+						},
+						"description": ""
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "个人信息模块",
+			"item": [
+				{
+					"name": "更新头像",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"avatarUrl\":\"/api/file/uploads/avatar/20250918/090685be65c5496491bb1f3b9103ba78.jpeg\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/user/avatar/update",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"user",
+								"avatar",
+								"update"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "获取头像",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{baseUrl}}/user/avatar",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"user",
+								"avatar"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "上传头像",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token}}"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"value": "",
+									"type": "file"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{baseUrl}}/file/upload/avatar",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"file",
+								"upload",
+								"avatar"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "下载头像",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/file/uploads/avatar/20250918/df8b8fe873414e4ca6e6d58c3d2ad11c.jpeg",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"file",
+								"uploads",
+								"avatar",
+								"20250918",
+								"df8b8fe873414e4ca6e6d58c3d2ad11c.jpeg"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Robust token capture for any 2xx response (login/register etc.)",
+					"(function(){",
+					"  try {",
+					"    if (!pm.response) return;",
+					"    var httpCode = pm.response.code || pm.response.statusCode;",
+					"    if (!(httpCode >= 200 && httpCode < 300)) return;",
+					"    var body = {}; var text = ''; var jsonOk = false;",
+					"    try { body = pm.response.json(); jsonOk = true; } catch(e) { jsonOk = false; }",
+					"    if (!jsonOk) { try { text = pm.response.text(); body = JSON.parse(text); jsonOk = true; } catch(e) { text = pm.response.text(); } }",
+					"    // BFS to find token-like fields anywhere in the JSON",
+					"    var found = ''; if (jsonOk) {",
+					"      var queue = [body]; var seen = new Set();",
+					"      function isObj(o){ return o && typeof o === 'object'; }",
+					"      while (queue.length && !found){",
+					"        var cur = queue.shift(); if (!isObj(cur) || seen.has(cur)) continue; seen.add(cur);",
+					"        if (typeof cur.token === 'string' && cur.token) { found = cur.token; break; }",
+					"        if (typeof cur.accessToken === 'string' && cur.accessToken) { found = cur.accessToken; break; }",
+					"        if (typeof cur.access_token === 'string' && cur.access_token) { found = cur.access_token; break; }",
+					"        if (typeof cur.sessionId === 'string' && cur.sessionId) { found = cur.sessionId; break; }",
+					"        for (var k in cur){ if (isObj(cur[k])) queue.push(cur[k]); }",
+					"      }",
+					"    }",
+					"    // Fallback: regex search in text for \"token\": \"...\"",
+					"    if (!found && text) {",
+					"      try { var m = text.match(/\\\"token\\\"\\s*:\\s*\\\"([^\\\"]+)\\\"/); if (m && m[1]) found = m[1]; } catch(e) {};",
+					"    }",
+					"    if (found){",
+					"      pm.collectionVariables.set('token', found);",
+					"      try { pm.environment.set('token', found); } catch(e) {}",
+					"      console.log('Token saved (collection/env): ' + found);",
+					"    } else {",
+					"      console.warn('Token not found in response.');",
+					"    }",
+					"  } catch(e) { console.warn('Token capture skipped:', e && e.message); }",
+					")();"
+				]
+			}
+		},
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Auto add Authorization header from collection/environment token (token only, no Bearer)",
+					"(function(){",
+					"  try {",
+					"    var token = pm.environment.get('token') || pm.collectionVariables.get('token');",
+					"    if (!token) { return; }",
+					"    var url = (pm.request.url && pm.request.url.toString()) || '';",
+					"    var skip = /\\/auth\\/(login|register-by-code|send-code|health)/i.test(url) || /\\/system\\/whitelist\\//i.test(url);",
+					"    if (pm.request.headers.has('X-Skip-Auth')) { return; }",
+					"    if (skip) { return; }",
+					"    if (!pm.request.headers.has('Authorization')) {",
+					"      pm.request.headers.upsert({ key: 'Authorization', value: '{{token}}' });",
+					"    }",
+					"  } catch(e) {",
+					"    console.warn('Pre-request auth injection skipped:', e && e.message);",
+					"  }",
+					"})();"
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"id": "42810f0a-091c-4a26-afd1-06b9d3e04f16",
+			"key": "baseUrl",
+			"value": "http://localhost:8080",
+			"type": "string"
+		},
+		{
+			"id": "92777cf0-5770-4d16-983b-21247521a39e",
+			"key": "token",
+			"value": "",
+			"type": "string"
+		}
+	]
+}
