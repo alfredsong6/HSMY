@@ -14,6 +14,8 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -196,16 +198,44 @@ public class MeritController {
             
             Map<String, Object> summary = new HashMap<>();
             //summary.put("userId", userId);
+            LocalDate localToday = LocalDate.now();
+            Date today = java.sql.Date.valueOf(localToday);
             summary.put("totalMerit", meritService.getTotalMerit(userId));
             summary.put("todayMerit", meritService.getTodayMerit(userId));
             summary.put("weeklyMerit", meritService.getWeeklyMerit(userId));
             summary.put("monthlyMerit", meritService.getMonthlyMerit(userId));
             summary.put("meritCoins", meritService.getMeritCoins(userId));
             summary.put("userStats", meritService.getMeritStats(userId));
+            summary.put("statDate", today);
+            summary.put("dailyMerit", meritService.getMeritByStatDate(userId, today));
             //summary.put("apiVersion", "v1.1");
             //summary.put("newFeatures", new String[]{"详细余额信息", "兑换前后对比", "统计汇总接口"});
             
             return Result.success("查询成功", summary);
+        } catch (Exception e) {
+            return Result.error(e.getMessage());
+        }
+    }
+
+    /**
+     * 获取指定自然日的功德统计
+     *
+     * @param date 自然日（可选，默认当天）
+     * @return 功德统计
+     */
+    @GetMapping("/daily")
+    public Result<Map<String, Object>> getDailyMerit(
+            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date date) {
+        try {
+            Long userId = UserContextUtil.requireCurrentUserId();
+            Date requestDate = date != null ? date : new Date();
+            LocalDate local = requestDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+            Date targetDate = java.sql.Date.valueOf(local);
+            Long merit = meritService.getMeritByStatDate(userId, targetDate);
+            Map<String, Object> payload = new HashMap<>();
+            payload.put("statDate", targetDate);
+            payload.put("merit", merit);
+            return Result.success(payload);
         } catch (Exception e) {
             return Result.error(e.getMessage());
         }

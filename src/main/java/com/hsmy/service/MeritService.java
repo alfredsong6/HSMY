@@ -95,7 +95,7 @@ public interface MeritService {
      * @return 本月功德值
      */
     Long getMonthlyMerit(Long userId);
-    
+
     /**
      * 获取用户余额信息
      * 
@@ -130,4 +130,13 @@ public interface MeritService {
      * @return 是否成功
      */
     Boolean addMeritRecord(Long userId, Integer merit, String source, String description);
+
+    /**
+     * 根据自然日统计功德值
+     *
+     * @param userId 用户ID
+     * @param statDate 自然日
+     * @return 功德值
+     */
+    Long getMeritByStatDate(Long userId, Date statDate);
 }

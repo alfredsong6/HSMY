@@ -76,4 +76,14 @@ public interface MeritRecordMapper extends BaseMapper<MeritRecord> {
      * @return 最大连击数
      */
     Integer getMaxCombo(@Param("userId") Long userId);
+
+    /**
+     * 统计指定自然日功德
+     *
+     * @param userId 用户ID
+     * @param statDate 自然日
+     * @return 功德总数
+     */
+    Long sumMeritByStatDate(@Param("userId") Long userId,
+                            @Param("statDate") Date statDate);
 }

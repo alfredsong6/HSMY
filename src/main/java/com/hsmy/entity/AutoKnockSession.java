@@ -32,12 +32,17 @@ public class AutoKnockSession {
      * 预计结束时间
      */
     private LocalDateTime endTime;
-    
+
+    /**
+     * 实际结束时间
+     */
+    private LocalDateTime actualEndTime;
+
     /**
      * 持续时长（秒）
      */
     private Integer duration;
-    
+
     /**
      * 每秒敲击次数
      */
@@ -84,6 +89,26 @@ public class AutoKnockSession {
     private Double multiplier;
 
     /**
+     * 会话模式：MANUAL、AUTO_AUTOEND、AUTO_TIMED
+     */
+    private String sessionMode;
+
+    /**
+     * 限制类型：DURATION、COUNT
+     */
+    private String limitType;
+
+    /**
+     * 限制值（秒或次数）
+     */
+    private Integer limitValue;
+
+    /**
+     * 道具快照JSON
+     */
+    private String propSnapshot;
+
+    /**
      * 最后心跳时间
      */
     private LocalDateTime lastHeartbeatTime;
@@ -97,4 +122,29 @@ public class AutoKnockSession {
      * 来源类型
      */
     private Integer source;
+
+    /**
+     * 会话结束原因
+     */
+    private String endReason;
+
+    /**
+     * 预扣功德币
+     */
+    private Integer coinCost;
+
+    /**
+     * 已退还功德币
+     */
+    private Integer coinRefunded;
+
+    /**
+     * 支付状态：RESERVED、SETTLED、REFUNDED
+     */
+    private String paymentStatus;
+
+    /**
+     * 钱包流水ID
+     */
+    private String walletTxnId;
 }

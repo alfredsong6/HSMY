@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Map;
+import org.springframework.validation.annotation.Validated;
 
 /**
  * 敲击功能Controller
@@ -37,11 +38,12 @@ public class KnockController {
      * @return 敲击结果
      */
     @PostMapping("/manual")
-    public Result<Map<String, Object>> manualKnock(@RequestBody KnockVO knockVO, HttpServletRequest request) {
+    public Result<Map<String, Object>> manualKnock(@Validated @RequestBody KnockVO knockVO, HttpServletRequest request) {
         try {
             // 获取用户ID
             Long userId = UserContextUtil.requireCurrentUserId();
             knockVO.setUserId(userId);
+            knockVO.setKnockMode("MANUAL");
 
             // 调用服务层处理业务逻辑
             Map<String, Object> result = knockService.manualKnock(knockVO);
@@ -61,7 +63,7 @@ public class KnockController {
      * @return 操作结果
      */
     @PostMapping("/auto/start")
-    public Result<Map<String, Object>> startAutoKnock(@RequestBody AutoKnockStartVO startVO,
+    public Result<Map<String, Object>> startAutoKnock(@Validated @RequestBody AutoKnockStartVO startVO,
                                                       HttpServletRequest request) {
         try {
             // 获取用户ID
@@ -85,7 +87,7 @@ public class KnockController {
      * @return 操作结果
      */
     @PostMapping("/auto/stop")
-    public Result<Map<String, Object>> stopAutoKnock(@RequestBody AutoKnockStopVO stopVO, HttpServletRequest request) {
+    public Result<Map<String, Object>> stopAutoKnock(@Validated @RequestBody AutoKnockStopVO stopVO, HttpServletRequest request) {
         try {
             // 获取用户ID
             Long userId = UserContextUtil.requireCurrentUserId();
@@ -108,7 +110,7 @@ public class KnockController {
      * @return 操作结果
      */
     @PostMapping("/auto/heartbeat")
-    public Result<Map<String, Object>> autoKnockHeartbeat(@RequestBody AutoKnockHeartbeatVO heartbeatVO, HttpServletRequest request) {
+    public Result<Map<String, Object>> autoKnockHeartbeat(@Validated @RequestBody AutoKnockHeartbeatVO heartbeatVO, HttpServletRequest request) {
         try {
             // 获取用户ID
             Long userId = UserContextUtil.requireCurrentUserId();

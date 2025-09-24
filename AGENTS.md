@@ -1,35 +1,19 @@
-﻿# Repository Guidelines
+# Repository Guidelines
 
 ## Project Structure & Module Organization
-- Source: src/main/java/com/hsmy (domain packages: controller/, service/, mapper/, entity/, config/, dto/, o/).
-- Resources: src/main/resources (pplication.yml, profile files pplication-*.yml, MyBatis XML in mapper/, Flyway SQL in db/migration/).
-- Tests: src/test/java (JUnit; name tests *Test).
-- Docs: /docs, /prd (standards), API guides: API_VERSION_GUIDE.md, API_VERSION_PATH_MAPPING.md.
+Source code lives under `src/main/java/com/hsmy`, grouped by layer (`controller`, `service`, `mapper`, `entity`, `config`, `dto`, `vo`). Spring resources and MyBatis XML reside in `src/main/resources`; Flyway migrations belong in `src/main/resources/db/migration`. Keep integration utilities and profile configs in the relevant `application-*.yml` files. Tests mirror the main package layout in `src/test/java`, and documentation belongs in `/docs` or `/prd`.
 
 ## Build, Test, and Development Commands
-- Build (dev profile): mvn clean package -Pdev
-- Build (test/prd): mvn clean package -Ptest or -Pprd
-- Run locally (dev): mvn spring-boot:run
-- Run JAR: java -jar target/HSMY-1.0-SNAPSHOT.jar --spring.profiles.active=dev
-- Tests: mvn test (run all) or mvn -Dtest=ClassNameTest test (single test)
+Use `mvn clean package -Pdev` for a full development build, or switch to `-Ptest` and `-Pprd` for environment-specific artifacts. Run the service locally with `mvn spring-boot:run` (defaults to the `dev` profile) or execute the packaged JAR via `java -jar target/HSMY-1.0-SNAPSHOT.jar --spring.profiles.active=dev`. Execute all tests with `mvn test`, and narrow to a single class using `mvn -Dtest=ClassNameTest test`.
 
 ## Coding Style & Naming Conventions
-- Java 8; 4-space indent; UTF-8; use Lombok for boilerplate (@Data, @Builder).
-- Packages by layer: controller -> service -> mapper -> entity.
-- Naming: XxxController, XxxService, XxxMapper, XxxEntity; DTO/VO end with Request/Response/VO.
-- SQL mappers live in src/main/resources/mapper/*.xml matching com.hsmy.mapper.XxxMapper.
+Write Java 8 code with 4-space indentation and UTF-8 encoding. Leverage Lombok annotations (e.g., `@Data`, `@Builder`) for boilerplate. Name components by layer: `XxxController`, `XxxService`, `XxxMapper`, `XxxEntity`. DTOs and view objects end with `Request`, `Response`, or `VO`. Align MyBatis mappers under `src/main/resources/mapper` with matching `com.hsmy.mapper` interfaces.
 
 ## Testing Guidelines
-- Use JUnit (spring-boot-starter-test). Prefer @SpringBootTest for integration, mock external IO.
-- Name tests *Test.java; keep tests under matching package paths.
-- Run with profiles when needed: mvn -Ptest test.
+Prefer `@SpringBootTest` for integration tests and isolate external IO with mocks. Name test classes `*Test.java` and place them under the mirrored package of the component under test. Run targeted suites using Maven profiles when the test data depends on `application-test.yml`.
 
 ## Commit & Pull Request Guidelines
-- Commit style (from history): [feat] ..., [fix] ..., [refactor] .... Keep subject <= 72 chars; imperative mood.
-- PRs: include description, linked issue (e.g., Closes #123), screenshots for API/UI changes, and test notes.
-- Small, focused PRs; ensure mvn -Pdev clean verify passes.
+Follow the existing commit format such as `[feat] Add user onboarding API` or `[fix] Resolve null pointer on login`, keeping subjects under 72 characters and in imperative mood. Pull requests should include a clear summary, reference related issues (`Closes #123`), attach API screenshots when endpoints change, and document test evidence (`mvn -Pdev clean verify`).
 
 ## Security & Configuration Tips
-- Do not commit secrets. Configure via env vars used in pplication.yml (e.g., EMAIL_*, ALIYUN_*, TENCENT_*).
-- Database/Redis config per profile in pplication-*.yml. Default HTTP base path: /api on port 8080.
-- Static uploads default to ./uploads (/api/file/uploads/**).
+Do not commit secrets; instead, pass credentials via environment variables consumed in `application.yml` (e.g., `EMAIL_*`, `ALIYUN_*`, `TENCENT_*`). Respect the default REST base path `/api` on port 8080, and note that user-uploaded assets default to `./uploads` served from `/api/file/uploads/**`.

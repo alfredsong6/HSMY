@@ -244,6 +244,19 @@ CREATE TABLE `t_knock_session`  (
   `merit_gained` int(11) NULL DEFAULT 0 COMMENT '获得功德值',
   `max_combo` int(11) NULL DEFAULT 0 COMMENT '最高连击数',
   `knock_type` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '敲击类型：manual-手动，auto-自动',
+  `session_mode` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'MANUAL' COMMENT '会话模式：MANUAL-手动，AUTO_AUTOEND-自动结束，AUTO_TIMED-定时结束',
+  `limit_type` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '限制类型：DURATION-时长，COUNT-次数',
+  `limit_value` int(11) NULL DEFAULT NULL COMMENT '限制值，对应秒数或敲击次数',
+  `expected_end_time` datetime(0) NULL DEFAULT NULL COMMENT '预计结束时间',
+  `merit_multiplier` decimal(8, 2) NULL DEFAULT 1.00 COMMENT '会话功德倍率',
+  `prop_snapshot` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL COMMENT '道具快照JSON',
+  `status` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'active' COMMENT '会话状态：active-进行中，stopped-手动停止，completed-已完成，timeout-超时结算',
+  `last_heartbeat_time` datetime(0) NULL DEFAULT NULL COMMENT '最后心跳时间',
+  `end_reason` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '结束原因：auto_end、timeout、manual_stop等',
+  `coin_cost` int(11) NULL DEFAULT 0 COMMENT '预扣功德币',
+  `coin_refunded` int(11) NULL DEFAULT 0 COMMENT '已退还功德币',
+  `wallet_txn_id` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '钱包流水ID',
+  `payment_status` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT 'RESERVED' COMMENT '支付状态：RESERVED-已预扣，SETTLED-已结算，REFUNDED-已退款',
   `device_info` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '设备信息',
   `create_by` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT 'system' COMMENT '创建人',
   `create_time` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0) COMMENT '创建时间',
@@ -301,11 +314,15 @@ CREATE TABLE `t_merit_record`  (
   `id` bigint(20) NOT NULL COMMENT '主键ID，雪花算法生成',
   `user_id` bigint(20) NOT NULL COMMENT '用户ID',
   `merit_gained` int(11) NOT NULL COMMENT '获得功德值',
+  `base_merit` int(11) NULL DEFAULT 0 COMMENT '基础功德值（未计算倍率前）',
   `knock_type` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '敲击类型：manual-手动，auto-自动',
+  `knock_mode` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '敲击模式：MANUAL、AUTO_AUTOEND、AUTO_TIMED',
   `source` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '来源：knock-敲击，task-任务，login-登录，activity-活动，share-分享',
   `session_id` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '会话ID，用于统计连击',
   `combo_count` int(11) NULL DEFAULT 0 COMMENT '连击数',
-  `bonus_rate` decimal(5, 2) NULL DEFAULT 1.00 COMMENT '加成倍率',
+  `bonus_rate` decimal(8, 2) NULL DEFAULT 1.00 COMMENT '总加成倍率',
+  `prop_snapshot` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL COMMENT '道具倍率快照JSON',
+  `stat_date` date NULL DEFAULT NULL COMMENT '所属自然日，凌晨清零后重置',
   `description` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '描述',
   `create_by` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT 'system' COMMENT '创建人',
   `create_time` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0) COMMENT '创建时间',
@@ -316,32 +333,13 @@ CREATE TABLE `t_merit_record`  (
   INDEX `idx_user_id`(`user_id`) USING BTREE,
   INDEX `idx_create_time`(`create_time`) USING BTREE,
   INDEX `idx_source`(`source`) USING BTREE,
-  INDEX `idx_merit_record_session`(`session_id`, `create_time`) USING BTREE
+  INDEX `idx_merit_record_session`(`session_id`, `create_time`) USING BTREE,
+  INDEX `idx_stat_date`(`stat_date`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '功德记录表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of t_merit_record
 -- ----------------------------
-INSERT INTO `t_merit_record` VALUES (1001, 1968213494687993856, 100, '1', '1', 'session_001', 1, 1.00, '普通敲击木鱼', 'system', '2024-11-01 08:30:00', 'system', '2024-11-01 08:30:00', 0);
-INSERT INTO `t_merit_record` VALUES (1002, 1968213494687993856, 150, '2', '1', 'session_001', 5, 1.50, '连击敲击木鱼x5', 'system', '2024-11-01 09:15:00', 'system', '2024-11-01 09:15:00', 0);
-INSERT INTO `t_merit_record` VALUES (1003, 1968213494687993856, 120, '1', '2', 'session_002', 1, 1.00, '普通敲击钟声', 'system', '2024-11-02 10:00:00', 'system', '2024-11-02 10:00:00', 0);
-INSERT INTO `t_merit_record` VALUES (1004, 1968213494687993856, 200, '2', '3', 'session_002', 10, 2.00, '连击敲击鼓声x10', 'system', '2024-11-03 14:20:00', 'system', '2024-11-03 14:20:00', 0);
-INSERT INTO `t_merit_record` VALUES (1005, 1968213494687993856, 80, '1', '4', 'session_003', 1, 1.00, '普通念经', 'system', '2024-11-05 07:00:00', 'system', '2024-11-05 07:00:00', 0);
-INSERT INTO `t_merit_record` VALUES (1006, 1968213494687993856, 300, '2', '1', 'session_003', 15, 3.00, '连击敲击木鱼x15', 'system', '2024-11-06 18:30:00', 'system', '2024-11-06 18:30:00', 0);
-INSERT INTO `t_merit_record` VALUES (1007, 1968213494687993856, 90, '1', '5', 'session_004', 1, 1.00, '普通供香', 'system', '2024-11-07 11:45:00', 'system', '2024-11-07 11:45:00', 0);
-INSERT INTO `t_merit_record` VALUES (1008, 1968213494687993856, 250, '2', '2', 'session_004', 8, 2.50, '连击敲击钟声x8', 'system', '2024-11-08 16:00:00', 'system', '2024-11-08 16:00:00', 0);
-INSERT INTO `t_merit_record` VALUES (1009, 1968213494687993856, 110, '1', '3', 'session_005', 1, 1.00, '普通敲击鼓声', 'system', '2024-11-12 09:30:00', 'system', '2024-11-12 09:30:00', 0);
-INSERT INTO `t_merit_record` VALUES (1010, 1968213494687993856, 180, '2', '4', 'session_005', 6, 1.80, '连击念经x6', 'system', '2024-11-13 13:15:00', 'system', '2024-11-13 13:15:00', 0);
-INSERT INTO `t_merit_record` VALUES (1011, 1968213494687993856, 130, '1', '1', 'session_006', 1, 1.00, '普通敲击木鱼', 'system', '2024-11-14 08:00:00', 'system', '2024-11-14 08:00:00', 0);
-INSERT INTO `t_merit_record` VALUES (1012, 1968213494687993856, 400, '2', '5', 'session_006', 20, 4.00, '连击供香x20', 'system', '2024-11-15 20:30:00', 'system', '2024-11-15 20:30:00', 0);
-INSERT INTO `t_merit_record` VALUES (1013, 1968213494687993856, 95, '1', '2', 'session_007', 1, 1.00, '普通敲击钟声', 'system', '2024-11-20 06:45:00', 'system', '2024-11-20 06:45:00', 0);
-INSERT INTO `t_merit_record` VALUES (1014, 1968213494687993856, 220, '2', '3', 'session_007', 11, 2.20, '连击敲击鼓声x11', 'system', '2024-11-21 15:20:00', 'system', '2024-11-21 15:20:00', 0);
-INSERT INTO `t_merit_record` VALUES (1015, 1968213494687993856, 105, '1', '4', 'session_008', 1, 1.00, '普通念经', 'system', '2024-11-22 12:00:00', 'system', '2024-11-22 12:00:00', 0);
-INSERT INTO `t_merit_record` VALUES (1016, 1968213494687993856, 350, '2', '1', 'session_008', 18, 3.50, '连击敲击木鱼x18', 'system', '2024-11-23 19:45:00', 'system', '2024-11-23 19:45:00', 0);
-INSERT INTO `t_merit_record` VALUES (1017, 1968213494687993856, 125, '1', '5', 'session_009', 1, 1.00, '普通供香', 'system', '2024-12-01 07:30:00', 'system', '2024-12-01 07:30:00', 0);
-INSERT INTO `t_merit_record` VALUES (1018, 1968213494687993856, 160, '2', '2', 'session_009', 7, 1.60, '连击敲击钟声x7', 'system', '2024-12-02 10:15:00', 'system', '2024-12-02 10:15:00', 0);
-INSERT INTO `t_merit_record` VALUES (1019, 1968213494687993856, 115, '1', '1', 'session_010', 1, 1.00, '普通敲击木鱼', 'system', '2024-12-03 14:00:00', 'system', '2024-12-03 14:00:00', 0);
-INSERT INTO `t_merit_record` VALUES (1020, 1968213494687993856, 280, '2', '3', 'session_010', 14, 2.80, '连击敲击鼓声x14', 'system', '2024-12-04 17:30:00', 'system', '2024-12-04 17:30:00', 0);
 INSERT INTO `t_merit_record` VALUES (1021, 1968213494687993856, 85, '1', '4', 'session_011', 1, 1.00, '普通念经', 'system', '2024-12-08 08:00:00', 'system', '2024-12-08 08:00:00', 0);
 INSERT INTO `t_merit_record` VALUES (1022, 1968213494687993856, 190, '2', '5', 'session_011', 9, 1.90, '连击供香x9', 'system', '2024-12-09 11:30:00', 'system', '2024-12-09 11:30:00', 0);
 INSERT INTO `t_merit_record` VALUES (1023, 1968213494687993856, 140, '1', '2', 'session_012', 1, 1.00, '普通敲击钟声', 'system', '2024-12-10 13:45:00', 'system', '2024-12-10 13:45:00', 0);

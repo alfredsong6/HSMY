@@ -20,10 +20,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Locale;
 
 /**
  * 功德Service实现类
@@ -53,10 +55,8 @@ public class MeritServiceImpl implements MeritService {
      * 执行敲击操作的核心逻辑（已被锁保护）
      */
     private Integer executeKnockOperation(KnockVO knockVO) {
-        // 使用前端传入的敲击时间，如果没有则使用当前时间
         Date knockTime = knockVO.getKnockTime() != null ? knockVO.getKnockTime() : new Date();
 
-        // 计算当前小时的时间范围
         Calendar cal = Calendar.getInstance();
         cal.setTime(knockTime);
         cal.set(Calendar.MINUTE, 0);
@@ -68,62 +68,73 @@ public class MeritServiceImpl implements MeritService {
         cal.add(Calendar.MILLISECOND, -1);
         Date hourEnd = cal.getTime();
 
-        // 查询该用户在这个小时内是否已有记录
-        LambdaQueryWrapper<MeritRecord> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(MeritRecord::getUserId, knockVO.getUserId())
-               .eq(MeritRecord::getKnockType, "manual")
-               .eq(MeritRecord::getSource, "knock")
-               .ge(MeritRecord::getCreateTime, hourStart)
-               .le(MeritRecord::getCreateTime, hourEnd);
+        int knockCount = knockVO.getKnockCount() != null && knockVO.getKnockCount() > 0 ? knockVO.getKnockCount() : 1;
+        int perKnockMerit = knockVO.getMeritValue() != null && knockVO.getMeritValue() > 0 ? knockVO.getMeritValue() : 1;
+        int baseMerit = knockCount * perKnockMerit;
 
-        MeritRecord existingRecord = meritRecordMapper.selectOne(wrapper);
+        Double multiplier = knockVO.getMultiplier() != null && knockVO.getMultiplier() > 0 ? knockVO.getMultiplier() : 1.0;
+        BigDecimal bonusRate = BigDecimal.valueOf(multiplier);
+        int totalMerit = bonusRate.multiply(BigDecimal.valueOf(baseMerit)).setScale(0, RoundingMode.FLOOR).intValue();
 
-        // 计算本次功德值
-        Integer baseMerit = knockVO.getKnockCount();
-        BigDecimal bonusRate = BigDecimal.ONE;
+        String knockMode = knockVO.getKnockMode() != null ? knockVO.getKnockMode().toUpperCase(Locale.ROOT) : "MANUAL";
+        String knockType = knockMode.startsWith("AUTO") ? "auto" : "manual";
+        String sessionId = knockVO.getSessionId() != null ? knockVO.getSessionId() : IdUtil.simpleUUID();
 
-        // 暂时不使用连击加成，因为现在按小时聚合
-        Integer totalMerit = bonusRate.multiply(new BigDecimal(baseMerit)).intValue();
+        java.time.LocalDate statLocalDate = knockTime.toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalDate();
+        Date statDate = java.sql.Date.valueOf(statLocalDate);
 
-        if (existingRecord != null) {
-            // 更新现有记录：累加功德值
-            Integer newTotalMerit = existingRecord.getMeritGained() + totalMerit;
-            existingRecord.setMeritGained(newTotalMerit);
-            existingRecord.setDescription("手动敲击获得功德(本小时累计功德: " + newTotalMerit + ")");
-            meritRecordMapper.updateById(existingRecord);
+        long knockCountLong = knockCount;
+        long totalMeritLong = totalMerit;
 
-            // 更新用户统计
-            userStatsMapper.updateKnockStats(knockVO.getUserId(),
-                                            knockVO.getKnockCount().longValue(),
-                                            totalMerit.longValue());
+        if ("manual".equals(knockType)) {
+            LambdaQueryWrapper<MeritRecord> wrapper = new LambdaQueryWrapper<>();
+            wrapper.eq(MeritRecord::getUserId, knockVO.getUserId())
+                   .eq(MeritRecord::getKnockType, knockType)
+                   .eq(MeritRecord::getSource, "knock")
+                   .ge(MeritRecord::getCreateTime, hourStart)
+                   .le(MeritRecord::getCreateTime, hourEnd);
 
-            return totalMerit;
-        } else {
-            // 创建新的功德记录
-            MeritRecord record = new MeritRecord();
-            record.setId(IdGenerator.nextId());
-            record.setUserId(knockVO.getUserId());
-            record.setMeritGained(totalMerit);
-            record.setKnockType("manual");
-            record.setSource("knock");
-            // 会话ID、连击数、加成倍率字段保留但暂不使用
-            record.setSessionId(knockVO.getSessionId() != null ? knockVO.getSessionId() : IdUtil.simpleUUID());
-            record.setComboCount(0); // 暂不使用连击数
-            record.setBonusRate(bonusRate);
-            record.setDescription("手动敲击获得功德");
+            MeritRecord existingRecord = meritRecordMapper.selectOne(wrapper);
+            if (existingRecord != null) {
+                int newTotalMerit = existingRecord.getMeritGained() + totalMerit;
+                int existingBase = existingRecord.getBaseMerit() != null ? existingRecord.getBaseMerit() : 0;
 
-            // 设置创建时间为敲击时间所在小时的开始时间，便于按小时分组
-            record.setCreateTime(hourStart);
+                existingRecord.setMeritGained(newTotalMerit);
+                existingRecord.setBaseMerit(existingBase + baseMerit);
+                existingRecord.setBonusRate(bonusRate);
+                existingRecord.setPropSnapshot(knockVO.getPropSnapshot());
+                existingRecord.setKnockMode(knockMode);
+                existingRecord.setStatDate(statDate);
+                existingRecord.setDescription("手动敲击获得功德(本小时累计功德: " + newTotalMerit + ")");
 
-            meritRecordMapper.insert(record);
+                meritRecordMapper.updateById(existingRecord);
 
-            // 更新用户统计
-            userStatsMapper.updateKnockStats(knockVO.getUserId(),
-                                            knockVO.getKnockCount().longValue(),
-                                            totalMerit.longValue());
-
-            return totalMerit;
+                userStatsMapper.updateKnockStats(knockVO.getUserId(), knockCountLong, totalMeritLong);
+                return totalMerit;
+            }
         }
+
+        MeritRecord record = new MeritRecord();
+        record.setId(IdGenerator.nextId());
+        record.setUserId(knockVO.getUserId());
+        record.setMeritGained(totalMerit);
+        record.setBaseMerit(baseMerit);
+        record.setKnockType(knockType);
+        record.setKnockMode(knockMode);
+        record.setSource("knock");
+        record.setSessionId(sessionId);
+        record.setComboCount(knockVO.getComboCount() != null ? knockVO.getComboCount() : 0);
+        record.setBonusRate(bonusRate);
+        record.setPropSnapshot(knockVO.getPropSnapshot());
+        record.setStatDate(statDate);
+        record.setDescription(("auto".equals(knockType) ? "自动" : "手动") + "敲击获得功德");
+        record.setCreateTime("manual".equals(knockType) ? hourStart : knockTime);
+
+        meritRecordMapper.insert(record);
+
+        userStatsMapper.updateKnockStats(knockVO.getUserId(), knockCountLong, totalMeritLong);
+
+        return totalMerit;
     }
     
     @Override
@@ -247,11 +258,19 @@ public class MeritServiceImpl implements MeritService {
     public Long getMonthlyMerit(Long userId) {
         return meritRecordMapper.sumMonthlyMerit(userId);
     }
-    
+
+    @Override
+    public Long getMeritByStatDate(Long userId, Date statDate) {
+        if (statDate == null) {
+            return getTodayMerit(userId);
+        }
+        return meritRecordMapper.sumMeritByStatDate(userId, statDate);
+    }
+
     @Override
     public Map<String, Object> getBalance(Long userId) {
         Map<String, Object> balance = new HashMap<>();
-        
+
         // 获取总功德值
         Long totalMerit = getTotalMerit(userId);
         balance.put("totalMerit", totalMerit != null ? totalMerit : 0L);

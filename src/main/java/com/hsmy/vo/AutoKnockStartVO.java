@@ -17,11 +17,22 @@ public class AutoKnockStartVO implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /**
-     * 敲击时长（秒）
-     * -1表示无限时长，其他值表示具体秒数
+     * 会话模式：AUTO_AUTOEND-自动结束，AUTO_TIMED-定时结束
      */
-    @NotNull(message = "敲击时长不能为空")
-    private Integer duration;
+    @NotNull(message = "会话模式不能为空")
+    private String mode = "AUTO_TIMED";
+
+    /**
+     * 限制类型：DURATION、COUNT
+     */
+    @NotNull(message = "限制类型不能为空")
+    private String limitType = "DURATION";
+
+    /**
+     * 限制值：秒或次数
+     */
+    @NotNull(message = "限制值不能为空")
+    private Integer limitValue = 60;
 
     /**
      * 每秒敲击次数（可选，默认3）
@@ -39,4 +50,9 @@ public class AutoKnockStartVO implements Serializable {
      * 1-木鱼, 2-钟声, 3-鼓声, 4-念经, 5-供香
      */
     private Integer source = 1;
+
+    /**
+     * 道具快照JSON
+     */
+    private String propSnapshot;
 }

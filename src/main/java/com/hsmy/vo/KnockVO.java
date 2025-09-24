@@ -52,6 +52,31 @@ public class KnockVO implements Serializable {
     private Integer meritValue = 1;
 
     /**
+     * 倍率值（由道具或活动提供）
+     */
+    private Double multiplier = 1.0;
+
+    /**
+     * 道具快照JSON
+     */
+    private String propSnapshot;
+
+    /**
+     * 敲击模式：MANUAL、AUTO_AUTOEND、AUTO_TIMED
+     */
+    private String knockMode = "MANUAL";
+
+    /**
+     * 限制类型：DURATION、COUNT（仅自动敲击适用）
+     */
+    private String limitType;
+
+    /**
+     * 限制值：秒或次数（仅自动敲击适用）
+     */
+    private Integer limitValue;
+
+    /**
      * 会话ID（保留字段，暂不使用）
      */
     private String sessionId;

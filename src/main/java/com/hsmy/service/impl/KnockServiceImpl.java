@@ -13,6 +13,8 @@ import com.hsmy.vo.AutoKnockHeartbeatVO;
 import com.hsmy.vo.AutoKnockStartVO;
 import com.hsmy.vo.AutoKnockStopVO;
 import com.hsmy.vo.KnockVO;
+import com.hsmy.websocket.KnockRealtimeNotifier;
+import com.hsmy.utils.UserLockManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -37,6 +39,8 @@ public class KnockServiceImpl implements KnockService {
     private final TaskService taskService;
     private final AchievementService achievementService;
     private final UserStatsMapper userStatsMapper;
+    private final KnockRealtimeNotifier knockRealtimeNotifier;
+    private final UserLockManager userLockManager;
 
     // 用于存储用户最后敲击时间，实现简单的频率限制
     private static final Map<Long, LocalDateTime> lastKnockTimeMap = new ConcurrentHashMap<>();
@@ -48,13 +52,22 @@ public class KnockServiceImpl implements KnockService {
     // 存储用户的活跃会话ID
     private static final Map<Long, String> userActiveSession = new ConcurrentHashMap<>();
 
-    // 允许的自动敲击时长（秒）
-    private static final Set<Integer> ALLOWED_DURATIONS = new HashSet<>(Arrays.asList(-1, 10, 30, 60, 300, 600));
+    // 支持的自动敲击模式
+    private static final Set<String> SUPPORTED_SESSION_MODES = new HashSet<>(Arrays.asList("AUTO_AUTOEND", "AUTO_TIMED"));
+    // 支持的限制类型
+    private static final Set<String> SUPPORTED_LIMIT_TYPES = new HashSet<>(Arrays.asList("DURATION", "COUNT"));
     // 允许的每秒敲击次数范围
     private static final int MIN_KNOCKS_PER_SECOND = 1;
     private static final int MAX_KNOCKS_PER_SECOND = 10;
     // 每次敲击基础功德值
     private static final int BASE_MERIT_PER_KNOCK = 1;
+    // 自动敲击功德币计价配置
+    private static final int COIN_COST_PER_MINUTE = 1;
+    private static final int COIN_COST_PER_HUNDRED_KNOCKS = 1;
+    private static final int MIN_AUTO_COIN_COST = 1;
+    private static final String PAYMENT_STATUS_RESERVED = "RESERVED";
+    private static final String PAYMENT_STATUS_SETTLED = "SETTLED";
+    private static final String PAYMENT_STATUS_REFUNDED = "REFUNDED";
 
     @Override
     public Map<String, Object> manualKnock(KnockVO knockVO) {
@@ -70,6 +83,25 @@ public class KnockServiceImpl implements KnockService {
             }
         }
         lastKnockTimeMap.put(userId, now);
+
+        // 2. 补全敲击上下文
+        if (knockVO.getMultiplier() == null || knockVO.getMultiplier() <= 0) {
+            knockVO.setMultiplier(1.0);
+        }
+        if (knockVO.getKnockMode() == null || knockVO.getKnockMode().trim().isEmpty()) {
+            knockVO.setKnockMode("MANUAL");
+        } else {
+            knockVO.setKnockMode(knockVO.getKnockMode().toUpperCase(Locale.ROOT));
+        }
+        if (knockVO.getLimitType() != null) {
+            knockVO.setLimitType(knockVO.getLimitType().toUpperCase(Locale.ROOT));
+        }
+        if (knockVO.getKnockCount() == null || knockVO.getKnockCount() <= 0) {
+            knockVO.setKnockCount(1);
+        }
+        if (knockVO.getMeritValue() == null || knockVO.getMeritValue() <= 0) {
+            knockVO.setMeritValue(BASE_MERIT_PER_KNOCK);
+        }
 
         // 2. 计算功德值收益
         Integer meritGained = meritService.manualKnock(knockVO);
@@ -93,143 +125,40 @@ public class KnockServiceImpl implements KnockService {
         result.put("todayKnocks", userStats.getTodayKnocks());
         result.put("comboCount", knockVO.getComboCount() != null ? knockVO.getComboCount() : 0);
         result.put("maxCombo", userStats.getMaxCombo());
+        result.put("multiplier", knockVO.getMultiplier());
+        result.put("propSnapshot", knockVO.getPropSnapshot());
+        result.put("knockMode", knockVO.getKnockMode());
 
+        knockRealtimeNotifier.notifyManualKnock(userId, result);
         return result;
     }
 
     @Override
     public Map<String, Object> startAutoKnock(Long userId, Integer duration, Integer knocksPerSecond) {
-        // 1. 校验时长参数（支持-1表示无限时长）
-        if (!ALLOWED_DURATIONS.contains(duration)) {
-            throw new BusinessException("不支持的时长，请选择：-1(无限)、10秒、30秒、1分钟、5分钟或10分钟");
-        }
-
-        // 2. 校验每秒敲击次数参数
-        if (knocksPerSecond == null || knocksPerSecond < MIN_KNOCKS_PER_SECOND || knocksPerSecond > MAX_KNOCKS_PER_SECOND) {
-            throw new BusinessException("每秒敲击次数必须在" + MIN_KNOCKS_PER_SECOND + "到" + MAX_KNOCKS_PER_SECOND + "之间");
-        }
-
-        // 3. 检查是否已有活跃会话
-        String existingSessionId = userActiveSession.get(userId);
-        if (existingSessionId != null) {
-            AutoKnockSession existingSession = autoKnockSessions.get(existingSessionId);
-            if (existingSession != null && "active".equals(existingSession.getStatus())) {
-                throw new BusinessException("您已有正在进行的自动敲击，请先停止后再开始新的");
-            }
-        }
-
-        // 4. 创建自动敲击会话
-        String sessionId = IdUtil.simpleUUID();
-        AutoKnockSession session = new AutoKnockSession();
-        session.setSessionId(sessionId);
-        session.setUserId(userId);
-        session.setStartTime(LocalDateTime.now());
-
-        // 处理无限时长的情况
-        if (duration == -1) {
-            session.setEndTime(null); // 无限时长不设置结束时间
-            session.setExpectedKnocks(-1); // 无限时长没有预期敲击次数
-            session.setExpectedMerit(-1); // 无限时长没有预期功德值
-        } else {
-            session.setEndTime(LocalDateTime.now().plusSeconds(duration));
-            session.setExpectedKnocks(duration * knocksPerSecond);
-            session.setExpectedMerit(duration * knocksPerSecond * BASE_MERIT_PER_KNOCK);
-        }
-
-        session.setDuration(duration);
-        session.setKnockPerSecond(knocksPerSecond);
-        session.setBaseMeritPerKnock(BASE_MERIT_PER_KNOCK);
-        session.setActualKnocks(0);
-        session.setActualMerit(0);
-        session.setStatus("active");
-        session.setSettled(false);
-        session.setLastHeartbeatTime(LocalDateTime.now()); // 初始化心跳时间
-        session.setClientKnockCount(0); // 初始化客户端敲击数
-
-        // 5. 存储会话
-        autoKnockSessions.put(sessionId, session);
-        userActiveSession.put(userId, sessionId);
-
-        log.info("用户 {} 开始自动敲击，会话ID：{}，时长：{}秒，每秒敲击：{}次",
-                userId, sessionId, duration, knocksPerSecond);
-
-        // 6. 返回会话ID和预期收益
-        Map<String, Object> result = new HashMap<>();
-        result.put("sessionId", sessionId);
-        result.put("startTime", session.getStartTime());
-        result.put("endTime", session.getEndTime());
-        result.put("duration", duration);
-        result.put("expectedKnocks", session.getExpectedKnocks());
-        result.put("expectedMerit", session.getExpectedMerit());
-        result.put("knockPerSecond", knocksPerSecond);
-
-        return result;
+        AutoKnockStartVO legacyVO = new AutoKnockStartVO();
+        legacyVO.setMode("AUTO_TIMED");
+        legacyVO.setLimitType("DURATION");
+        legacyVO.setLimitValue(duration != null ? duration : 60);
+        legacyVO.setKnocksPerSecond(knocksPerSecond != null ? knocksPerSecond : 3);
+        legacyVO.setMultiplier(1.0);
+        legacyVO.setSource(1);
+        return startAutoKnock(userId, legacyVO);
     }
 
     @Override
     public Map<String, Object> stopAutoKnock(Long userId, String sessionId) {
-        // 1. 校验会话ID
         AutoKnockSession session = autoKnockSessions.get(sessionId);
         if (session == null) {
             throw new BusinessException("会话不存在");
         }
 
-        if (!session.getUserId().equals(userId)) {
-            throw new BusinessException("无权操作此会话");
+        AutoKnockStopVO stopVO = new AutoKnockStopVO();
+        stopVO.setSessionId(sessionId);
+        stopVO.setKnockCount(session.getClientKnockCount() != null ? session.getClientKnockCount() : 0);
+        if (session.getDuration() != null && session.getDuration() > 0) {
+            stopVO.setActualDuration(session.getDuration());
         }
-
-        if (!"active".equals(session.getStatus())) {
-            throw new BusinessException("会话已结束");
-        }
-
-        // 2. 计算实际收益（使用会话中保存的每秒敲击次数）
-        LocalDateTime now = LocalDateTime.now();
-        long actualSeconds = ChronoUnit.SECONDS.between(session.getStartTime(), now);
-        actualSeconds = Math.min(actualSeconds, session.getDuration()); // 不超过预定时长
-
-        int actualKnocks = (int) (actualSeconds * session.getKnockPerSecond());
-        int actualMerit = actualKnocks * BASE_MERIT_PER_KNOCK;
-
-        session.setActualKnocks(actualKnocks);
-        session.setActualMerit(actualMerit);
-        session.setStatus("stopped");
-
-        // 3. 更新用户统计
-        if (actualMerit > 0 && !session.getSettled()) {
-            // 创建敲击记录
-            KnockVO knockVO = new KnockVO();
-            knockVO.setUserId(userId);
-            knockVO.setKnockCount(actualKnocks);
-            knockVO.setSessionId(sessionId);
-
-            // 调用service更新统计
-            Integer totalMeritGained = meritService.manualKnock(knockVO);
-            session.setActualMerit(totalMeritGained);
-            session.setSettled(true);
-
-            // 更新成就和任务进度
-            checkAchievementAndTaskProgress(userId, actualKnocks, totalMeritGained);
-
-            log.info("用户 {} 停止自动敲击，会话ID：{}，实际敲击：{}次，获得功德：{}",
-                    userId, sessionId, actualKnocks, totalMeritGained);
-        }
-
-        // 4. 清理会话
-        userActiveSession.remove(userId);
-
-        // 5. 获取更新后的用户统计
-        UserStats userStats = userStatsMapper.selectByUserId(userId);
-
-        // 6. 构建返回结果
-        Map<String, Object> result = new HashMap<>();
-        result.put("sessionId", sessionId);
-        result.put("duration", actualSeconds);
-        result.put("actualKnocks", actualKnocks);
-        result.put("actualMerit", session.getActualMerit());
-        result.put("totalMerit", userStats.getTotalMerit());
-        result.put("todayMerit", userStats.getTodayMerit());
-
-        return result;
+        return stopAutoKnock(userId, stopVO);
     }
 
     @Override
@@ -283,14 +212,31 @@ public class KnockServiceImpl implements KnockService {
                 Map<String, Object> autoKnockInfo = new HashMap<>();
                 autoKnockInfo.put("sessionId", activeSessionId);
                 autoKnockInfo.put("startTime", activeSession.getStartTime());
-                autoKnockInfo.put("endTime", activeSession.getEndTime());
+                autoKnockInfo.put("expectedEndTime", activeSession.getEndTime());
+                autoKnockInfo.put("sessionMode", activeSession.getSessionMode());
+                autoKnockInfo.put("limitType", activeSession.getLimitType());
+                autoKnockInfo.put("limitValue", activeSession.getLimitValue());
+                autoKnockInfo.put("multiplier", activeSession.getMultiplier());
+                autoKnockInfo.put("propSnapshot", activeSession.getPropSnapshot());
+                autoKnockInfo.put("coinCost", activeSession.getCoinCost());
+                autoKnockInfo.put("coinRefunded", activeSession.getCoinRefunded());
+                autoKnockInfo.put("paymentStatus", activeSession.getPaymentStatus());
+                if (userStats != null && userStats.getMeritCoins() != null) {
+                    autoKnockInfo.put("remainingCoins", userStats.getMeritCoins());
+                }
 
-                // 计算进度
                 LocalDateTime now = LocalDateTime.now();
                 long elapsedSeconds = ChronoUnit.SECONDS.between(activeSession.getStartTime(), now);
-                long totalSeconds = activeSession.getDuration();
-                double progress = Math.min(100.0, (elapsedSeconds * 100.0) / totalSeconds);
-                autoKnockInfo.put("progress", progress);
+                Long totalSeconds = activeSession.getDuration() != null && activeSession.getDuration() > 0
+                        ? activeSession.getDuration().longValue()
+                        : null;
+                if (totalSeconds != null && totalSeconds > 0) {
+                    autoKnockInfo.put("progress", Math.min(100.0, (elapsedSeconds * 100.0) / totalSeconds));
+                    autoKnockInfo.put("remainingSeconds", Math.max(0, totalSeconds - elapsedSeconds));
+                } else {
+                    autoKnockInfo.put("progress", -1);
+                    autoKnockInfo.put("remainingSeconds", -1);
+                }
 
                 stats.put("activeAutoKnock", autoKnockInfo);
             }
@@ -325,35 +271,63 @@ public class KnockServiceImpl implements KnockService {
         status.put("hasActiveSession", true);
         status.put("sessionId", sessionId);
         status.put("startTime", session.getStartTime());
-        status.put("endTime", session.getEndTime());
+        status.put("expectedEndTime", session.getEndTime());
         status.put("duration", session.getDuration());
+        status.put("sessionMode", session.getSessionMode());
+        status.put("limitType", session.getLimitType());
+        status.put("limitValue", session.getLimitValue());
+        status.put("multiplier", session.getMultiplier());
+        status.put("propSnapshot", session.getPropSnapshot());
+        status.put("coinCost", session.getCoinCost());
+        status.put("coinRefunded", session.getCoinRefunded());
+        status.put("paymentStatus", session.getPaymentStatus());
 
-        // 计算进度
         LocalDateTime now = LocalDateTime.now();
         long elapsedSeconds = ChronoUnit.SECONDS.between(session.getStartTime(), now);
-        long totalSeconds = session.getDuration();
+        Long totalSeconds = session.getDuration() != null && session.getDuration() > 0 ? session.getDuration().longValue() : null;
 
-        // 计算当前预计收益（使用会话中保存的每秒敲击次数）
-        int currentKnocks = (int) Math.min(elapsedSeconds * session.getKnockPerSecond(), session.getExpectedKnocks());
-        int currentMerit = currentKnocks * BASE_MERIT_PER_KNOCK;
+        int expectedKnocks = session.getExpectedKnocks() != null ? session.getExpectedKnocks() : -1;
+        double multiplier = session.getMultiplier() != null ? session.getMultiplier() : 1.0;
+
+        int computedKnocks;
+        if (expectedKnocks > 0) {
+            computedKnocks = (int) Math.min(elapsedSeconds * session.getKnockPerSecond(), expectedKnocks);
+        } else {
+            // 使用客户端心跳上报的数值作为当前敲击次数
+            computedKnocks = session.getClientKnockCount() != null
+                    ? session.getClientKnockCount()
+                    : (int) (elapsedSeconds * session.getKnockPerSecond());
+        }
+
+        int currentMerit = (int) Math.floor(computedKnocks * BASE_MERIT_PER_KNOCK * multiplier);
 
         status.put("elapsedSeconds", elapsedSeconds);
-        status.put("remainingSeconds", Math.max(0, totalSeconds - elapsedSeconds));
-        status.put("progress", Math.min(100.0, (elapsedSeconds * 100.0) / totalSeconds));
-        status.put("currentKnocks", currentKnocks);
+        if (totalSeconds != null && totalSeconds > 0) {
+            status.put("remainingSeconds", Math.max(0, totalSeconds - elapsedSeconds));
+            status.put("progress", Math.min(100.0, (elapsedSeconds * 100.0) / totalSeconds));
+        } else {
+            status.put("remainingSeconds", -1);
+            status.put("progress", -1);
+        }
+        status.put("currentKnocks", computedKnocks);
         status.put("currentMerit", currentMerit);
-        status.put("expectedKnocks", session.getExpectedKnocks());
+        status.put("expectedKnocks", expectedKnocks);
         status.put("expectedMerit", session.getExpectedMerit());
         status.put("knockPerSecond", session.getKnockPerSecond());
+        status.put("coinCost", session.getCoinCost());
+        status.put("coinRefunded", session.getCoinRefunded());
+        status.put("paymentStatus", session.getPaymentStatus());
 
-        // 判断是否即将完成
-        if (now.isAfter(session.getEndTime())) {
+        LocalDateTime expectedEnd = session.getEndTime();
+        if (expectedEnd != null && now.isAfter(expectedEnd)) {
             status.put("isCompleting", true);
             status.put("message", "自动敲击即将完成");
         } else {
             status.put("isCompleting", false);
             status.put("message", "自动敲击进行中");
         }
+
+        status.put("remainingCoins", queryRemainingCoins(userId));
 
         return status;
     }
@@ -365,72 +339,248 @@ public class KnockServiceImpl implements KnockService {
         autoKnockSessions.values().stream()
                 .filter(session -> "active".equals(session.getStatus()))
                 .filter(session -> {
-                    // 统一以心跳超时1分钟为依据清理会话
                     LocalDateTime lastHeartbeat = session.getLastHeartbeatTime();
                     if (lastHeartbeat != null) {
                         return ChronoUnit.MINUTES.between(lastHeartbeat, now) >= 1;
                     }
-                    // 如果没有心跳记录，检查是否创建超过1分钟
                     return ChronoUnit.MINUTES.between(session.getStartTime(), now) >= 1;
                 })
-                .forEach(session -> {
+                .forEach(session -> userLockManager.executeWithUserLock(session.getUserId(), () -> {
                     try {
-                        // 自动结算 - 所有类型的敲击数量都以客户端传递的为依据
+                        if (!"active".equals(session.getStatus())) {
+                            return;
+                        }
+
                         Integer actualKnocks = session.getClientKnockCount() != null ? session.getClientKnockCount() : 0;
-                        Integer actualMerit = actualKnocks * session.getBaseMeritPerKnock();
+                        double sessionMultiplier = session.getMultiplier() != null ? session.getMultiplier() : 1.0;
+                        Integer actualMerit = (int) Math.floor(actualKnocks * session.getBaseMeritPerKnock() * sessionMultiplier);
+
+                        int actualDurationSeconds = (int) ChronoUnit.SECONDS.between(session.getStartTime(), now);
 
                         session.setActualKnocks(actualKnocks);
                         session.setActualMerit(actualMerit);
-                        session.setStatus("completed");
+                        session.setStatus("timeout");
+                        session.setEndReason("timeout");
+                        session.setActualEndTime(now);
 
-                        if (!session.getSettled()) {
-                            // 创建敲击记录
+                        if (!session.getSettled() && actualMerit > 0) {
                             KnockVO knockVO = new KnockVO();
                             knockVO.setUserId(session.getUserId());
                             knockVO.setKnockCount(actualKnocks);
                             knockVO.setSessionId(session.getSessionId());
+                            knockVO.setKnockMode(session.getSessionMode());
+                            knockVO.setMultiplier(sessionMultiplier);
+                            knockVO.setPropSnapshot(session.getPropSnapshot());
+                            knockVO.setLimitType(session.getLimitType());
+                            knockVO.setLimitValue(session.getLimitValue());
+                            knockVO.setKnockType(2);
 
-                            // 更新统计
                             Integer totalMeritGained = meritService.manualKnock(knockVO);
                             session.setActualMerit(totalMeritGained);
                             session.setSettled(true);
 
-                            // 更新成就和任务进度
-                            checkAchievementAndTaskProgress(session.getUserId(),
-                                    actualKnocks, totalMeritGained);
+                            checkAchievementAndTaskProgress(session.getUserId(), actualKnocks, totalMeritGained);
 
                             log.info("自动结算会话 {}，用户 {}，敲击 {} 次，获得功德 {}",
                                     session.getSessionId(), session.getUserId(),
                                     actualKnocks, totalMeritGained);
                         }
 
-                        // 清理用户活跃会话
                         userActiveSession.remove(session.getUserId());
+
+                        int coinCost = session.getCoinCost() != null ? session.getCoinCost() : 0;
+                        int refundAmount = calculateRefundCoins(session, actualKnocks, actualDurationSeconds, false);
+                        if (refundAmount > 0) {
+                            refundCoins(session.getUserId(), refundAmount);
+                            session.setCoinRefunded((session.getCoinRefunded() != null ? session.getCoinRefunded() : 0) + refundAmount);
+                        }
+
+                        if (coinCost > 0) {
+                            if (session.getCoinRefunded() != null && session.getCoinRefunded() >= coinCost) {
+                                session.setPaymentStatus(PAYMENT_STATUS_REFUNDED);
+                            } else {
+                                session.setPaymentStatus(PAYMENT_STATUS_SETTLED);
+                            }
+                        } else {
+                            session.setPaymentStatus(PAYMENT_STATUS_SETTLED);
+                        }
+
+                        long remainingCoins = queryRemainingCoins(session.getUserId());
+
+                        Map<String, Object> payload = new HashMap<>();
+                        payload.put("sessionId", session.getSessionId());
+                        payload.put("status", session.getStatus());
+                        payload.put("actualKnocks", session.getActualKnocks());
+                        payload.put("actualMerit", session.getActualMerit());
+                        payload.put("endReason", session.getEndReason());
+                        payload.put("coinCost", coinCost);
+                        payload.put("coinRefunded", session.getCoinRefunded());
+                        payload.put("paymentStatus", session.getPaymentStatus());
+                        payload.put("remainingCoins", remainingCoins);
+                        payload.put("duration", actualDurationSeconds);
+
+                        knockRealtimeNotifier.notifyAutoTimeout(session.getUserId(), payload);
                     } catch (Exception e) {
                         log.error("自动结算会话失败：" + session.getSessionId(), e);
                     }
-                });
+                }));
 
         // 清理已完成超过1小时的会话
         autoKnockSessions.entrySet().removeIf(entry -> {
             AutoKnockSession session = entry.getValue();
-            return !"active".equals(session.getStatus()) &&
-                    now.isAfter(session.getEndTime().plusHours(1));
+            if ("active".equals(session.getStatus())) {
+                return false;
+            }
+            if (session.getEndTime() == null) {
+                return session.getActualEndTime() != null && now.isAfter(session.getActualEndTime().plusHours(1));
+            }
+            return now.isAfter(session.getEndTime().plusHours(1));
         });
     }
 
     @Override
     public Map<String, Object> startAutoKnock(Long userId, AutoKnockStartVO startVO) {
-        // 调用旧版本方法保持兼容性
-        return startAutoKnock(userId, startVO.getDuration(), startVO.getKnocksPerSecond());
+        return userLockManager.executeWithUserLock(userId, () -> startAutoKnockInternal(userId, startVO));
+    }
+
+    private Map<String, Object> startAutoKnockInternal(Long userId, AutoKnockStartVO startVO) {
+        String mode = startVO.getMode() != null ? startVO.getMode().toUpperCase(Locale.ROOT) : null;
+        if (mode == null || !SUPPORTED_SESSION_MODES.contains(mode)) {
+            throw new BusinessException("不支持的会话模式，请选择 AUTO_AUTOEND 或 AUTO_TIMED");
+        }
+
+        String limitType = startVO.getLimitType() != null ? startVO.getLimitType().toUpperCase(Locale.ROOT) : null;
+        if (limitType == null || !SUPPORTED_LIMIT_TYPES.contains(limitType)) {
+            throw new BusinessException("限制类型仅支持 DURATION 或 COUNT");
+        }
+
+        Integer limitValue = startVO.getLimitValue();
+        if (limitValue == null || limitValue <= 0) {
+            throw new BusinessException("自动敲击需要正整数的限制值");
+        }
+
+        Integer knocksPerSecond = startVO.getKnocksPerSecond() != null
+                ? startVO.getKnocksPerSecond()
+                : 3;
+        if (knocksPerSecond < MIN_KNOCKS_PER_SECOND || knocksPerSecond > MAX_KNOCKS_PER_SECOND) {
+            throw new BusinessException("每秒敲击次数必须在" + MIN_KNOCKS_PER_SECOND + "到" + MAX_KNOCKS_PER_SECOND + "之间");
+        }
+
+        Double multiplier = startVO.getMultiplier() != null && startVO.getMultiplier() > 0
+                ? startVO.getMultiplier()
+                : 1.0;
+
+        String existingSessionId = userActiveSession.get(userId);
+        if (existingSessionId != null) {
+            AutoKnockSession existingSession = autoKnockSessions.get(existingSessionId);
+            if (existingSession != null && "active".equals(existingSession.getStatus())) {
+                throw new BusinessException("您已有正在进行的自动敲击，请先停止后再开始新的");
+            }
+        }
+
+        String sessionId = IdUtil.simpleUUID();
+        LocalDateTime now = LocalDateTime.now();
+
+        AutoKnockSession session = new AutoKnockSession();
+        session.setSessionId(sessionId);
+        session.setUserId(userId);
+        session.setStartTime(now);
+        session.setSessionMode(mode);
+        session.setLimitType(limitType);
+        session.setLimitValue(limitValue);
+        session.setKnockPerSecond(knocksPerSecond);
+        session.setBaseMeritPerKnock(BASE_MERIT_PER_KNOCK);
+        session.setMultiplier(multiplier);
+        session.setPropSnapshot(startVO.getPropSnapshot());
+        session.setSource(startVO.getSource());
+        session.setStatus("active");
+        session.setSettled(false);
+        session.setActualKnocks(0);
+        session.setActualMerit(0);
+        session.setClientKnockCount(0);
+        session.setLastHeartbeatTime(now);
+        session.setEndReason(null);
+        session.setActualEndTime(null);
+
+        Integer expectedKnocks;
+        Integer expectedMerit;
+        Integer sessionDuration;
+        LocalDateTime expectedEnd;
+
+        if ("DURATION".equals(limitType)) {
+            sessionDuration = limitValue;
+            expectedKnocks = limitValue * knocksPerSecond;
+            expectedEnd = now.plusSeconds(sessionDuration.longValue());
+        } else {
+            sessionDuration = (int) Math.ceil(limitValue / (double) knocksPerSecond);
+            expectedKnocks = limitValue;
+            expectedEnd = now.plusSeconds(sessionDuration.longValue());
+        }
+
+        double expectedMeritRaw = expectedKnocks * BASE_MERIT_PER_KNOCK * multiplier;
+        expectedMerit = (int) Math.floor(expectedMeritRaw);
+
+        session.setDuration(sessionDuration);
+        session.setExpectedKnocks(expectedKnocks);
+        session.setExpectedMerit(expectedMerit);
+        session.setEndTime(expectedEnd);
+
+        int coinCost = calculateCoinCost(limitType, sessionDuration, expectedKnocks);
+        boolean coinsDeducted = false;
+        try {
+            if (coinCost > 0) {
+                deductCoins(userId, coinCost);
+                coinsDeducted = true;
+            }
+
+            session.setCoinCost(coinCost);
+            session.setCoinRefunded(0);
+            session.setPaymentStatus(PAYMENT_STATUS_RESERVED);
+            session.setWalletTxnId(null);
+
+            autoKnockSessions.put(sessionId, session);
+            userActiveSession.put(userId, sessionId);
+
+            log.info("用户 {} 开始自动敲击，会话ID：{}，模式：{}，限制 {} {}，倍率 {}，每秒敲击 {}，功德币成本 {}",
+                    userId, sessionId, mode, limitType, limitValue, multiplier, knocksPerSecond, coinCost);
+
+            long remainingCoins = queryRemainingCoins(userId);
+
+            Map<String, Object> result = new HashMap<>();
+            result.put("sessionId", sessionId);
+            result.put("startTime", now);
+            result.put("expectedEndTime", expectedEnd);
+            result.put("sessionMode", mode);
+            result.put("limitType", limitType);
+            result.put("limitValue", limitValue);
+            result.put("knockPerSecond", knocksPerSecond);
+            result.put("expectedKnocks", expectedKnocks);
+            result.put("expectedMerit", expectedMerit);
+            result.put("multiplier", multiplier);
+            result.put("propSnapshot", startVO.getPropSnapshot());
+            result.put("coinCost", coinCost);
+            result.put("paymentStatus", session.getPaymentStatus());
+            result.put("remainingCoins", remainingCoins);
+
+            knockRealtimeNotifier.notifyAutoStart(userId, result);
+            return result;
+        } catch (RuntimeException ex) {
+            if (coinsDeducted) {
+                refundCoins(userId, coinCost);
+            }
+            throw ex;
+        }
     }
 
     @Override
     public Map<String, Object> stopAutoKnock(Long userId, AutoKnockStopVO stopVO) {
+        return userLockManager.executeWithUserLock(userId, () -> stopAutoKnockInternal(userId, stopVO));
+    }
+
+    private Map<String, Object> stopAutoKnockInternal(Long userId, AutoKnockStopVO stopVO) {
         String sessionId = stopVO.getSessionId();
         Integer clientKnockCount = stopVO.getKnockCount();
 
-        // 1. 校验会话ID
         AutoKnockSession session = autoKnockSessions.get(sessionId);
         if (session == null) {
             throw new BusinessException("会话不存在");
@@ -444,46 +594,91 @@ public class KnockServiceImpl implements KnockService {
             throw new BusinessException("会话已结束");
         }
 
-        // 2. 使用客户端传递的敲击数据
         Integer actualKnocks = clientKnockCount != null ? clientKnockCount : 0;
-        Integer actualMerit = actualKnocks * BASE_MERIT_PER_KNOCK;
+        double sessionMultiplier = session.getMultiplier() != null ? session.getMultiplier() : 1.0;
+        int baseMerit = actualKnocks * BASE_MERIT_PER_KNOCK;
+        int estimatedMerit = (int) Math.floor(baseMerit * sessionMultiplier);
 
+        LocalDateTime now = LocalDateTime.now();
         session.setActualKnocks(actualKnocks);
-        session.setActualMerit(actualMerit);
+        session.setActualMerit(estimatedMerit);
         session.setClientKnockCount(actualKnocks);
-        session.setStatus("stopped");
+        session.setActualEndTime(now);
 
-        // 3. 更新用户统计
-        if (actualMerit > 0 && !session.getSettled()) {
-            // 创建敲击记录
+        int actualDurationSeconds = stopVO.getActualDuration() != null ? stopVO.getActualDuration() :
+                (int) ChronoUnit.SECONDS.between(session.getStartTime(), now);
+
+        boolean reachLimit = false;
+        if ("COUNT".equalsIgnoreCase(session.getLimitType()) && session.getLimitValue() != null && session.getLimitValue() > 0) {
+            reachLimit = actualKnocks >= session.getLimitValue();
+        } else if ("DURATION".equalsIgnoreCase(session.getLimitType()) && session.getLimitValue() != null && session.getLimitValue() > 0) {
+            reachLimit = actualDurationSeconds >= session.getLimitValue();
+        }
+
+        session.setStatus(reachLimit ? "completed" : "stopped");
+        session.setEndReason(reachLimit ? "limit_reached" : "manual_stop");
+
+        Integer totalMeritGained = 0;
+        if (estimatedMerit > 0 && !session.getSettled()) {
             KnockVO knockVO = new KnockVO();
             knockVO.setUserId(userId);
             knockVO.setKnockCount(actualKnocks);
+            knockVO.setMeritValue(BASE_MERIT_PER_KNOCK);
             knockVO.setSessionId(sessionId);
+            knockVO.setKnockMode(session.getSessionMode());
+            knockVO.setMultiplier(sessionMultiplier);
+            knockVO.setPropSnapshot(session.getPropSnapshot());
+            knockVO.setLimitType(session.getLimitType());
+            knockVO.setLimitValue(session.getLimitValue());
+            knockVO.setKnockType(2);
 
-            // 调用service更新统计
-            Integer totalMeritGained = meritService.manualKnock(knockVO);
+            totalMeritGained = meritService.manualKnock(knockVO);
             session.setActualMerit(totalMeritGained);
             session.setSettled(true);
 
-            // 更新成就和任务进度
             checkAchievementAndTaskProgress(userId, actualKnocks, totalMeritGained);
 
-            log.info("用户 {} 停止自动敲击，会话ID：{}，客户端敲击：{}次，获得功德：{}",
-                    userId, sessionId, actualKnocks, totalMeritGained);
+            log.info("用户 {} 停止自动敲击，会话ID：{}，敲击 {} 次，获得功德 {}，倍率 {}",
+                    userId, sessionId, actualKnocks, totalMeritGained, sessionMultiplier);
         }
 
-        // 4. 清理用户活跃会话记录
         userActiveSession.remove(userId);
 
-        // 5. 构建返回结果
+        int coinCost = session.getCoinCost() != null ? session.getCoinCost() : 0;
+        int refundAmount = calculateRefundCoins(session, actualKnocks, actualDurationSeconds, reachLimit);
+        if (refundAmount > 0) {
+            refundCoins(userId, refundAmount);
+            session.setCoinRefunded((session.getCoinRefunded() != null ? session.getCoinRefunded() : 0) + refundAmount);
+        }
+
+        if (coinCost > 0) {
+            if (session.getCoinRefunded() != null && session.getCoinRefunded() >= coinCost) {
+                session.setPaymentStatus(PAYMENT_STATUS_REFUNDED);
+            } else {
+                session.setPaymentStatus(PAYMENT_STATUS_SETTLED);
+            }
+        } else {
+            session.setPaymentStatus(PAYMENT_STATUS_SETTLED);
+        }
+
+        long remainingCoins = queryRemainingCoins(userId);
+
         Map<String, Object> result = new HashMap<>();
         result.put("sessionId", sessionId);
         result.put("status", session.getStatus());
         result.put("actualKnocks", actualKnocks);
         result.put("actualMerit", session.getActualMerit());
-        result.put("duration", stopVO.getActualDuration());
+        result.put("multiplier", sessionMultiplier);
+        result.put("endReason", session.getEndReason());
+        result.put("propSnapshot", session.getPropSnapshot());
+        result.put("duration", actualDurationSeconds);
+        result.put("totalMeritGained", totalMeritGained);
+        result.put("coinCost", coinCost);
+        result.put("coinRefunded", session.getCoinRefunded());
+        result.put("paymentStatus", session.getPaymentStatus());
+        result.put("remainingCoins", remainingCoins);
 
+        knockRealtimeNotifier.notifyAutoStop(userId, result);
         return result;
     }
 
@@ -511,6 +706,12 @@ public class KnockServiceImpl implements KnockService {
         Map<String, Object> result = new HashMap<>();
         result.put("sessionId", sessionId);
         result.put("status", session.getStatus());
+        result.put("sessionMode", session.getSessionMode());
+        result.put("multiplier", session.getMultiplier());
+        result.put("propSnapshot", session.getPropSnapshot());
+        result.put("coinCost", session.getCoinCost());
+        result.put("coinRefunded", session.getCoinRefunded());
+        result.put("paymentStatus", session.getPaymentStatus());
 
         // 处理剩余时间：如果是无限时长（duration为-1），则剩余时间为-1
         if (session.getDuration() == -1 || session.getEndTime() == null) {
@@ -523,6 +724,7 @@ public class KnockServiceImpl implements KnockService {
         result.put("expectedKnocks", session.getExpectedKnocks());
         result.put("currentKnocks", heartbeatVO.getCurrentKnockCount());
 
+        knockRealtimeNotifier.notifyHeartbeat(userId, result);
         return result;
     }
 
@@ -530,6 +732,73 @@ public class KnockServiceImpl implements KnockService {
     @Deprecated
     public void checkAndSettleExpiredSessions() {
         cleanupTimeoutSessions();
+    }
+
+    /**
+     * 计算自动敲击所需功德币成本
+     */
+    private int calculateCoinCost(String limitType, Integer sessionDuration, Integer expectedKnocks) {
+        if (sessionDuration == null || expectedKnocks == null) {
+            return MIN_AUTO_COIN_COST;
+        }
+        int cost;
+        if ("DURATION".equalsIgnoreCase(limitType)) {
+            int minutes = (int) Math.ceil(sessionDuration / 60.0);
+            cost = minutes * COIN_COST_PER_MINUTE;
+        } else if ("COUNT".equalsIgnoreCase(limitType)) {
+            int units = (int) Math.ceil(expectedKnocks / 100.0);
+            cost = units * COIN_COST_PER_HUNDRED_KNOCKS;
+        } else {
+            cost = MIN_AUTO_COIN_COST;
+        }
+        return Math.max(MIN_AUTO_COIN_COST, cost);
+    }
+
+    /**
+     * 计算应退还的功德币
+     */
+    private int calculateRefundCoins(AutoKnockSession session, int actualKnocks, Integer actualDurationSeconds, boolean reachLimit) {
+        int coinCost = session.getCoinCost() != null ? session.getCoinCost() : 0;
+        if (coinCost <= 0 || reachLimit) {
+            return 0;
+        }
+
+        double ratio;
+        if ("COUNT".equalsIgnoreCase(session.getLimitType()) && session.getLimitValue() != null && session.getLimitValue() > 0) {
+            ratio = Math.min(1.0, actualKnocks / (double) session.getLimitValue());
+        } else if ("DURATION".equalsIgnoreCase(session.getLimitType()) && session.getLimitValue() != null && session.getLimitValue() > 0) {
+            int durationUsed = actualDurationSeconds != null ? Math.max(0, actualDurationSeconds) : 0;
+            ratio = Math.min(1.0, durationUsed / (double) session.getLimitValue());
+        } else {
+            ratio = 1.0;
+        }
+
+        int consumedCoins = (int) Math.ceil(coinCost * ratio);
+        consumedCoins = Math.min(coinCost, Math.max(0, consumedCoins));
+        int refund = coinCost - consumedCoins;
+        return Math.max(0, refund);
+    }
+
+    private void deductCoins(Long userId, int coins) {
+        if (coins <= 0) {
+            return;
+        }
+        int updated = userStatsMapper.reduceMeritCoins(userId, (long) coins);
+        if (updated <= 0) {
+            throw new BusinessException("功德币不足，请先充值或调整自动敲击设置");
+        }
+    }
+
+    private void refundCoins(Long userId, int coins) {
+        if (coins <= 0) {
+            return;
+        }
+        userStatsMapper.addMeritCoins(userId, (long) coins);
+    }
+
+    private long queryRemainingCoins(Long userId) {
+        UserStats stats = userStatsMapper.selectByUserId(userId);
+        return stats != null && stats.getMeritCoins() != null ? stats.getMeritCoins() : 0L;
     }
 
     /**

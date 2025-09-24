@@ -7,11 +7,15 @@
         <id column="id" property="id"/>
         <result column="user_id" property="userId"/>
         <result column="merit_gained" property="meritGained"/>
+        <result column="base_merit" property="baseMerit"/>
         <result column="knock_type" property="knockType"/>
+        <result column="knock_mode" property="knockMode"/>
         <result column="source" property="source"/>
         <result column="session_id" property="sessionId"/>
         <result column="combo_count" property="comboCount"/>
         <result column="bonus_rate" property="bonusRate"/>
+        <result column="prop_snapshot" property="propSnapshot"/>
+        <result column="stat_date" property="statDate"/>
         <result column="description" property="description"/>
         <result column="create_by" property="createBy"/>
         <result column="create_time" property="createTime"/>
@@ -39,7 +43,7 @@
         SELECT IFNULL(SUM(merit_gained), 0)
         FROM t_merit_record
         WHERE user_id = #{userId}
-        AND DATE(create_time) = CURDATE()
+        AND IFNULL(stat_date, DATE(create_time)) = CURDATE()
         AND is_deleted = 0
     </select>
     
@@ -48,7 +52,7 @@
         SELECT IFNULL(SUM(merit_gained), 0)
         FROM t_merit_record
         WHERE user_id = #{userId}
-        AND YEARWEEK(create_time) = YEARWEEK(NOW())
+        AND YEARWEEK(IFNULL(stat_date, DATE(create_time))) = YEARWEEK(CURDATE())
         AND is_deleted = 0
     </select>
     
@@ -57,7 +61,7 @@
         SELECT IFNULL(SUM(merit_gained), 0)
         FROM t_merit_record
         WHERE user_id = #{userId}
-        AND DATE_FORMAT(create_time, '%Y%m') = DATE_FORMAT(NOW(), '%Y%m')
+        AND DATE_FORMAT(IFNULL(stat_date, DATE(create_time)), '%Y%m') = DATE_FORMAT(CURDATE(), '%Y%m')
         AND is_deleted = 0
     </select>
     
@@ -82,6 +86,15 @@
         SELECT IFNULL(MAX(combo_count), 0)
         FROM t_merit_record
         WHERE user_id = #{userId}
+        AND is_deleted = 0
+    </select>
+
+    <!-- 指定自然日功德统计 -->
+    <select id="sumMeritByStatDate" resultType="java.lang.Long">
+        SELECT IFNULL(SUM(merit_gained), 0)
+        FROM t_merit_record
+        WHERE user_id = #{userId}
+        AND IFNULL(stat_date, DATE(create_time)) = DATE(#{statDate})
         AND is_deleted = 0
     </select>
 
