@@ -4,6 +4,7 @@ import com.hsmy.annotation.ApiVersion;
 import com.hsmy.common.Result;
 import com.hsmy.constant.ApiVersionConstant;
 import com.hsmy.dto.PurchaseScriptureRequest;
+import com.hsmy.dto.PurchaseScripturePermanentRequest;
 import com.hsmy.dto.UpdateLastReadingPositionRequest;
 import com.hsmy.dto.UpdateReadingProgressRequest;
 import com.hsmy.entity.Scripture;
@@ -73,6 +74,53 @@ public class UserScriptureController {
     }
 
     /**
+     * 买断典籍
+     *
+     * @param request 买断请求
+     * @param httpRequest HTTP请求
+     * @return 购买结果
+     */
+    @PostMapping("/purchase-permanent")
+    public Result<Void> purchaseScripturePermanent(@RequestBody @Valid PurchaseScripturePermanentRequest request,
+                                                 HttpServletRequest httpRequest) {
+        try {
+            Long userId = UserContextUtil.requireCurrentUserId();
+
+            // 根据购买类型执行不同逻辑
+            if ("permanent".equals(request.getPurchaseType())) {
+                // 买断模式
+                if (!scriptureService.checkScriptureAvailable(request.getScriptureId())) {
+                    return Result.error("该典籍不存在或已下架");
+                }
+
+                Boolean success = userScripturePurchaseService.purchaseScripturePermanent(userId, request.getScriptureId());
+                if (success) {
+                    return Result.success();
+                } else {
+                    return Result.error("买断失败，请检查您的福币余额、该典籍是否支持买断或您是否已购买");
+                }
+            } else if ("monthly".equals(request.getPurchaseType())) {
+                // 月度订阅模式
+                if (request.getPurchaseMonths() == null) {
+                    return Result.error("订阅模式必须指定购买月数");
+                }
+
+                Boolean success = userScripturePurchaseService.purchaseScripture(
+                        userId, request.getScriptureId(), request.getPurchaseMonths());
+                if (success) {
+                    return Result.success();
+                } else {
+                    return Result.error("购买失败，请检查您的福币余额或该典籍是否已购买");
+                }
+            } else {
+                return Result.error("不支持的购买类型");
+            }
+        } catch (Exception e) {
+            return Result.error("购买失败：" + e.getMessage());
+        }
+    }
+
+    /**
      * 获取用户购买的典籍列表
      *
      * @param httpRequest HTTP请求
@@ -104,9 +152,16 @@ public class UserScriptureController {
                     );
                     vo.setRemainingDays(remainingDays);
                     vo.setIsExpiringSoon(remainingDays <= 7 && remainingDays > 0);
+                    vo.setIsPermanent(false);
+                } else if (purchase.getExpireTime() == null && purchase.getIsExpired() == 0) {
+                    // 买断模式
+                    vo.setRemainingDays(-1L); // -1表示永久
+                    vo.setIsExpiringSoon(false);
+                    vo.setIsPermanent(true);
                 } else {
                     vo.setRemainingDays(0L);
                     vo.setIsExpiringSoon(false);
+                    vo.setIsPermanent(false);
                 }
 
                 return vo;

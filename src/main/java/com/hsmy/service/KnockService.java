@@ -5,6 +5,7 @@ import com.hsmy.vo.AutoKnockStartVO;
 import com.hsmy.vo.AutoKnockStopVO;
 import com.hsmy.vo.KnockVO;
 
+import java.time.LocalDate;
 import java.util.Map;
 
 /**
@@ -49,6 +50,15 @@ public interface KnockService {
      * @return 心跳响应
      */
     Map<String, Object> heartbeat(Long userId, AutoKnockHeartbeatVO heartbeatVO);
+
+    /**
+     * 获取指定日期所在日/周/月/年的敲击统计
+     *
+     * @param userId 用户ID
+     * @param referenceDate 参考日期（null 则默认为今天）
+     * @return 周期统计数据
+     */
+    Map<String, Object> getKnockPeriodStats(Long userId, LocalDate referenceDate);
 
     /**
      * 获取敲击统计

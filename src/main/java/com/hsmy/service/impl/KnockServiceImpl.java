@@ -23,6 +23,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -168,6 +170,27 @@ public class KnockServiceImpl implements KnockService {
     }
 
     @Override
+    public Map<String, Object> getKnockPeriodStats(Long userId, LocalDate referenceDate) {
+        LocalDate effectiveDate = referenceDate != null ? referenceDate : LocalDate.now();
+        Date referenceTime = Date.from(effectiveDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
+
+        Map<PeriodType, UserPeriodStats> periodStats = userPeriodStatsService.loadCurrentPeriods(userId, referenceTime);
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("userId", userId);
+        response.put("referenceDate", effectiveDate);
+
+        Map<String, Object> periods = new LinkedHashMap<>();
+        response.put("periods", periods);
+
+        addPeriodSnapshot(periods, "day", PeriodType.DAY, periodStats.get(PeriodType.DAY));
+        addPeriodSnapshot(periods, "week", PeriodType.WEEK, periodStats.get(PeriodType.WEEK));
+        addPeriodSnapshot(periods, "month", PeriodType.MONTH, periodStats.get(PeriodType.MONTH));
+        addPeriodSnapshot(periods, "year", PeriodType.YEAR, periodStats.get(PeriodType.YEAR));
+
+        return response;
+    }
+
+    @Override
     public Map<String, Object> getKnockStats(Long userId) {
         // 1. 查询用户统计
         UserStats userStats = userStatsMapper.selectByUserId(userId);
@@ -254,6 +277,18 @@ public class KnockServiceImpl implements KnockService {
         }
 
         return stats;
+    }
+
+    private void addPeriodSnapshot(Map<String, Object> container, String key, PeriodType type, UserPeriodStats stats) {
+        Map<String, Object> snapshot = new LinkedHashMap<>();
+        snapshot.put("periodType", type.name());
+        snapshot.put("timeId", stats != null ? stats.getTimeId() : null);
+        snapshot.put("knockCount", stats != null && stats.getKnockCount() != null ? stats.getKnockCount() : 0L);
+        snapshot.put("meritGained", stats != null && stats.getMeritGained() != null ? stats.getMeritGained() : 0L);
+        snapshot.put("maxCombo", stats != null && stats.getMaxCombo() != null ? stats.getMaxCombo() : 0);
+        snapshot.put("updatedAt", stats != null ? stats.getUpdateTime() : null);
+        snapshot.put("hasData", stats != null);
+        container.put(key, snapshot);
     }
 
     @Override

@@ -11,8 +11,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.servlet.http.HttpServletRequest;
+import java.time.LocalDate;
 import java.util.Map;
 import org.springframework.validation.annotation.Validated;
 
@@ -140,6 +142,19 @@ public class KnockController {
      * @param request HTTP请求
      * @return 统计数据
      */
+    @GetMapping("/stats/periods")
+    public Result<Map<String, Object>> getKnockPeriodStats(@RequestParam(value = "referenceDate", required = false)
+                                                            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate referenceDate) {
+        try {
+            Long userId = UserContextUtil.requireCurrentUserId();
+            Map<String, Object> stats = knockService.getKnockPeriodStats(userId, referenceDate);
+            return Result.success("获取周期统计成功", stats);
+        } catch (Exception e) {
+            log.error("获取周期敲击统计失败", e);
+            return Result.error("获取周期统计失败：" + e.getMessage());
+        }
+    }
+
     @GetMapping("/stats")
     public Result<Map<String, Object>> getKnockStats(HttpServletRequest request) {
         try {

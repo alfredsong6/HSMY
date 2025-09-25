@@ -69,6 +69,43 @@ public class UserScripturePurchaseServiceImpl implements UserScripturePurchaseSe
     }
 
     @Override
+    @Transactional
+    public Boolean purchaseScripturePermanent(Long userId, Long scriptureId) {
+        // 检查典籍是否存在且支持买断
+        Scripture scripture = scriptureMapper.selectById(scriptureId);
+        if (scripture == null || scripture.getStatus() != 1 || scripture.getPermanentPrice() == null) {
+            return false;
+        }
+
+        // 检查用户是否已购买
+        UserScripturePurchase existingPurchase = userScripturePurchaseMapper.selectByUserAndScripture(userId, scriptureId);
+        if (existingPurchase != null && existingPurchase.getIsExpired() == 0) {
+            // 如果已有有效购买，不允许重复购买
+            return false;
+        }
+
+        // 创建买断购买记录
+        UserScripturePurchase purchase = new UserScripturePurchase();
+        purchase.setUserId(userId);
+        purchase.setScriptureId(scriptureId);
+        purchase.setMeritCoinsPaid(scripture.getPermanentPrice());
+        purchase.setPurchaseMonths(0); // 买断模式设为0
+        purchase.setPurchaseTime(new Date());
+        purchase.setExpireTime(null); // 买断模式无过期时间
+        purchase.setIsExpired(0);
+        purchase.setReadCount(0);
+
+        int result = userScripturePurchaseMapper.insert(purchase);
+
+        // 更新典籍购买次数
+        if (result > 0) {
+            scriptureMapper.increasePurchaseCount(scriptureId);
+        }
+
+        return result > 0;
+    }
+
+    @Override
     public List<UserScripturePurchase> getPurchasesByUserId(Long userId) {
         return userScripturePurchaseMapper.selectByUserId(userId);
     }
@@ -87,7 +124,17 @@ public class UserScripturePurchaseServiceImpl implements UserScripturePurchaseSe
     @Override
     public Boolean isUserPurchaseValid(Long userId, Long scriptureId) {
         UserScripturePurchase purchase = userScripturePurchaseMapper.selectByUserAndScripture(userId, scriptureId);
-        return purchase != null && purchase.getIsExpired() == 0 && purchase.getExpireTime().after(new Date());
+        if (purchase == null || purchase.getIsExpired() == 1) {
+            return false;
+        }
+
+        // 如果过期时间为null，表示买断模式，永久有效
+        if (purchase.getExpireTime() == null) {
+            return true;
+        }
+
+        // 否则检查是否过期
+        return purchase.getExpireTime().after(new Date());
     }
 
     @Override

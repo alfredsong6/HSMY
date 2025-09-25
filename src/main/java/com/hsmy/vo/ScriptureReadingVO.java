@@ -106,6 +106,11 @@ public class ScriptureReadingVO implements Serializable {
     private Boolean isExpiringSoon;
 
     /**
+     * 是否为买断模式
+     */
+    private Boolean isPermanent;
+
+    /**
      * 支付的福币数量
      */
     private Integer meritCoinsPaid;

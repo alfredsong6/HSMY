@@ -66,6 +66,11 @@ public class Scripture extends BaseEntity {
     private Integer price;
 
     /**
+     * 买断价格（福币），NULL表示不支持买断
+     */
+    private Integer permanentPrice;
+
+    /**
      * 计价单位：本、部、卷、则
      */
     private String priceUnit;

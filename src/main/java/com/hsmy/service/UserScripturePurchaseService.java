@@ -24,6 +24,15 @@ public interface UserScripturePurchaseService {
     Boolean purchaseScripture(Long userId, Long scriptureId, Integer purchaseMonths);
 
     /**
+     * 买断典籍
+     *
+     * @param userId      用户ID
+     * @param scriptureId 典籍ID
+     * @return 是否成功
+     */
+    Boolean purchaseScripturePermanent(Long userId, Long scriptureId);
+
+    /**
      * 根据用户ID获取购买记录
      *
      * @param userId 用户ID

@@ -100,4 +100,9 @@ public class UserScripturePurchaseVO implements Serializable {
      * 是否即将过期（7天内）
      */
     private Boolean isExpiringSoon;
+
+    /**
+     * 是否为买断模式
+     */
+    private Boolean isPermanent;
 }
