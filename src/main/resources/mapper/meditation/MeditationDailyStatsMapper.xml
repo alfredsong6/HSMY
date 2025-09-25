@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hsmy.mapper.meditation.MeditationDailyStatsMapper">
+
+    <select id="selectByUserAndDate" resultType="com.hsmy.entity.meditation.MeditationDailyStats">
+        SELECT *
+        FROM t_meditation_daily_stats
+        WHERE user_id = #{userId}
+          AND stat_date = #{statDate}
+          AND is_deleted = 0
+        LIMIT 1
+    </select>
+
+</mapper>

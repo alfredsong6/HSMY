@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hsmy.mapper.meditation.MeditationSessionMapper">
+
+    <select id="countByUserAndDate" resultType="java.lang.Integer">
+        SELECT IFNULL(COUNT(1), 0)
+        FROM t_meditation_session
+        WHERE user_id = #{userId}
+          AND save_flag = 1
+          AND start_time BETWEEN #{start} AND #{end}
+          AND is_deleted = 0
+    </select>
+
+    <select id="sumDurationByUserAndDate" resultType="java.lang.Integer">
+        SELECT IFNULL(SUM(actual_duration), 0)
+        FROM t_meditation_session
+        WHERE user_id = #{userId}
+          AND save_flag = 1
+          AND start_time BETWEEN #{start} AND #{end}
+          AND is_deleted = 0
+    </select>
+
+    <select id="countTotalSessions" resultType="java.lang.Integer">
+        SELECT IFNULL(COUNT(1), 0)
+        FROM t_meditation_session
+        WHERE user_id = #{userId}
+          AND save_flag = 1
+          AND is_deleted = 0
+    </select>
+
+    <select id="sumTotalDuration" resultType="java.lang.Integer">
+        SELECT IFNULL(SUM(actual_duration), 0)
+        FROM t_meditation_session
+        WHERE user_id = #{userId}
+          AND save_flag = 1
+          AND is_deleted = 0
+    </select>
+
+    <select id="selectMonthStats" resultType="com.hsmy.vo.meditation.MeditationMonthStatDTO">
+        SELECT stat_date,
+               total_minutes,
+               session_count,
+               last_mood,
+               last_insight
+        FROM t_meditation_daily_stats
+        WHERE user_id = #{userId}
+          AND stat_date BETWEEN #{start} AND #{end}
+          AND is_deleted = 0
+        ORDER BY stat_date
+    </select>
+
+</mapper>
