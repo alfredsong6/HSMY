@@ -2,12 +2,15 @@ package com.hsmy.service.impl;
 
 import cn.hutool.core.util.IdUtil;
 import com.hsmy.entity.AutoKnockSession;
+import com.hsmy.entity.UserPeriodStats;
 import com.hsmy.entity.UserStats;
 import com.hsmy.exception.BusinessException;
+import com.hsmy.enums.PeriodType;
 import com.hsmy.mapper.UserStatsMapper;
 import com.hsmy.service.AchievementService;
 import com.hsmy.service.KnockService;
 import com.hsmy.service.MeritService;
+import com.hsmy.service.UserPeriodStatsService;
 import com.hsmy.service.TaskService;
 import com.hsmy.vo.AutoKnockHeartbeatVO;
 import com.hsmy.vo.AutoKnockStartVO;
@@ -39,6 +42,7 @@ public class KnockServiceImpl implements KnockService {
     private final TaskService taskService;
     private final AchievementService achievementService;
     private final UserStatsMapper userStatsMapper;
+    private final UserPeriodStatsService userPeriodStatsService;
     private final KnockRealtimeNotifier knockRealtimeNotifier;
     private final UserLockManager userLockManager;
 
@@ -115,14 +119,16 @@ public class KnockServiceImpl implements KnockService {
 
         // 5. 获取更新后的用户统计
         UserStats userStats = userStatsMapper.selectByUserId(userId);
+        Map<PeriodType, UserPeriodStats> periodStats = userPeriodStatsService.loadCurrentPeriods(userId, new Date());
+        UserPeriodStats dayStats = periodStats.get(PeriodType.DAY);
 
         // 6. 构建返回结果
         Map<String, Object> result = new HashMap<>();
         result.put("meritGained", meritGained);
         result.put("totalMerit", userStats.getTotalMerit());
-        result.put("todayMerit", userStats.getTodayMerit());
+        result.put("todayMerit", dayStats != null ? dayStats.getMeritGained() : 0L);
         result.put("totalKnocks", userStats.getTotalKnocks());
-        result.put("todayKnocks", userStats.getTodayKnocks());
+        result.put("todayKnocks", dayStats != null ? dayStats.getKnockCount() : 0L);
         result.put("comboCount", knockVO.getComboCount() != null ? knockVO.getComboCount() : 0);
         result.put("maxCombo", userStats.getMaxCombo());
         result.put("multiplier", knockVO.getMultiplier());
@@ -169,21 +175,26 @@ public class KnockServiceImpl implements KnockService {
             throw new BusinessException("用户统计信息不存在");
         }
 
+        Map<PeriodType, UserPeriodStats> periodStats = userPeriodStatsService.loadCurrentPeriods(userId, new Date());
+        UserPeriodStats dayStats = periodStats.get(PeriodType.DAY);
+        UserPeriodStats weekStats = periodStats.get(PeriodType.WEEK);
+        UserPeriodStats monthStats = periodStats.get(PeriodType.MONTH);
+
         // 2. 构建统计数据
         Map<String, Object> stats = new HashMap<>();
 
         // 今日统计
         Map<String, Object> todayStats = new HashMap<>();
-        todayStats.put("todayMerit", userStats.getTodayMerit());
-        todayStats.put("todayKnocks", userStats.getTodayKnocks());
+        todayStats.put("todayMerit", dayStats != null ? dayStats.getMeritGained() : 0L);
+        todayStats.put("todayKnocks", dayStats != null ? dayStats.getKnockCount() : 0L);
         stats.put("today", todayStats);
 
         // 历史统计
         Map<String, Object> historyStats = new HashMap<>();
         historyStats.put("totalMerit", userStats.getTotalMerit());
         historyStats.put("totalKnocks", userStats.getTotalKnocks());
-        historyStats.put("weeklyMerit", userStats.getWeeklyMerit());
-        historyStats.put("monthlyMerit", userStats.getMonthlyMerit());
+        historyStats.put("weeklyMerit", weekStats != null ? weekStats.getMeritGained() : 0L);
+        historyStats.put("monthlyMerit", monthStats != null ? monthStats.getMeritGained() : 0L);
         historyStats.put("totalLoginDays", userStats.getTotalLoginDays());
         historyStats.put("consecutiveDays", userStats.getConsecutiveDays());
         stats.put("history", historyStats);

@@ -5,12 +5,15 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.hsmy.entity.ExchangeRecord;
 import com.hsmy.entity.MeritRecord;
+import com.hsmy.entity.UserPeriodStats;
 import com.hsmy.entity.UserStats;
 import com.hsmy.exception.BusinessException;
 import com.hsmy.mapper.ExchangeRecordMapper;
 import com.hsmy.mapper.MeritRecordMapper;
+import com.hsmy.enums.PeriodType;
 import com.hsmy.mapper.UserStatsMapper;
 import com.hsmy.service.MeritService;
+import com.hsmy.service.UserPeriodStatsService;
 import com.hsmy.utils.IdGenerator;
 import com.hsmy.utils.UserLockManager;
 import com.hsmy.vo.ExchangeVO;
@@ -40,6 +43,7 @@ public class MeritServiceImpl implements MeritService {
     private final MeritRecordMapper meritRecordMapper;
     private final UserStatsMapper userStatsMapper;
     private final ExchangeRecordMapper exchangeRecordMapper;
+    private final UserPeriodStatsService userPeriodStatsService;
     private final UserLockManager userLockManager;
     
     @Override
@@ -110,6 +114,8 @@ public class MeritServiceImpl implements MeritService {
                 meritRecordMapper.updateById(existingRecord);
 
                 userStatsMapper.updateKnockStats(knockVO.getUserId(), knockCountLong, totalMeritLong);
+                userPeriodStatsService.recordKnock(knockVO.getUserId(), knockCountLong, totalMeritLong,
+                        knockVO.getComboCount() != null ? knockVO.getComboCount() : 0, knockTime);
                 return totalMerit;
             }
         }
@@ -133,6 +139,8 @@ public class MeritServiceImpl implements MeritService {
         meritRecordMapper.insert(record);
 
         userStatsMapper.updateKnockStats(knockVO.getUserId(), knockCountLong, totalMeritLong);
+        userPeriodStatsService.recordKnock(knockVO.getUserId(), knockCountLong, totalMeritLong,
+                        knockVO.getComboCount() != null ? knockVO.getComboCount() : 0, knockTime);
 
         return totalMerit;
     }
@@ -213,15 +221,26 @@ public class MeritServiceImpl implements MeritService {
         UserStats userStats = userStatsMapper.selectByUserId(userId);
         if (userStats != null) {
             stats.put("totalMerit", userStats.getTotalMerit());
-            stats.put("todayMerit", userStats.getTodayMerit());
-            stats.put("weeklyMerit", userStats.getWeeklyMerit());
-            stats.put("monthlyMerit", userStats.getMonthlyMerit());
             stats.put("totalKnocks", userStats.getTotalKnocks());
-            stats.put("todayKnocks", userStats.getTodayKnocks());
             stats.put("maxCombo", userStats.getMaxCombo());
             stats.put("meritCoins", userStats.getMeritCoins());
             stats.put("currentLevel", userStats.getCurrentLevel());
+        } else {
+            stats.put("totalMerit", 0L);
+            stats.put("totalKnocks", 0L);
+            stats.put("maxCombo", 0);
+            stats.put("meritCoins", 0L);
+            stats.put("currentLevel", 1);
         }
+
+        Map<PeriodType, UserPeriodStats> periodStats = userPeriodStatsService.loadCurrentPeriods(userId, new Date());
+        UserPeriodStats dayStats = periodStats.get(PeriodType.DAY);
+        stats.put("todayMerit", dayStats != null ? dayStats.getMeritGained() : 0L);
+        stats.put("todayKnocks", dayStats != null ? dayStats.getKnockCount() : 0L);
+        UserPeriodStats weekStats = periodStats.get(PeriodType.WEEK);
+        stats.put("weeklyMerit", weekStats != null ? weekStats.getMeritGained() : 0L);
+        UserPeriodStats monthStats = periodStats.get(PeriodType.MONTH);
+        stats.put("monthlyMerit", monthStats != null ? monthStats.getMeritGained() : 0L);
         
         return stats;
     }

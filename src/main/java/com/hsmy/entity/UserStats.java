@@ -8,89 +8,66 @@ import lombok.EqualsAndHashCode;
 import java.util.Date;
 
 /**
- * 用户统计实体类
- * 
- * @author HSMY
- * @date 2025/09/07
+ * Aggregated user statistics (lifetime counters only).
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
 @TableName("t_user_stats")
 public class UserStats extends BaseEntity {
-    
+
     private static final long serialVersionUID = 1L;
-    
+
     /**
-     * 用户ID
+     * User identifier.
      */
     private Long userId;
-    
+
     /**
-     * 总功德值
+     * Lifetime merit value accumulated.
      */
     private Long totalMerit;
-    
+
     /**
-     * 功德币余额
+     * Remaining merit coins balance.
      */
     private Long meritCoins;
-    
+
     /**
-     * 总敲击次数
+     * Lifetime knock count.
      */
     private Long totalKnocks;
-    
+
     /**
-     * 今日功德值
-     */
-    private Long todayMerit;
-    
-    /**
-     * 今日敲击次数
-     */
-    private Long todayKnocks;
-    
-    /**
-     * 本周功德值
-     */
-    private Long weeklyMerit;
-    
-    /**
-     * 本月功德值
-     */
-    private Long monthlyMerit;
-    
-    /**
-     * 连续登录天数
+     * Consecutive login days.
      */
     private Integer consecutiveDays;
-    
+
     /**
-     * 总登录天数
+     * Total login days.
      */
     private Integer totalLoginDays;
-    
+
     /**
-     * 当前等级
+     * Current merit level.
      */
     private Integer currentLevel;
-    
+
     /**
-     * 最高连击数
+     * Highest combo ever achieved.
      */
     private Integer maxCombo;
-    
+
     /**
-     * 最后敲击时间
+     * Last knock timestamp.
      */
     private Date lastKnockTime;
-    
+
     /**
-     * 最后登录日期
+     * Last login date.
      */
     private Date lastLoginDate;
 
-    public Object getContinuousSignDays() {
-        return null;
+    public Integer getContinuousSignDays() {
+        return consecutiveDays;
     }
 }

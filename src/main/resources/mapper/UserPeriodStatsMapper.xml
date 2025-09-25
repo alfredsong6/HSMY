@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hsmy.mapper.UserPeriodStatsMapper">
+
+    <resultMap id="BaseResultMap" type="com.hsmy.entity.UserPeriodStats">
+        <id column="id" property="id"/>
+        <result column="user_id" property="userId"/>
+        <result column="time_id" property="timeId"/>
+        <result column="period_type" property="periodType"/>
+        <result column="knock_count" property="knockCount"/>
+        <result column="merit_gained" property="meritGained"/>
+        <result column="max_combo" property="maxCombo"/>
+        <result column="create_by" property="createBy"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_by" property="updateBy"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="is_deleted" property="isDeleted"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, user_id, time_id, period_type, knock_count, merit_gained,
+        max_combo, create_by, create_time, update_by, update_time, is_deleted
+    </sql>
+
+    <select id="selectByUserAndPeriod" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM t_user_period_stats
+        WHERE user_id = #{userId}
+          AND period_type = #{periodType}
+          AND time_id = #{timeId}
+          AND is_deleted = 0
+        LIMIT 1
+    </select>
+
+    <select id="selectByUserAndTypes" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM t_user_period_stats
+        WHERE user_id = #{userId}
+          AND is_deleted = 0
+          AND period_type IN
+        <foreach collection="periodTypes" item="type" open="(" separator="," close=")">
+            #{type}
+        </foreach>
+          AND time_id IN
+        <foreach collection="timeIds" item="tid" open="(" separator="," close=")">
+            #{tid}
+        </foreach>
+    </select>
+
+    <insert id="upsertPeriodStats">
+        INSERT INTO t_user_period_stats (
+            id, user_id, time_id, period_type, knock_count, merit_gained, max_combo,
+            create_by, create_time, update_by, update_time, is_deleted)
+        VALUES (
+            #{id}, #{userId}, #{timeId}, #{periodType}, #{knockCount}, #{meritGained}, #{maxCombo},
+            #{createBy}, NOW(), #{updateBy}, NOW(), #{isDeleted})
+        ON DUPLICATE KEY UPDATE
+            knock_count = knock_count + VALUES(knock_count),
+            merit_gained = merit_gained + VALUES(merit_gained),
+            max_combo = GREATEST(max_combo, VALUES(max_combo)),
+            update_by = VALUES(update_by),
+            update_time = NOW();
+    </insert>
+    <insert id="replacePeriodStats">
+        INSERT INTO t_user_period_stats (
+            id, user_id, time_id, period_type, knock_count, merit_gained, max_combo,
+            create_by, create_time, update_by, update_time, is_deleted)
+        VALUES (
+            #{id}, #{userId}, #{timeId}, #{periodType}, #{knockCount}, #{meritGained}, #{maxCombo},
+            #{createBy}, NOW(), #{updateBy}, NOW(), #{isDeleted})
+        ON DUPLICATE KEY UPDATE
+            knock_count = VALUES(knock_count),
+            merit_gained = VALUES(merit_gained),
+            max_combo = VALUES(max_combo),
+            update_by = VALUES(update_by),
+            update_time = NOW(),
+            is_deleted = VALUES(is_deleted);
+    </insert>
+
+    <select id="aggregateDailyStatsByTimeIds" resultType="com.hsmy.dto.stats.UserPeriodAggregate">
+        SELECT
+            user_id AS userId,
+            SUM(knock_count) AS knockCount,
+            SUM(merit_gained) AS meritGained,
+            MAX(max_combo) AS maxCombo
+        FROM t_user_period_stats
+        WHERE period_type = 'DAY'
+          AND is_deleted = 0
+          AND time_id IN
+        <foreach collection="timeIds" item="tid" open="(" separator="," close=")">
+            #{tid}
+        </foreach>
+        GROUP BY user_id;
+    </select>
+
+</mapper>

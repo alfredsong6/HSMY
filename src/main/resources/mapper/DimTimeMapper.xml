@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hsmy.mapper.DimTimeMapper">
+
+    <resultMap id="BaseResultMap" type="com.hsmy.entity.DimTime">
+        <id column="id" property="id"/>
+        <result column="date_value" property="dateValue"/>
+        <result column="iso_week" property="isoWeek"/>
+        <result column="month_value" property="monthValue"/>
+        <result column="year_value" property="yearValue"/>
+        <result column="week_start" property="weekStart"/>
+        <result column="week_end" property="weekEnd"/>
+        <result column="month_start" property="monthStart"/>
+        <result column="month_end" property="monthEnd"/>
+        <result column="quarter" property="quarter"/>
+        <result column="is_weekend" property="isWeekend"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, date_value, iso_week, month_value, year_value,
+        week_start, week_end, month_start, month_end,
+        quarter, is_weekend, create_time, update_time
+    </sql>
+
+    <select id="selectByDate" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM t_dim_time
+        WHERE date_value = #{date}
+        LIMIT 1
+    </select>
+
+</mapper>
