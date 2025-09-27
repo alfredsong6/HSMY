@@ -130,6 +130,7 @@ public class LoginInterceptor implements HandlerInterceptor {
     private String getToken(HttpServletRequest request) {
         // 优先从Authorization头获取
         String authorization = request.getHeader(AUTHORIZATION_HEADER);
+        log.debug("Authorization: {}", authorization);
         if (StringUtils.hasText(authorization)) {
             // 支持Bearer token格式
             if (authorization.startsWith(BEARER_PREFIX)) {

@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hsmy.mapper.UserScripturePurchaseMapper">
+
+    <resultMap id="BaseResultMap" type="com.hsmy.entity.UserScripturePurchase">
+        <id column="id" property="id"/>
+        <result column="user_id" property="userId"/>
+        <result column="scripture_id" property="scriptureId"/>
+        <result column="merit_coins_paid" property="meritCoinsPaid"/>
+        <result column="purchase_months" property="purchaseMonths"/>
+        <result column="purchase_time" property="purchaseTime"/>
+        <result column="expire_time" property="expireTime"/>
+        <result column="is_expired" property="isExpired"/>
+        <result column="read_count" property="readCount"/>
+        <result column="last_read_time" property="lastReadTime"/>
+        <result column="reading_progress" property="readingProgress"/>
+        <result column="create_by" property="createBy"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_by" property="updateBy"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="is_deleted" property="isDeleted"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, user_id, scripture_id, merit_coins_paid, purchase_months,
+        purchase_time, expire_time, is_expired, read_count, last_read_time,
+        reading_progress, create_by, create_time, update_by, update_time, is_deleted
+    </sql>
+
+    <!-- 根据用户ID查询购买记录 -->
+    <select id="selectByUserId" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM t_user_scripture_purchase
+        WHERE user_id = #{userId} AND is_deleted = 0
+        ORDER BY purchase_time DESC
+    </select>
+
+    <!-- 根据用户ID和典籍ID查询购买记录 -->
+    <select id="selectByUserAndScripture" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM t_user_scripture_purchase
+        WHERE user_id = #{userId} 
+        AND scripture_id = #{scriptureId}
+        AND is_deleted = 0
+        ORDER BY purchase_time DESC
+        LIMIT 1
+    </select>
+
+    <!-- 查询用户有效的典籍购买记录 -->
+    <select id="selectValidPurchasesByUserId" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM t_user_scripture_purchase
+        WHERE user_id = #{userId}
+        AND is_expired = 0
+        AND expire_time &gt; NOW()
+        AND is_deleted = 0
+        ORDER BY purchase_time DESC
+    </select>
+
+    <!-- 查询即将过期的购买记录 -->
+    <select id="selectExpiringSoon" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM t_user_scripture_purchase
+        WHERE is_expired = 0
+        AND expire_time &gt; NOW()
+        AND expire_time &lt; DATE_ADD(NOW(), INTERVAL #{days} DAY)
+        AND is_deleted = 0
+        ORDER BY expire_time ASC
+    </select>
+
+    <!-- 更新阅读记录 -->
+    <update id="updateReadingRecord">
+        UPDATE t_user_scripture_purchase
+        SET reading_progress = #{readingProgress},
+            last_read_time = #{lastReadTime},
+            update_time = NOW()
+        WHERE id = #{id} AND is_deleted = 0
+    </update>
+
+    <!-- 更新最后阅读位置 -->
+    <update id="updateLastReadingPosition">
+        UPDATE t_user_scripture_purchase
+        SET last_read_time = #{lastReadTime},
+            update_time = NOW()
+        WHERE id = #{id} AND is_deleted = 0
+    </update>
+
+    <!-- 增加阅读次数 -->
+    <update id="increaseReadCount">
+        UPDATE t_user_scripture_purchase
+        SET read_count = read_count + 1,
+            last_read_time = NOW(),
+            update_time = NOW()
+        WHERE id = #{id} AND is_deleted = 0
+    </update>
+
+    <!-- 批量更新过期状态 -->
+    <update id="batchUpdateExpiredStatus">
+        UPDATE t_user_scripture_purchase
+        SET is_expired = 1,
+            update_time = NOW()
+        WHERE is_expired = 0
+        AND expire_time &lt; NOW()
+        AND is_deleted = 0
+    </update>
+
+    <!-- 统计用户购买的典籍总数 -->
+    <select id="countPurchasesByUserId" resultType="java.lang.Integer">
+        SELECT COUNT(DISTINCT scripture_id)
+        FROM t_user_scripture_purchase
+        WHERE user_id = #{userId} AND is_deleted = 0
+    </select>
+
+    <!-- 查询典籍的购买用户数 -->
+    <select id="countUsersByScriptureId" resultType="java.lang.Integer">
+        SELECT COUNT(DISTINCT user_id)
+        FROM t_user_scripture_purchase
+        WHERE scripture_id = #{scriptureId} AND is_deleted = 0
+    </select>
+
+</mapper>

@@ -1,7 +1,10 @@
 {
   "permissions": {
     "allow": [
-      "Bash(mvn clean:*)"
+      "Bash(mvn clean:*)",
+      "Bash(curl:*)",
+      "Bash(export TEST_TOKEN=\"63087fbecc1b4f0ebd62a0b89786e17e_1758954133038\")",
+      "Bash(export TEST_TOKEN=\"1483ebb8dc6d41af8b3c8c5600e31376_1758954695075\")"
     ],
     "deny": [],
     "ask": []

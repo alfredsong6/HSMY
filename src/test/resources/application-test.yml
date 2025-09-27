@@ -1,0 +1,118 @@
+# 测试配置文件
+spring:
+  profiles:
+    active: test
+  
+  # 测试数据库配置（使用H2内存数据库）
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: 
+    
+  # JPA配置
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+        
+  # H2控制台配置（仅测试环境）
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+    
+  # Redis配置（测试环境使用独立数据库）
+  redis:
+    host: localhost
+    port: 6379
+    database: 15  # 使用独立的测试数据库
+    timeout: 3000
+    lettuce:
+      pool:
+        max-active: 10
+        max-wait: -1
+        max-idle: 8
+        min-idle: 0
+        
+  # 邮件配置（测试环境禁用）
+  mail:
+    host: localhost
+    port: 25
+    test-connection: false
+
+# 日志配置
+logging:
+  level:
+    com.hsmy: DEBUG
+    org.springframework.web: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+
+# 测试专用配置
+test:
+  mock:
+    verification-code: "TEST_CODE"
+    sms-service: true
+    email-service: true
+  data:
+    auto-cleanup: true
+  performance:
+    enabled: true
+    
+# HSMY应用配置
+hsmy:
+  session:
+    timeout: 3600
+    redis-key-prefix: "test:session:"
+    
+  merit:
+    base-rate: 1
+    max-daily-gain: 10000
+    
+  knock:
+    session-timeout: 120
+    max-concurrent-sessions: 10
+    
+  sms:
+    provider: mock
+    mock-success-rate: 1.0
+    
+  email:
+    provider: mock
+    mock-success-rate: 1.0
+    
+  storage:
+    type: local
+    local-path: "/tmp/hsmy-test/"
+    
+# MyBatis Plus配置
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+
+# 服务器配置
+server:
+  port: 8080
+  servlet:
+    context-path: /
+    
+# 管理端点配置
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always

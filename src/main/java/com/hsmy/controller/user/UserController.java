@@ -78,6 +78,7 @@ public class UserController {
      */
     @GetMapping("/info/{userId}")
     public Result<UserVO> getUserInfo(@PathVariable Long userId) {
+        Long currentUserId = UserContextUtil.getCurrentUserId();
         UserVO userVO = userService.getUserVOById(userId);
         if (userVO == null) {
             return Result.error("用户不存在");
@@ -103,6 +104,8 @@ public class UserController {
      */
     @PutMapping("/update")
     public Result<Boolean> updateUser(@RequestBody UserVO userVO) {
+        Long currentUserId = UserContextUtil.getCurrentUserId();
+        userVO.setId(currentUserId);
         try {
             Boolean result = userService.updateUser(userVO);
             return result ? Result.success("更新成功", true) : Result.error("更新失败");

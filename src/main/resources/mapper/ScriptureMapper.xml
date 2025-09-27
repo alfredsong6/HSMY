@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hsmy.mapper.ScriptureMapper">
+
+    <resultMap id="BaseResultMap" type="com.hsmy.entity.Scripture">
+        <id column="id" property="id"/>
+        <result column="scripture_name" property="scriptureName"/>
+        <result column="scripture_type" property="scriptureType"/>
+        <result column="author" property="author"/>
+        <result column="description" property="description"/>
+        <result column="content" property="content"/>
+        <result column="cover_url" property="coverUrl"/>
+        <result column="audio_url" property="audioUrl"/>
+        <result column="is_hot" property="isHot"/>
+        <result column="price" property="price"/>
+        <result column="price_unit" property="priceUnit"/>
+        <result column="duration_months" property="durationMonths"/>
+        <result column="read_count" property="readCount"/>
+        <result column="purchase_count" property="purchaseCount"/>
+        <result column="difficulty_level" property="difficultyLevel"/>
+        <result column="word_count" property="wordCount"/>
+        <result column="category_tags" property="categoryTags"/>
+        <result column="status" property="status"/>
+        <result column="sort_order" property="sortOrder"/>
+        <result column="create_by" property="createBy"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_by" property="updateBy"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="is_deleted" property="isDeleted"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, scripture_name, scripture_type, author, description, content,
+        cover_url, audio_url, is_hot, price, price_unit, duration_months,
+        read_count, purchase_count, difficulty_level, word_count,
+        category_tags, status, sort_order, create_by, create_time,
+        update_by, update_time, is_deleted
+    </sql>
+
+    <!-- 查询所有上架的典籍 -->
+    <select id="selectAllActive" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM t_scripture
+        WHERE status = 1 AND is_deleted = 0
+        ORDER BY sort_order ASC, create_time DESC
+    </select>
+
+    <!-- 查询热门典籍 -->
+    <select id="selectHotScriptures" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM t_scripture
+        WHERE is_hot = 1 AND status = 1 AND is_deleted = 0
+        ORDER BY sort_order ASC, purchase_count DESC, create_time DESC
+    </select>
+
+    <!-- 根据典籍类型查询典籍列表 -->
+    <select id="selectByType" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM t_scripture
+        WHERE scripture_type = #{scriptureType}
+        AND status = 1 AND is_deleted = 0
+        ORDER BY sort_order ASC, create_time DESC
+    </select>
+
+    <!-- 根据关键词搜索典籍 -->
+    <select id="searchByKeyword" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM t_scripture
+        WHERE status = 1 AND is_deleted = 0
+        AND (
+            scripture_name LIKE CONCAT('%', #{keyword}, '%')
+            OR author LIKE CONCAT('%', #{keyword}, '%')
+            OR description LIKE CONCAT('%', #{keyword}, '%')
+            OR category_tags LIKE CONCAT('%', #{keyword}, '%')
+        )
+        ORDER BY sort_order ASC, create_time DESC
+    </select>
+
+    <!-- 根据价格范围查询典籍 -->
+    <select id="selectByPriceRange" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM t_scripture
+        WHERE status = 1 AND is_deleted = 0
+        <if test="minPrice != null">
+            AND price &gt; #{minPrice}
+        </if>
+        <if test="maxPrice != null">
+            AND price &lt; #{maxPrice}
+        </if>
+        ORDER BY price ASC, sort_order ASC
+    </select>
+
+    <!-- 根据难度等级查询典籍 -->
+    <select id="selectByDifficultyLevel" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM t_scripture
+        WHERE difficulty_level = #{difficultyLevel}
+        AND status = 1 AND is_deleted = 0
+        ORDER BY sort_order ASC, create_time DESC
+    </select>
+
+    <!-- 根据标签查询典籍 -->
+    <select id="selectByTag" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM t_scripture
+        WHERE category_tags LIKE CONCAT('%', #{tag}, '%')
+        AND status = 1 AND is_deleted = 0
+        ORDER BY sort_order ASC, create_time DESC
+    </select>
+
+    <!-- 更新典籍购买次数 -->
+    <update id="increasePurchaseCount">
+        UPDATE t_scripture
+        SET purchase_count = purchase_count + 1,
+            update_time = NOW()
+        WHERE id = #{scriptureId}
+        AND is_deleted = 0
+    </update>
+
+    <!-- 更新典籍阅读次数 -->
+    <update id="increaseReadCount">
+        UPDATE t_scripture
+        SET read_count = read_count + 1,
+            update_time = NOW()
+        WHERE id = #{scriptureId}
+        AND is_deleted = 0
+    </update>
+
+</mapper>

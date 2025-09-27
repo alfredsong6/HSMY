@@ -386,7 +386,7 @@ public class MeditationServiceImpl implements MeditationService {
         } else if (withKnock != null && withKnock == 0) {
             pref.setDefaultKnockFrequency(null);
         }
-        pref.setLastUpdatedTime(new Date());
+        pref.setLastUpdateTime(new Date());
         if (insert) {
             meditationUserPrefMapper.insert(pref);
         } else {

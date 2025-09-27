@@ -15,7 +15,7 @@
         SELECT *
         FROM t_meditation_subscription
         WHERE user_id = #{userId}
-          AND end_time >= #{now}
+          AND end_time &gt; #{now}
           AND status = 'CURRENT'
           AND is_deleted = 0
         ORDER BY end_time DESC
@@ -27,7 +27,7 @@
         SET status = 'EXPIRED',
             update_time = NOW()
         WHERE status = 'CURRENT'
-          AND end_time < #{now}
+          AND end_time &lt; #{now}
           AND is_deleted = 0
     </update>
 

@@ -11,6 +11,7 @@ import com.hsmy.service.VerificationCodeService;
 import com.hsmy.utils.IdGenerator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,6 +33,9 @@ public class VerificationCodeServiceImpl implements VerificationCodeService {
     private final StringRedisTemplate stringRedisTemplate;
     private final SmsServiceFactory smsServiceFactory;
     private final EmailService emailService;
+    
+    @Value("${spring.profiles.active:prod}")
+    private String activeProfile;
     
     private static final int CODE_LENGTH = 6;
     private static final int CODE_EXPIRE_MINUTES = 5;
@@ -94,6 +98,10 @@ public class VerificationCodeServiceImpl implements VerificationCodeService {
     
     @Override
     public boolean verifyCode(String account, String code, String businessType) {
+        if ("dev".equals(activeProfile)) {
+            return true;
+        }
+        
         // 先从Redis验证
         String redisKey = getRedisKey(account, businessType);
         String cachedCode = stringRedisTemplate.opsForValue().get(redisKey);

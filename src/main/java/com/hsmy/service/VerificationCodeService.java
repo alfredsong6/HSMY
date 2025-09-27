@@ -14,7 +14,7 @@ public interface VerificationCodeService {
      * @return 是否发送成功
      */
     boolean sendCode(String account, String accountType, String businessType, String ipAddress);
-    
+
     /**
      * 验证验证码
      * @param account 手机号或邮箱

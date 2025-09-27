@@ -1,0 +1,225 @@
+=== POST /auth/send-code
+Request: {"account":"13800000000","accountType":"phone","businessType":"register"}
+{"code":200,"message":"操作成功","data":"验证码已发送，请查收"}
+HTTP_STATUS:200
+
+=== POST /auth/register-by-code
+Request: {"account":"13800000000","code":"123456","nickname":"测试用户"}
+{"code":400,"message":"参数校验失败: accountType: 账号类型不能为空","data":null}
+HTTP_STATUS:200
+
+=== POST /auth/login
+Request: {"loginAccount":"13800000000","loginType":"code","code":"123456"}
+{"code":500,"message":"用户不存在","data":null}
+HTTP_STATUS:200
+
+=== POST /auth/logout
+{"code":200,"message":"操作成功","data":"登出成功"}
+HTTP_STATUS:200
+
+=== GET /auth/sessions
+{"code":401,"message":"未登录或登录已过期"}
+HTTP_STATUS:401
+
+=== POST /auth/kick-other-sessions
+{"code":401,"message":"未登录或登录已过期"}
+HTTP_STATUS:401
+
+=== GET /auth/health
+{"code":200,"message":"操作成功","data":"服务正常"}
+HTTP_STATUS:200
+
+=== GET /user/self/info
+{"code":401,"message":"未登录或登录已过期"}
+HTTP_STATUS:401
+
+=== GET /user/info/1
+{"code":401,"message":"未登录或登录已过期"}
+HTTP_STATUS:401
+
+=== PUT /user/update
+Request: {"nickname":"新昵称","avatar":"https://example.com/avatar.jpg"}
+{"code":401,"message":"未登录或登录已过期"}
+HTTP_STATUS:401
+
+=== POST /user/changePassword
+Request: {"oldPassword":"123456","newPassword":"654321","confirmPassword":"654321"}
+{"code":401,"message":"未登录或登录已过期"}
+HTTP_STATUS:401
+
+=== POST /user/initializePassword
+Request: {"password":"123456","confirmPassword":"123456"}
+{"code":401,"message":"未登录或登录已过期"}
+HTTP_STATUS:401
+
+=== POST /user/resetPasswordWithSms
+Request: {"phone":"13800000000","code":"123456","password":"newpass123","confirmPassword":"newpass123"}
+{"code":401,"message":"未登录或登录已过期"}
+HTTP_STATUS:401
+
+=== GET /user/check/username?username=testuser
+{"code":401,"message":"未登录或登录已过期"}
+HTTP_STATUS:401
+
+=== GET /user/check/phone?phone=13800000000
+{"code":401,"message":"未登录或登录已过期"}
+HTTP_STATUS:401
+
+=== GET /user/check/email?email=test@example.com
+{"code":401,"message":"未登录或登录已过期"}
+HTTP_STATUS:401
+
+=== POST /knock/manual
+Request: {"knockCount":10,"knockSound":"default","sessionDuration":60}
+{"code":401,"message":"未登录或登录已过期"}
+HTTP_STATUS:401
+
+=== POST /knock/auto/start
+Request: {"duration":300,"knockInterval":1000,"knockSound":"default"}
+{"code":401,"message":"未登录或登录已过期"}
+HTTP_STATUS:401
+
+=== POST /knock/auto/stop
+Request: {"sessionId":"auto_knock_sess_123","actualDuration":250}
+{"code":401,"message":"未登录或登录已过期"}
+HTTP_STATUS:401
+
+=== POST /knock/auto/heartbeat
+Request: {"sessionId":"auto_knock_sess_123","currentKnockCount":150}
+{"code":401,"message":"未登录或登录已过期"}
+HTTP_STATUS:401
+
+=== GET /knock/stats
+{"code":401,"message":"未登录或登录已过期"}
+HTTP_STATUS:401
+
+=== GET /knock/stats/periods?referenceDate=2025-09-27
+{"code":401,"message":"未登录或登录已过期"}
+HTTP_STATUS:401
+
+=== GET /knock/auto/status
+{"code":401,"message":"未登录或登录已过期"}
+HTTP_STATUS:401
+
+=== POST /meditation/subscription/purchase
+Request: {"planType":"DAY"}
+{"code":401,"message":"未登录或登录已过期"}
+HTTP_STATUS:401
+
+=== GET /meditation/subscription/status
+{"code":401,"message":"未登录或登录已过期"}
+HTTP_STATUS:401
+
+=== POST /meditation/session/start
+Request: {"plannedDuration":600,"withKnock":1,"knockFrequency":80}
+{"code":401,"message":"未登录或登录已过期"}
+HTTP_STATUS:401
+
+=== POST /meditation/session/finish
+Request: {"sessionId":"meditation_sess_123","actualDuration":580,"withKnock":1,"knockFrequency":80,"moodCode":"happy","insightText":"保持平常心"}
+{"code":401,"message":"未登录或登录已过期"}
+HTTP_STATUS:401
+
+=== POST /meditation/session/discard
+Request: {"sessionId":"meditation_sess_123"}
+{"code":401,"message":"未登录或登录已过期"}
+HTTP_STATUS:401
+
+=== GET /meditation/stats/summary
+{"code":401,"message":"未登录或登录已过期"}
+HTTP_STATUS:401
+
+=== GET /meditation/stats/month?month=2025-09
+{"code":401,"message":"未登录或登录已过期"}
+HTTP_STATUS:401
+
+=== GET /meditation/config/default
+{"code":401,"message":"未登录或登录已过期"}
+HTTP_STATUS:401
+
+=== PUT /meditation/config/default
+Request: {"defaultDuration":600,"defaultWithKnock":1,"defaultKnockFrequency":80}
+{"code":401,"message":"未登录或登录已过期"}
+HTTP_STATUS:401
+
+=== GET /scripture/list
+{"code":401,"message":"未登录或登录已过期"}
+HTTP_STATUS:401
+
+=== GET /scripture/1
+{"code":401,"message":"未登录或登录已过期"}
+HTTP_STATUS:401
+
+=== GET /scripture/hot
+{"code":401,"message":"未登录或登录已过期"}
+HTTP_STATUS:401
+
+=== GET /scripture/type/classic
+{"code":401,"message":"未登录或登录已过期"}
+HTTP_STATUS:401
+
+=== GET /scripture/search?keyword=心经
+<!doctype html><html lang="en"><head><title>HTTP Status 400 – Bad Request</title><style type="text/css">body {font-family:Tahoma,Arial,sans-serif;} h1, h2, h3, b {color:white;background-color:#525D76;} h1 {font-size:22px;} h2 {font-size:16px;} h3 {font-size:14px;} p {font-size:12px;} a {color:black;} .line {height:1px;background-color:#525D76;border:none;}</style></head><body><h1>HTTP Status 400 – Bad Request</h1></body></html>
+HTTP_STATUS:400
+
+=== POST /scripture/1/read
+{"code":401,"message":"未登录或登录已过期"}
+HTTP_STATUS:401
+
+=== POST /merit/balance
+{"code":401,"message":"未登录或登录已过期"}
+HTTP_STATUS:401
+
+=== POST /merit/exchange
+Request: {"exchangeAmount":100,"exchangeRate":1}
+{"code":401,"message":"未登录或登录已过期"}
+HTTP_STATUS:401
+
+=== GET /merit/history
+{"code":401,"message":"未登录或登录已过期"}
+HTTP_STATUS:401
+
+=== GET /merit/summary
+{"code":401,"message":"未登录或登录已过期"}
+HTTP_STATUS:401
+
+=== GET /merit/stats/1
+{"code":401,"message":"未登录或登录已过期"}
+HTTP_STATUS:401
+
+=== GET /merit/records?userId=1
+{"code":401,"message":"未登录或登录已过期"}
+HTTP_STATUS:401
+
+=== GET /merit/today/1
+{"code":401,"message":"未登录或登录已过期"}
+HTTP_STATUS:401
+
+=== GET /merit/weekly/1
+{"code":401,"message":"未登录或登录已过期"}
+HTTP_STATUS:401
+
+=== GET /merit/monthly/1
+{"code":401,"message":"未登录或登录已过期"}
+HTTP_STATUS:401
+
+=== GET /rankings/daily?limit=5
+{"code":401,"message":"未登录或登录已过期"}
+HTTP_STATUS:401
+
+=== GET /rankings/weekly?limit=5
+{"code":401,"message":"未登录或登录已过期"}
+HTTP_STATUS:401
+
+=== GET /rankings/total?limit=5
+{"code":401,"message":"未登录或登录已过期"}
+HTTP_STATUS:401
+
+=== GET /rankings/my
+{"code":401,"message":"未登录或登录已过期"}
+HTTP_STATUS:401
+
+=== POST /file/upload
+{"code":401,"message":"未登录或登录已过期"}
+HTTP_STATUS:401
+

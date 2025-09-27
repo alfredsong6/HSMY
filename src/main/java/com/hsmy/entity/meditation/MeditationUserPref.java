@@ -18,5 +18,5 @@ public class MeditationUserPref {
     private Integer defaultDuration;
     private Integer defaultWithKnock;
     private Integer defaultKnockFrequency;
-    private Date lastUpdatedTime;
+    private Date lastUpdateTime;
 }
