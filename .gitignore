@@ -44,3 +44,6 @@ build/
 ./idea/
 /log/
 /uploads/
+*.md
+/.serena/
+.idea/

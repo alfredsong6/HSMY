@@ -72,3 +72,13 @@ communication:
     from-name: ${EMAIL_FROM_NAME:敲敲木鱼}
     ssl: true
     tls: false
+
+wechatpay:
+  enabled: ${WECHATPAY_ENABLED:true}
+  app-id: ${WECHATPAY_APP_ID:}
+  mch-id: ${WECHATPAY_MCH_ID:}
+  serial-no: ${WECHATPAY_SERIAL_NO:}
+  api-v3-key: ${WECHATPAY_API_V3_KEY:}
+  private-key-path: ${WECHATPAY_PRIVATE_KEY_PATH:}
+  notify-url: ${WECHATPAY_NOTIFY_URL:https://api.hsmy.com/api/v1.0/payment/wechat/notify}
+  description: ${WECHATPAY_DESCRIPTION:功德充值}

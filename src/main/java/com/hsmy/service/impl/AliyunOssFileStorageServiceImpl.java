@@ -3,6 +3,12 @@ package com.hsmy.service.impl;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.crypto.SecureUtil;
+import com.aliyun.oss.ClientException;
+import com.aliyun.oss.OSS;
+import com.aliyun.oss.OSSClientBuilder;
+import com.aliyun.oss.OSSException;
+import com.aliyun.oss.model.ObjectMetadata;
+import com.aliyun.oss.model.PutObjectRequest;
 import com.hsmy.config.FileStorageProperties;
 import com.hsmy.dto.FileUploadResult;
 import com.hsmy.service.FileStorageService;
@@ -14,12 +20,12 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
 /**
  * 阿里云OSS存储服务实现
- * 注意：此实现需要添加阿里云OSS SDK依赖
  */
 @Slf4j
 @Service("aliyunOssFileStorageService")
@@ -28,9 +34,6 @@ import java.time.format.DateTimeFormatter;
 public class AliyunOssFileStorageServiceImpl implements FileStorageService {
     
     private final FileStorageProperties fileStorageProperties;
-    
-    // TODO: 需要引入阿里云OSS SDK
-    // private OSS ossClient;
     
     @Override
     public FileUploadResult uploadFile(MultipartFile file, String folder) throws IOException {
@@ -61,35 +64,44 @@ public class AliyunOssFileStorageServiceImpl implements FileStorageService {
         String datePath = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
         String objectKey = folder + "/" + datePath + "/" + newFileName;
         
-        // TODO: 使用阿里云OSS SDK上传文件
-        /*
+        FileStorageProperties.AliyunOssConfig ossConfig = fileStorageProperties.getAliyunOss();
+        OSS ossClient = null;
         try {
-            // 初始化OSS客户端
-            if (ossClient == null) {
-                ossClient = createOssClient();
-            }
-            
-            // 创建上传请求
+            ossClient = createOssClient();
             ObjectMetadata metadata = new ObjectMetadata();
             metadata.setContentLength(file.getSize());
-            metadata.setContentType(file.getContentType());
-            
-            // 上传文件
-            PutObjectResult result = ossClient.putObject(
-                fileStorageProperties.getAliyunOss().getBucketName(),
-                objectKey,
-                file.getInputStream(),
-                metadata
-            );
-            
+            if (StringUtils.hasText(file.getContentType())) {
+                metadata.setContentType(file.getContentType());
+            }
+            try (InputStream inputStream = file.getInputStream()) {
+                PutObjectRequest putObjectRequest = new PutObjectRequest(
+                        ossConfig.getBucketName(),
+                        objectKey,
+                        inputStream);
+                putObjectRequest.setMetadata(metadata);
+                ossClient.putObject(putObjectRequest);
+            }
+        } catch (OSSException oe) {
+            log.error("阿里云OSS上传失败，返回错误: code={}, message={}, requestId={}, hostId={}",
+                    oe.getErrorCode(), oe.getErrorMessage(), oe.getRequestId(), oe.getHostId());
+            throw new IOException("文件上传失败: " + oe.getErrorMessage(), oe);
+        } catch (ClientException ce) {
+            log.error("阿里云OSS上传失败，客户端异常: {}", ce.getMessage(), ce);
+            throw new IOException("文件上传失败: 网络或客户端异常", ce);
         } catch (Exception e) {
             log.error("阿里云OSS上传失败", e);
             throw new IOException("文件上传失败", e);
+        } finally {
+            if (ossClient != null) {
+                ossClient.shutdown();
+            }
         }
-        */
         
         // 计算文件MD5
-        String md5 = SecureUtil.md5(file.getInputStream());
+        String md5;
+        try (InputStream md5Stream = file.getInputStream()) {
+            md5 = SecureUtil.md5(md5Stream);
+        }
         
         // 构建返回结果
         FileUploadResult result = new FileUploadResult();
@@ -106,21 +118,26 @@ public class AliyunOssFileStorageServiceImpl implements FileStorageService {
     
     @Override
     public boolean deleteFile(String filePath) {
+        FileStorageProperties.AliyunOssConfig ossConfig = fileStorageProperties.getAliyunOss();
+        OSS ossClient = null;
         try {
-            // TODO: 使用阿里云OSS SDK删除文件
-            /*
-            if (ossClient == null) {
-                ossClient = createOssClient();
-            }
-            
-            ossClient.deleteObject(fileStorageProperties.getAliyunOss().getBucketName(), filePath);
-            */
-            
+            ossClient = createOssClient();
+            ossClient.deleteObject(ossConfig.getBucketName(), filePath);
             log.info("阿里云OSS文件删除成功: {}", filePath);
             return true;
+        } catch (OSSException oe) {
+            log.error("阿里云OSS删除文件失败: {}, code={}, message={}", filePath, oe.getErrorCode(), oe.getErrorMessage(), oe);
+            return false;
+        } catch (ClientException ce) {
+            log.error("阿里云OSS删除文件失败，客户端异常: {}", filePath, ce);
+            return false;
         } catch (Exception e) {
             log.error("阿里云OSS删除文件失败: {}", filePath, e);
             return false;
+        } finally {
+            if (ossClient != null) {
+                ossClient.shutdown();
+            }
         }
     }
     
@@ -136,36 +153,38 @@ public class AliyunOssFileStorageServiceImpl implements FileStorageService {
     
     @Override
     public boolean exists(String filePath) {
+        FileStorageProperties.AliyunOssConfig ossConfig = fileStorageProperties.getAliyunOss();
+        OSS ossClient = null;
         try {
-            // TODO: 使用阿里云OSS SDK检查文件是否存在
-            /*
-            if (ossClient == null) {
-                ossClient = createOssClient();
-            }
-            
-            return ossClient.doesObjectExist(fileStorageProperties.getAliyunOss().getBucketName(), filePath);
-            */
+            ossClient = createOssClient();
+            return ossClient.doesObjectExist(ossConfig.getBucketName(), filePath);
+        } catch (OSSException oe) {
+            log.error("阿里云OSS检查文件存在性失败: {}, code={}, message={}", filePath, oe.getErrorCode(), oe.getErrorMessage(), oe);
+            return false;
+        } catch (ClientException ce) {
+            log.error("阿里云OSS检查文件存在性失败: {}", filePath, ce);
             return false;
         } catch (Exception e) {
             log.error("阿里云OSS检查文件存在性失败: {}", filePath, e);
             return false;
+        } finally {
+            if (ossClient != null) {
+                ossClient.shutdown();
+            }
         }
     }
     
     /**
      * 创建OSS客户端
      */
-    /*
     private OSS createOssClient() {
         FileStorageProperties.AliyunOssConfig ossConfig = fileStorageProperties.getAliyunOss();
-        
         return new OSSClientBuilder().build(
-            ossConfig.getEndpoint(),
-            ossConfig.getAccessKeyId(),
-            ossConfig.getAccessKeySecret()
+                ossConfig.getEndpoint(),
+                ossConfig.getAccessKeyId(),
+                ossConfig.getAccessKeySecret()
         );
     }
-    */
     
     /**
      * 检查是否为允许的文件类型

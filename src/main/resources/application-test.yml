@@ -58,3 +58,13 @@ communication:
     from-name: 敲敲木鱼-测试环境
     ssl: true
     tls: false
+
+wechatpay:
+  enabled: ${WECHATPAY_ENABLED_TEST:false}
+  app-id: ${WECHATPAY_APP_ID_TEST:}
+  mch-id: ${WECHATPAY_MCH_ID_TEST:}
+  serial-no: ${WECHATPAY_SERIAL_NO_TEST:}
+  api-v3-key: ${WECHATPAY_API_V3_KEY_TEST:}
+  private-key-path: ${WECHATPAY_PRIVATE_KEY_PATH_TEST:}
+  notify-url: ${WECHATPAY_NOTIFY_URL_TEST:https://test.hsmy.com/api/v1.0/payment/wechat/notify}
+  description: ${WECHATPAY_DESCRIPTION_TEST:功德充值}

@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hsmy.mapper.RechargeOrderMapper">
+
+    <resultMap id="BaseResultMap" type="com.hsmy.entity.RechargeOrder">
+        <id column="id" property="id"/>
+        <result column="order_no" property="orderNo"/>
+        <result column="user_id" property="userId"/>
+        <result column="amount" property="amount"/>
+        <result column="merit_coins" property="meritCoins"/>
+        <result column="bonus_coins" property="bonusCoins"/>
+        <result column="payment_method" property="paymentMethod"/>
+        <result column="payment_status" property="paymentStatus"/>
+        <result column="payment_time" property="paymentTime"/>
+        <result column="transaction_id" property="transactionId"/>
+        <result column="remark" property="remark"/>
+        <result column="create_by" property="createBy"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_by" property="updateBy"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="is_deleted" property="isDeleted"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, order_no, user_id, amount, merit_coins, bonus_coins,
+        payment_method, payment_status, payment_time, transaction_id,
+        remark, create_by, create_time, update_by, update_time, is_deleted
+    </sql>
+
+    <update id="updatePaymentStatusByOrderNo">
+        UPDATE t_recharge_order
+        <set>
+            payment_status = #{paymentStatus},
+            <if test="transactionId != null">
+                transaction_id = #{transactionId},
+            </if>
+            <if test="paymentTime != null">
+                payment_time = #{paymentTime},
+            </if>
+            update_by = 'system',
+            update_time = NOW()
+        </set>
+        WHERE order_no = #{orderNo}
+          AND payment_status = 0
+          AND is_deleted = 0
+        LIMIT 1
+        FOR UPDATE
+    </update>
+
+    <select id="selectByOrderNo" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM t_recharge_order
+        WHERE order_no = #{orderNo}
+          AND is_deleted = 0
+        LIMIT 1
+    </select>
+
+    <select id="selectPendingOrders" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM t_recharge_order
+        WHERE is_deleted = 0
+          AND payment_status IN
+          <foreach collection="statusList" item="status" open="(" separator="," close=")">
+              #{status}
+          </foreach>
+          AND create_time &lt;= #{beforeTime}
+        ORDER BY create_time ASC
+        LIMIT #{limit}
+    </select>
+
+</mapper>
