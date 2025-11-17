@@ -1,25 +1,26 @@
 package com.hsmy.test.controller;
 
-import com.hsmy.controller.auth.AuthController;
-import com.hsmy.dto.SendCodeRequest;
-import com.hsmy.dto.RegisterByCodeRequest;
-import com.hsmy.dto.LoginRequestV2;
-import com.hsmy.dto.LoginResponse;
-import com.hsmy.service.UserService;
-import com.hsmy.service.SessionService;
-import com.hsmy.service.VerificationCodeService;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.Test;
+import com.hsmy.controller.auth.AuthController;
+import com.hsmy.dto.LoginRequestV2;
+import com.hsmy.dto.RegisterByCodeRequest;
+import com.hsmy.dto.SendCodeRequest;
+import com.hsmy.entity.User;
+import com.hsmy.service.SessionService;
+import com.hsmy.service.UserService;
+import com.hsmy.service.VerificationCodeService;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
  * 认证控制器单元测试
@@ -81,7 +82,6 @@ class AuthControllerTest {
         mockMvc.perform(post("/auth/send-code")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
-                .andExpected(status().isOk())
                 .andExpect(jsonPath("$.code").value(500))
                 .andExpect(jsonPath("$.message").value("手机号格式不正确"));
 

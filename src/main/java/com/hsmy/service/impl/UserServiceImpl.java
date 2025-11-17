@@ -390,14 +390,14 @@ public class UserServiceImpl implements UserService {
      * 格式：nickName + 3位随机数
      */
     private String generateDefaultUsername(String nickname) {
-        String baseUsername = StrUtil.isBlank(nickname) ? "user" : nickname;
+        String baseUsername = StrUtil.isBlank(nickname) ? "nickName" : nickname;
         
         // 移除特殊字符，只保留字母和数字
         baseUsername = baseUsername.replaceAll("[^a-zA-Z0-9]", "");
         
         // 如果处理后为空，使用默认值
         if (StrUtil.isBlank(baseUsername)) {
-            baseUsername = "user";
+            baseUsername = "nickName";
         }
         
         // 限制长度

@@ -3,20 +3,20 @@ package com.hsmy.controller.knock;
 import com.hsmy.common.Result;
 import com.hsmy.service.KnockService;
 import com.hsmy.utils.UserContextUtil;
-import com.hsmy.vo.KnockVO;
+import com.hsmy.vo.AutoKnockHeartbeatVO;
 import com.hsmy.vo.AutoKnockStartVO;
 import com.hsmy.vo.AutoKnockStopVO;
-import com.hsmy.vo.AutoKnockHeartbeatVO;
+import com.hsmy.vo.KnockVO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.web.bind.annotation.*;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDate;
 import java.util.Map;
-import org.springframework.validation.annotation.Validated;
 
 /**
  * 敲击功能Controller
@@ -139,7 +139,6 @@ public class KnockController {
     /**
      * 获取敲击统计
      *
-     * @param request HTTP请求
      * @return 统计数据
      */
     @GetMapping("/stats/periods")
