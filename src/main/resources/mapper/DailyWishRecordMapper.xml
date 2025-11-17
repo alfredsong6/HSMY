@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hsmy.mapper.DailyWishRecordMapper">
+
+    <!-- 基础结果映射 -->
+    <resultMap id="BaseResultMap" type="com.hsmy.entity.DailyWishRecord">
+        <id column="id" property="id"/>
+        <result column="user_id" property="userId"/>
+        <result column="wish_content" property="wishContent"/>
+        <result column="user_name" property="userName"/>
+        <result column="birth_time" property="birthTime"/>
+        <result column="wish_time" property="wishTime"/>
+        <result column="create_by" property="createBy"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_by" property="updateBy"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="is_deleted" property="isDeleted"/>
+    </resultMap>
+
+    <!-- 基础字段列表 -->
+    <sql id="Base_Column_List">
+        id, user_id, wish_content, user_name, birth_time, wish_time,
+        create_by, create_time, update_by, update_time, is_deleted
+    </sql>
+
+    <!-- 根据用户ID查询愿望记录 -->
+    <select id="selectByUserId" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM t_daily_wish_record
+        WHERE user_id = #{userId}
+        AND is_deleted = 0
+        ORDER BY wish_time DESC
+    </select>
+
+    <!-- 查询指定时间范围内的愿望记录 -->
+    <select id="selectByUserIdAndTimeRange" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM t_daily_wish_record
+        WHERE user_id = #{userId}
+        AND wish_time &gt;= #{startTime}
+        AND wish_time &lt; #{endTime}
+        AND is_deleted = 0
+        ORDER BY wish_time DESC
+    </select>
+
+    <!-- 查询最近一次愿望记录 -->
+    <select id="selectLatestByUserId" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM t_daily_wish_record
+        WHERE user_id = #{userId}
+        AND is_deleted = 0
+        ORDER BY wish_time DESC
+        LIMIT 1
+    </select>
+
+</mapper>
