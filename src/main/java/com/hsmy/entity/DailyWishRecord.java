@@ -49,5 +49,5 @@ public class DailyWishRecord extends BaseEntity {
      * 愿望创建时间
      */
     @TableField("wish_time")
-    private LocalDateTime wishTime
+    private LocalDateTime wishTime;
 }

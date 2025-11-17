@@ -41,22 +41,18 @@ public class AchievementController {
     @GetMapping("/list")
     public Result<List<UserAchievement>> getUserAchievements(@RequestParam(required = false) String achievementType,
                                                            HttpServletRequest request) {
-        try {
-            Long userId = UserContextUtil.requireCurrentUserId();
-            
-            List<UserAchievement> userAchievements = achievementService.getUserAchievements(userId);
-            
-            // 如果指定了类型，进行过滤
-            if (achievementType != null) {
-                userAchievements = userAchievements.stream()
-                        .filter(achievement -> achievementType.equals(achievement.getAchievement().getAchievementType()))
-                        .collect(Collectors.toList());
-            }
-            
-            return Result.success(userAchievements);
-        } catch (Exception e) {
-            return Result.error(e.getMessage());
+        Long userId = UserContextUtil.requireCurrentUserId();
+        
+        List<UserAchievement> userAchievements = achievementService.getUserAchievements(userId);
+        
+        // 如果指定了类型，进行过滤
+        if (achievementType != null) {
+            userAchievements = userAchievements.stream()
+                    .filter(achievement -> achievementType.equals(achievement.getAchievement().getAchievementType()))
+                    .collect(Collectors.toList());
         }
+        
+        return Result.success(userAchievements);
     }
     
     /**
@@ -67,14 +63,10 @@ public class AchievementController {
      */
     @GetMapping("/completed")
     public Result<List<UserAchievement>> getCompletedAchievements(HttpServletRequest request) {
-        try {
-            Long userId = UserContextUtil.requireCurrentUserId();
-            
-            List<UserAchievement> completedAchievements = achievementService.getCompletedAchievements(userId);
-            return Result.success(completedAchievements);
-        } catch (Exception e) {
-            return Result.error(e.getMessage());
-        }
+        Long userId = UserContextUtil.requireCurrentUserId();
+        
+        List<UserAchievement> completedAchievements = achievementService.getCompletedAchievements(userId);
+        return Result.success(completedAchievements);
     }
     
     /**
@@ -85,18 +77,14 @@ public class AchievementController {
      */
     @GetMapping("/all")
     public Result<List<Achievement>> getAllAchievements(@RequestParam(required = false) String achievementType) {
-        try {
-            List<Achievement> achievements;
-            if (achievementType != null) {
-                achievements = achievementService.getAchievementsByType(achievementType);
-            } else {
-                achievements = achievementService.getAllActiveAchievements();
-            }
-            
-            return Result.success(achievements);
-        } catch (Exception e) {
-            return Result.error(e.getMessage());
+        List<Achievement> achievements;
+        if (achievementType != null) {
+            achievements = achievementService.getAchievementsByType(achievementType);
+        } else {
+            achievements = achievementService.getAllActiveAchievements();
         }
+        
+        return Result.success(achievements);
     }
     
     /**
@@ -109,21 +97,17 @@ public class AchievementController {
     @PostMapping("/claim")
     public Result<Map<String, Object>> claimAchievementReward(@RequestParam Long achievementId,
                                                              HttpServletRequest request) {
-        try {
-            Long userId = UserContextUtil.requireCurrentUserId();
-            
-            boolean success = achievementService.claimAchievementReward(userId, achievementId);
-            if (success) {
-                Map<String, Object> result = new HashMap<>();
-                result.put("success", true);
-                result.put("achievementId", achievementId);
-                result.put("message", "成就奖励领取成功");
-                return Result.success("领取成功", result);
-            } else {
-                return Result.error("领取失败");
-            }
-        } catch (Exception e) {
-            return Result.error(e.getMessage());
+        Long userId = UserContextUtil.requireCurrentUserId();
+        
+        boolean success = achievementService.claimAchievementReward(userId, achievementId);
+        if (success) {
+            Map<String, Object> result = new HashMap<>();
+            result.put("success", true);
+            result.put("achievementId", achievementId);
+            result.put("message", "成就奖励领取成功");
+            return Result.success("领取成功", result);
+        } else {
+            return Result.error("领取失败");
         }
     }
     
@@ -135,20 +119,16 @@ public class AchievementController {
      */
     @GetMapping("/stats")
     public Result<Map<String, Object>> getAchievementStats(HttpServletRequest request) {
-        try {
-            Long userId = UserContextUtil.requireCurrentUserId();
-            
-            List<UserAchievement> allAchievements = achievementService.getUserAchievements(userId);
-            List<UserAchievement> completedAchievements = achievementService.getCompletedAchievements(userId);
-            
-            Map<String, Object> stats = new HashMap<>();
-            stats.put("totalAchievements", allAchievements.size());
-            stats.put("completedAchievements", completedAchievements.size());
-            stats.put("completionRate", allAchievements.isEmpty() ? 0 : (double) completedAchievements.size() / allAchievements.size() * 100);
-            
-            return Result.success(stats);
-        } catch (Exception e) {
-            return Result.error(e.getMessage());
-        }
+        Long userId = UserContextUtil.requireCurrentUserId();
+        
+        List<UserAchievement> allAchievements = achievementService.getUserAchievements(userId);
+        List<UserAchievement> completedAchievements = achievementService.getCompletedAchievements(userId);
+        
+        Map<String, Object> stats = new HashMap<>();
+        stats.put("totalAchievements", allAchievements.size());
+        stats.put("completedAchievements", completedAchievements.size());
+        stats.put("completionRate", allAchievements.isEmpty() ? 0 : (double) completedAchievements.size() / allAchievements.size() * 100);
+        
+        return Result.success(stats);
     }
 }

@@ -17,7 +17,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.File;
-import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
@@ -150,14 +149,9 @@ public class FileController {
      */
     @GetMapping("/url")
     public Result<String> getFileUrl(@RequestParam String filePath) {
-        try {
-            FileStorageService storageService = fileStorageServiceFactory.getFileStorageService();
-            String url = storageService.getFileUrl(filePath);
-            return Result.success(url);
-        } catch (Exception e) {
-            log.error("获取文件URL失败", e);
-            return Result.error("获取失败：" + e.getMessage());
-        }
+        FileStorageService storageService = fileStorageServiceFactory.getFileStorageService();
+        String url = storageService.getFileUrl(filePath);
+        return Result.success(url);
     }
     
     /**
@@ -165,14 +159,9 @@ public class FileController {
      */
     @GetMapping("/exists")
     public Result<Boolean> checkFileExists(@RequestParam String filePath) {
-        try {
-            FileStorageService storageService = fileStorageServiceFactory.getFileStorageService();
-            boolean exists = storageService.exists(filePath);
-            return Result.success(exists);
-        } catch (Exception e) {
-            log.error("检查文件存在性失败", e);
-            return Result.error("检查失败：" + e.getMessage());
-        }
+        FileStorageService storageService = fileStorageServiceFactory.getFileStorageService();
+        boolean exists = storageService.exists(filePath);
+        return Result.success(exists);
     }
     
     /**
