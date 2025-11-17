@@ -1,15 +1,21 @@
 package com.hsmy.service.impl;
 
 import cn.hutool.core.util.StrUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.hsmy.config.WechatPayProperties;
 import com.hsmy.dto.WechatPayPrepayRequest;
 import com.hsmy.entity.RechargeOrder;
+import com.hsmy.entity.UserStats;
+import com.hsmy.entity.meditation.MeritCoinTransaction;
 import com.hsmy.exception.BusinessException;
 import com.hsmy.mapper.RechargeOrderMapper;
+import com.hsmy.mapper.UserStatsMapper;
+import com.hsmy.mapper.meditation.MeritCoinTransactionMapper;
 import com.hsmy.service.PaymentService;
 import com.hsmy.utils.IdGenerator;
 import com.hsmy.vo.WechatPayPrepayVO;
 import com.wechat.pay.java.core.Config;
+import com.wechat.pay.java.core.exception.ServiceException;
 import com.wechat.pay.java.core.notification.NotificationParser;
 import com.wechat.pay.java.core.notification.RequestParam;
 import com.wechat.pay.java.service.payments.jsapi.JsapiServiceExtension;
@@ -20,10 +26,9 @@ import com.wechat.pay.java.service.payments.jsapi.model.PrepayWithRequestPayment
 import com.wechat.pay.java.service.payments.jsapi.model.QueryOrderByOutTradeNoRequest;
 import com.wechat.pay.java.service.payments.model.Transaction;
 import com.wechat.pay.java.service.payments.model.Transaction.TradeStateEnum;
-import com.wechat.pay.java.core.exception.ServiceException;
-import org.springframework.beans.factory.ObjectProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -46,9 +51,13 @@ public class PaymentServiceImpl implements PaymentService {
     private static final int STATUS_SUCCESS = 1;
     private static final int STATUS_FAILED = 2;
     private static final int STATUS_REFUND = 3;
+    private static final String BIZ_TYPE_RECHARGE_PURCHASE = "RECHARGE_PURCHASE";
+    private static final String BIZ_TYPE_RECHARGE_BONUS = "RECHARGE_BONUS";
 
     private final WechatPayProperties wechatPayProperties;
     private final RechargeOrderMapper rechargeOrderMapper;
+    private final UserStatsMapper userStatsMapper;
+    private final MeritCoinTransactionMapper meritCoinTransactionMapper;
     private final ObjectProvider<Config> wechatPayConfigProvider;
     private final ObjectProvider<NotificationParser> notificationParserProvider;
 
@@ -101,12 +110,20 @@ public class PaymentServiceImpl implements PaymentService {
         boolean terminal = applyTradeState(orderNo, transaction);
         if (terminal) {
             log.info("订单 {} 状态已更新为 {}", orderNo, tradeStateEnum);
+            if (tradeStateEnum == TradeStateEnum.SUCCESS) {
+                try {
+                    grantMeritCoins(orderNo);
+                } catch (Exception e) {
+                    log.error("订单 {} 充值到账处理失败", orderNo, e);
+                }
+            }
         } else {
             log.info("订单 {} 仍处于待支付状态，交易状态 {}", orderNo, tradeStateEnum);
         }
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public boolean syncWechatOrder(String orderNo) {
         if (!wechatPayProperties.isEnabled()) {
             log.debug("微信支付未启用，跳过订单 {} 同步", orderNo);
@@ -123,20 +140,27 @@ public class PaymentServiceImpl implements PaymentService {
         }
 
         JsapiServiceExtension service = new JsapiServiceExtension.Builder().config(getWechatPayConfig()).build();
-        QueryOrderByOutTradeNoRequest queryRequest = new QueryOrderByOutTradeNoRequest();
-        queryRequest.setOutTradeNo(orderNo);
-        queryRequest.setMchid(wechatPayProperties.getMchId());
-        try {
-            Transaction transaction = service.queryOrderByOutTradeNo(queryRequest);
-            TradeStateEnum tradeStateEnum = transaction.getTradeState();
-            boolean terminal = applyTradeState(orderNo, transaction);
-            if (terminal) {
-                log.info("主动同步订单 {} 成功，交易状态 {}", orderNo, tradeStateEnum);
-            } else {
-                log.debug("主动同步订单 {} 未完成支付，交易状态 {}", orderNo, tradeStateEnum);
-            }
-            return terminal;
-        } catch (ServiceException e) {
+            QueryOrderByOutTradeNoRequest queryRequest = new QueryOrderByOutTradeNoRequest();
+            queryRequest.setOutTradeNo(orderNo);
+            queryRequest.setMchid(wechatPayProperties.getMchId());
+            try {
+                Transaction transaction = service.queryOrderByOutTradeNo(queryRequest);
+                TradeStateEnum tradeStateEnum = transaction.getTradeState();
+                boolean terminal = applyTradeState(orderNo, transaction);
+                if (terminal) {
+                    log.info("主动同步订单 {} 成功，交易状态 {}", orderNo, tradeStateEnum);
+                    if (tradeStateEnum == TradeStateEnum.SUCCESS) {
+                        try {
+                            grantMeritCoins(orderNo);
+                        } catch (Exception e) {
+                            log.error("主动同步订单 {} 充值到账处理失败", orderNo, e);
+                        }
+                    }
+                } else {
+                    log.debug("主动同步订单 {} 未完成支付，交易状态 {}", orderNo, tradeStateEnum);
+                }
+                return terminal;
+            } catch (ServiceException e) {
             if ("ORDER_NOT_EXISTS".equalsIgnoreCase(e.getErrorCode())) {
                 log.warn("微信侧不存在订单记录，orderNo={}, errMsg={}", orderNo, e.getErrorMessage());
             } else {
@@ -237,6 +261,78 @@ public class PaymentServiceImpl implements PaymentService {
 
     private String generateOrderNo() {
         return "WX" + IdGenerator.nextIdStr();
+    }
+
+    private void grantMeritCoins(String orderNo) {
+        RechargeOrder order = rechargeOrderMapper.selectByOrderNo(orderNo);
+        if (order == null) {
+            log.warn("充值订单 {} 不存在，无法发放功德币", orderNo);
+            return;
+        }
+        if (!Objects.equals(order.getPaymentStatus(), STATUS_SUCCESS)) {
+            log.debug("订单 {} 当前状态非成功({})，跳过发放功德币", orderNo, order.getPaymentStatus());
+            return;
+        }
+        if (order.getUserId() == null) {
+            log.warn("订单 {} 缺少用户信息，无法发放功德币", orderNo);
+            return;
+        }
+        int purchaseCoins = order.getMeritCoins() != null ? order.getMeritCoins() : 0;
+        int bonusCoins = order.getBonusCoins() != null ? order.getBonusCoins() : 0;
+        if (purchaseCoins <= 0 && bonusCoins <= 0) {
+            log.info("订单 {} 未配置功德币收益，跳过发放", orderNo);
+            return;
+        }
+
+        if (purchaseCoins > 0 && !existsTransaction(order.getId(), BIZ_TYPE_RECHARGE_PURCHASE)) {
+            long balanceAfter = addCoinsAndGetBalance(order.getUserId(), purchaseCoins);
+            recordTransaction(order, purchaseCoins, balanceAfter, BIZ_TYPE_RECHARGE_PURCHASE,
+                    String.format("充值订单%s到账功德币", orderNo));
+            log.info("订单 {} 发放 {} 枚功德币到账记录成功", orderNo, purchaseCoins);
+        } else if (purchaseCoins > 0) {
+            log.info("订单 {} 的到账功德币已处理，跳过重复发放", orderNo);
+        }
+
+        if (bonusCoins > 0 && !existsTransaction(order.getId(), BIZ_TYPE_RECHARGE_BONUS)) {
+            long balanceAfter = addCoinsAndGetBalance(order.getUserId(), bonusCoins);
+            recordTransaction(order, bonusCoins, balanceAfter, BIZ_TYPE_RECHARGE_BONUS,
+                    String.format("充值订单%s赠送功德币", orderNo));
+            log.info("订单 {} 发放 {} 枚赠送功德币记录成功", orderNo, bonusCoins);
+        } else if (bonusCoins > 0) {
+            log.info("订单 {} 的赠送功德币已处理，跳过重复发放", orderNo);
+        }
+    }
+
+    private boolean existsTransaction(Long orderId, String bizType) {
+        LambdaQueryWrapper<MeritCoinTransaction> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(MeritCoinTransaction::getBizId, orderId)
+                .eq(MeritCoinTransaction::getBizType, bizType);
+        return meritCoinTransactionMapper.selectCount(wrapper) > 0;
+    }
+
+    private long addCoinsAndGetBalance(Long userId, int coins) {
+        if (coins <= 0) {
+            return queryRemainingCoins(userId);
+        }
+        userStatsMapper.addMeritCoins(userId, (long) coins);
+        return queryRemainingCoins(userId);
+    }
+
+    private long queryRemainingCoins(Long userId) {
+        UserStats stats = userStatsMapper.selectByUserId(userId);
+        return stats != null && stats.getMeritCoins() != null ? stats.getMeritCoins() : 0L;
+    }
+
+    private void recordTransaction(RechargeOrder order, int changeAmount, long balanceAfter,
+                                   String bizType, String remark) {
+        MeritCoinTransaction tx = new MeritCoinTransaction();
+        tx.setUserId(order.getUserId());
+        tx.setBizType(bizType);
+        tx.setBizId(order.getId());
+        tx.setChangeAmount(changeAmount);
+        tx.setBalanceAfter(Math.toIntExact(balanceAfter));
+        tx.setRemark(remark);
+        meritCoinTransactionMapper.insert(tx);
     }
 
     private int convertAmountToFen(BigDecimal amount) {
