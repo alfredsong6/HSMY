@@ -29,4 +29,13 @@ public interface UserSettingMapper extends BaseMapper<UserSetting> {
      * @return 影响行数
      */
     int updateByUserId(UserSetting userSetting);
+
+    /**
+     * 更新弹幕设置
+     *
+     * @param userId 用户ID
+     * @param bulletScreen 弹幕设置
+     * @return 影响行数
+     */
+    int updateBulletScreen(@Param("userId") Long userId, @Param("bulletScreen") Integer bulletScreen);
 }

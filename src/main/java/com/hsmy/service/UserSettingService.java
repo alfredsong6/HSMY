@@ -62,4 +62,13 @@ public interface UserSettingService {
      * @return 是否成功
      */
     Boolean updatePrivacySetting(Long userId, Integer privacyMode);
+
+    /**
+     * 更新弹幕设置
+     *
+     * @param userId 用户ID
+     * @param bulletScreen 弹幕设置
+     * @return 是否成功
+     */
+    Boolean updateBulletScreenSetting(Long userId, Integer bulletScreen);
 }

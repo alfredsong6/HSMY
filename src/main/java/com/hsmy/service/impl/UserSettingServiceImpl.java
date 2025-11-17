@@ -48,6 +48,7 @@ public class UserSettingServiceImpl implements UserSettingService {
         userSetting.setReminderTime(LocalTime.of(9, 0));
         userSetting.setPrivacyMode(0);
         userSetting.setAutoKnockSpeed(2);
+        userSetting.setBulletScreen(1);
         
         return userSettingMapper.insert(userSetting) > 0;
     }
@@ -90,5 +91,11 @@ public class UserSettingServiceImpl implements UserSettingService {
         userSetting.setUserId(userId);
         userSetting.setPrivacyMode(privacyMode);
         return userSettingMapper.updateByUserId(userSetting) > 0;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Boolean updateBulletScreenSetting(Long userId, Integer bulletScreen) {
+        return userSettingMapper.updateBulletScreen(userId, bulletScreen) > 0;
     }
 }

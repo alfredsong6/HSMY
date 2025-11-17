@@ -16,6 +16,7 @@
         <result column="theme_id" property="themeId"/>
         <result column="skin_id" property="skinId"/>
         <result column="sound_id" property="soundId"/>
+        <result column="bullet_screen" property="bulletScreen"/>
         <result column="create_by" property="createBy"/>
         <result column="create_time" property="createTime"/>
         <result column="update_by" property="updateBy"/>
@@ -26,7 +27,7 @@
     <!-- 基础字段列表 -->
     <sql id="Base_Column_List">
         id, user_id, sound_enabled, sound_volume, vibration_enabled, daily_reminder,
-        reminder_time, privacy_mode, auto_knock_speed, theme_id, skin_id, sound_id,
+        reminder_time, privacy_mode, auto_knock_speed, theme_id, skin_id, sound_id, bullet_screen,
         create_by, create_time, update_by, update_time, is_deleted
     </sql>
     
@@ -54,9 +55,19 @@
             <if test="themeId != null">theme_id = #{themeId},</if>
             <if test="skinId != null">skin_id = #{skinId},</if>
             <if test="soundId != null">sound_id = #{soundId},</if>
+            <if test="bulletScreen != null">bullet_screen = #{bulletScreen},</if>
             update_time = NOW(),
             <if test="updateBy != null">update_by = #{updateBy}</if>
         </set>
+        WHERE user_id = #{userId}
+        AND is_deleted = 0
+    </update>
+
+    <!-- 更新弹幕设置 -->
+    <update id="updateBulletScreen">
+        UPDATE t_user_setting
+        SET bullet_screen = #{bulletScreen},
+            update_time = NOW()
         WHERE user_id = #{userId}
         AND is_deleted = 0
     </update>

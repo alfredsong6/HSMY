@@ -12,6 +12,7 @@ import com.hsmy.exception.BusinessException;
 import com.hsmy.mapper.UserMapper;
 import com.hsmy.mapper.UserStatsMapper;
 import com.hsmy.service.UserService;
+import com.hsmy.service.UserSettingService;
 import com.hsmy.service.VerificationCodeService;
 import com.hsmy.utils.IdGenerator;
 import com.hsmy.vo.LoginVO;
@@ -40,6 +41,7 @@ public class UserServiceImpl implements UserService {
     private final UserMapper userMapper;
     private final UserStatsMapper userStatsMapper;
     private final VerificationCodeService verificationCodeService;
+    private final UserSettingService userSettingService;
     
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -326,7 +328,12 @@ public class UserServiceImpl implements UserService {
         userStats.setCreateBy(defaultUsername);
         userStats.setUpdateBy(defaultUsername);
         userStatsMapper.insert(userStats);
-        
+
+        Boolean initFlag = userSettingService.initUserDefaultSetting(user.getId());
+        if (!initFlag) {
+            throw new BusinessException("初始化用户设置失败");
+        }
+
         return user.getId();
     }
     

@@ -141,7 +141,7 @@ public class UserSettingController {
     
     /**
      * 更新隐私设置
-     * 
+     *
      * @param privacyMode 隐私模式
      * @param request HTTP请求
      * @return 更新结果
@@ -168,8 +168,24 @@ public class UserSettingController {
     }
     
     /**
+     * 更新弹幕设置
+     *
+     * @param bulletScreen 弹幕设置
+     * @param request HTTP请求
+     * @return 更新结果
+     */
+    @PutMapping("/bullet-screen")
+    public Result<Void> updateBulletScreenSetting(@RequestParam Integer bulletScreen,
+                                                                 HttpServletRequest request) {
+        Long userId = UserContextUtil.requireCurrentUserId();
+
+        userSettingService.updateBulletScreenSetting(userId, bulletScreen);
+        return Result.success();
+    }
+    
+    /**
      * 重置为默认设置
-     * 
+     *
      * @param request HTTP请求
      * @return 重置结果
      */

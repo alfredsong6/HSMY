@@ -74,4 +74,9 @@ public class UserSetting extends BaseEntity {
      * 当前音效ID
      */
     private Long soundId;
+
+    /**
+     * 弹幕设置（1-愿力 2-愿望 3-经书）
+     */
+    private Integer bulletScreen;
 }
