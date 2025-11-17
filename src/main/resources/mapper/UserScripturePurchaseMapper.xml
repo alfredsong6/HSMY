@@ -84,7 +84,8 @@
     <!-- 更新最后阅读位置 -->
     <update id="updateLastReadingPosition">
         UPDATE t_user_scripture_purchase
-        SET last_read_time = #{lastReadTime},
+        SET last_reading_position = #{lastReadingPosition},
+            last_read_time = #{lastReadTime},
             update_time = NOW()
         WHERE id = #{id} AND is_deleted = 0
     </update>
