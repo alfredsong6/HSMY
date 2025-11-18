@@ -1,6 +1,7 @@
 package com.hsmy.service;
 
 import com.hsmy.entity.UserItem;
+import com.hsmy.vo.UserItemPurchaseResult;
 
 import java.util.List;
 
@@ -39,13 +40,13 @@ public interface UserItemService {
     
     /**
      * 购买道具
-     * 
+     *
      * @param userId 用户ID
      * @param itemId 道具ID
-     * @param price 购买价格
-     * @return 是否成功
+     * @param quantity 购买数量
+     * @return 购买结果
      */
-    Boolean purchaseItem(Long userId, Long itemId, Integer price);
+    UserItemPurchaseResult purchaseItem(Long userId, Long itemId, Integer quantity);
     
     /**
      * 装备道具

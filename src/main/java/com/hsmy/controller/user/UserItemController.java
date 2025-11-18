@@ -4,6 +4,8 @@ import com.hsmy.annotation.ApiVersion;
 import com.hsmy.common.Result;
 import com.hsmy.constant.ApiVersionConstant;
 import com.hsmy.entity.UserItem;
+import com.hsmy.exception.BusinessException;
+import com.hsmy.vo.UserItemPurchaseResult;
 import com.hsmy.service.UserItemService;
 import com.hsmy.utils.UserContextUtil;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +29,29 @@ import java.util.Map;
 public class UserItemController {
     
     private final UserItemService userItemService;
+    
+    /**
+     * 购买道具
+     *
+     * @param itemId 道具ID
+     * @param quantity 购买数量
+     * @param request HTTP请求
+     * @return 购买结果
+     */
+    @PostMapping("/items/purchase")
+    public Result<UserItemPurchaseResult> purchaseItem(@RequestParam Long itemId,
+                                                       @RequestParam(defaultValue = "1") Integer quantity,
+                                                       HttpServletRequest request) {
+        try {
+            Long userId = UserContextUtil.requireCurrentUserId();
+            UserItemPurchaseResult result = userItemService.purchaseItem(userId, itemId, quantity);
+            return Result.success("购买成功", result);
+        } catch (BusinessException e) {
+            return Result.error(e.getMessage());
+        } catch (Exception e) {
+            return Result.error("购买失败：" + e.getMessage());
+        }
+    }
     
     /**
      * 获取用户道具列表

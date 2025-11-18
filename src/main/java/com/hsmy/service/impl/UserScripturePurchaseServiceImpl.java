@@ -1,13 +1,15 @@
 package com.hsmy.service.impl;
 
+
 import com.hsmy.entity.Scripture;
 import com.hsmy.entity.UserScripturePurchase;
 import com.hsmy.entity.UserStats;
+import com.hsmy.entity.meditation.MeritCoinTransaction;
 import com.hsmy.exception.BusinessException;
 import com.hsmy.mapper.ScriptureMapper;
 import com.hsmy.mapper.UserScripturePurchaseMapper;
 import com.hsmy.mapper.UserStatsMapper;
-import com.hsmy.service.PurchaseRecordService;
+import com.hsmy.mapper.meditation.MeritCoinTransactionMapper;
 import com.hsmy.service.UserScripturePurchaseService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -30,7 +32,11 @@ public class UserScripturePurchaseServiceImpl implements UserScripturePurchaseSe
     private final UserScripturePurchaseMapper userScripturePurchaseMapper;
     private final ScriptureMapper scriptureMapper;
     private final UserStatsMapper userStatsMapper;
-    private final PurchaseRecordService purchaseRecordService;
+    private final MeritCoinTransactionMapper meritCoinTransactionMapper;
+
+    private static final String BIZ_TYPE_SUBSCRIBE = "SCRIPTURE_SUBSCRIBE";
+    private static final String BIZ_TYPE_PERMANENT = "SCRIPTURE_PERMANENT";
+    private static final String BIZ_TYPE_RENEW = "SCRIPTURE_RENEW";
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -50,8 +56,7 @@ public class UserScripturePurchaseServiceImpl implements UserScripturePurchaseSe
         }
 
         int totalAmount = pricePerMonth * purchaseMonths;
-        deductMeritCoins(userId, totalAmount);
-        purchaseRecordService.createPurchaseRecord(userId, scriptureId, pricePerMonth, purchaseMonths, totalAmount);
+        long balanceAfter = deductMeritCoins(userId, totalAmount);
 
         Date now = new Date();
         UserScripturePurchase purchase = new UserScripturePurchase();
@@ -72,6 +77,8 @@ public class UserScripturePurchaseServiceImpl implements UserScripturePurchaseSe
         }
 
         scriptureMapper.increasePurchaseCount(scriptureId);
+        recordMeritCoinTransaction(userId, purchase.getId(), BIZ_TYPE_SUBSCRIBE,
+                String.format("订阅典籍-%s", scripture.getScriptureName()), totalAmount, balanceAfter);
         return true;
     }
 
@@ -91,8 +98,7 @@ public class UserScripturePurchaseServiceImpl implements UserScripturePurchaseSe
             throw new BusinessException("您已买断该典籍，无需重复购买");
         }
 
-        deductMeritCoins(userId, permanentPrice);
-        purchaseRecordService.createPurchaseRecord(userId, scriptureId, permanentPrice, 1, permanentPrice);
+        long balanceAfter = deductMeritCoins(userId, permanentPrice);
 
         UserScripturePurchase purchase = new UserScripturePurchase();
         purchase.setUserId(userId);
@@ -112,6 +118,8 @@ public class UserScripturePurchaseServiceImpl implements UserScripturePurchaseSe
         }
 
         scriptureMapper.increasePurchaseCount(scriptureId);
+        recordMeritCoinTransaction(userId, purchase.getId(), BIZ_TYPE_PERMANENT,
+                String.format("买断典籍-%s", scripture.getScriptureName()), permanentPrice, balanceAfter);
         return true;
     }
 
@@ -228,8 +236,7 @@ public class UserScripturePurchaseServiceImpl implements UserScripturePurchaseSe
         ensurePriceConfigured(pricePerMonth);
 
         int totalAmount = pricePerMonth * extendMonths;
-        deductMeritCoins(userId, totalAmount);
-        purchaseRecordService.createPurchaseRecord(userId, scriptureId, pricePerMonth, extendMonths, totalAmount);
+        long balanceAfter = deductMeritCoins(userId, totalAmount);
 
         Date baseTime = purchase.getExpireTime().after(new Date()) ? purchase.getExpireTime() : new Date();
         Date newExpireTime = calculateExpireTime(baseTime, extendMonths);
@@ -243,6 +250,8 @@ public class UserScripturePurchaseServiceImpl implements UserScripturePurchaseSe
         if (result <= 0) {
             throw new BusinessException("续费失败，请稍后再试");
         }
+        recordMeritCoinTransaction(userId, purchase.getId(), BIZ_TYPE_RENEW,
+                String.format("续费典籍-%s", scripture.getScriptureName()), totalAmount, balanceAfter);
         return true;
     }
 
@@ -282,9 +291,9 @@ public class UserScripturePurchaseServiceImpl implements UserScripturePurchaseSe
         return purchase.getExpireTime().after(new Date());
     }
 
-    private void deductMeritCoins(Long userId, int amount) {
+    private long deductMeritCoins(Long userId, int amount) {
         if (amount <= 0) {
-            return;
+            return queryRemainingCoins(userId);
         }
         UserStats stats = userStatsMapper.selectByUserId(userId);
         long balance = stats != null && stats.getMeritCoins() != null ? stats.getMeritCoins() : 0L;
@@ -295,6 +304,7 @@ public class UserScripturePurchaseServiceImpl implements UserScripturePurchaseSe
         if (updated <= 0) {
             throw new BusinessException("扣除功德币失败，请稍后再试");
         }
+        return balance - amount;
     }
 
     private Date calculateExpireTime(Date base, int months) {
@@ -320,5 +330,22 @@ public class UserScripturePurchaseServiceImpl implements UserScripturePurchaseSe
         if (source.getLastReadingPosition() != null) {
             target.setLastReadingPosition(source.getLastReadingPosition());
         }
+    }
+
+    private void recordMeritCoinTransaction(Long userId, Long purchaseId, String bizType,
+                                            String remark, int amount, long balanceAfter) {
+        MeritCoinTransaction tx = new MeritCoinTransaction();
+        tx.setUserId(userId);
+        tx.setBizType(bizType);
+        tx.setBizId(purchaseId);
+        tx.setChangeAmount(-amount);
+        tx.setBalanceAfter(Math.toIntExact(balanceAfter));
+        tx.setRemark(remark);
+        meritCoinTransactionMapper.insert(tx);
+    }
+
+    private long queryRemainingCoins(Long userId) {
+        UserStats stats = userStatsMapper.selectByUserId(userId);
+        return stats != null && stats.getMeritCoins() != null ? stats.getMeritCoins() : 0L;
     }
 }
