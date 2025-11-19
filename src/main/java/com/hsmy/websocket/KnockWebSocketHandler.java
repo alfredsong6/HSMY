@@ -3,6 +3,8 @@ package com.hsmy.websocket;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.hsmy.interceptor.LoginInterceptor;
+import com.hsmy.service.KnockService;
+import com.hsmy.vo.KnockVO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -11,6 +13,7 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import java.io.IOException;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -23,6 +26,7 @@ import java.util.Map;
 public class KnockWebSocketHandler extends TextWebSocketHandler {
 
     private final KnockWebSocketSessionManager sessionManager;
+    private final KnockService knockService;
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) {
@@ -48,6 +52,10 @@ public class KnockWebSocketHandler extends TextWebSocketHandler {
             if ("clientUpdate".equalsIgnoreCase(event)) {
                 log.debug("Received client update from session {}: {}", session.getId(), message.getPayload());
                 send(session, JSON.toJSONString(buildAck("ack")));
+                return;
+            }
+            if ("knock".equalsIgnoreCase(event)) {
+                handleKnockEvent(session, payload);
                 return;
             }
             log.warn("Unknown websocket event: {} from session {}", event, session.getId());
@@ -96,6 +104,37 @@ public class KnockWebSocketHandler extends TextWebSocketHandler {
         map.put("reason", reason);
         map.put("timestamp", System.currentTimeMillis());
         return map;
+    }
+
+    private void handleKnockEvent(WebSocketSession session, JSONObject payload) {
+        Long userId = resolveUserId(session);
+        if (userId == null) {
+            closeSession(session, "unauthorized");
+            return;
+        }
+        JSONObject knockBody = payload.getJSONObject("payload");
+        if (knockBody == null) {
+            send(session, JSON.toJSONString(buildError("missing_payload")));
+            return;
+        }
+        KnockVO knockVO = knockBody.toJavaObject(KnockVO.class);
+        knockVO.setUserId(userId);
+        if (knockVO.getKnockTime() == null) {
+            knockVO.setKnockTime(new Date());
+        }
+        try {
+            Map<String, Object> result = knockService.manualKnock(knockVO);
+            Map<String, Object> response = new HashMap<>();
+            response.put("event", "knockAck");
+            response.put("data", result);
+            response.put("timestamp", System.currentTimeMillis());
+            send(session, JSON.toJSONString(response));
+        } catch (Exception ex) {
+            log.warn("Realtime knock failed, userId={}, payload={}", userId, knockBody, ex);
+            Map<String, Object> error = buildError("knock_failed");
+            error.put("message", ex.getMessage());
+            send(session, JSON.toJSONString(error));
+        }
     }
 
     private void send(WebSocketSession session, String payload) {
