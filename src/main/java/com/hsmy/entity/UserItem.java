@@ -40,7 +40,37 @@ public class UserItem extends BaseEntity {
      * 购买价格（功德币）
      */
     private Integer purchasePrice;
-    
+
+    /**
+     * 剩余可用次数
+     */
+    private Integer remainingUses;
+
+    /**
+     * 状态：0-未激活，1-使用中，2-已用完，3-已过期
+     */
+    private Integer usageStatus;
+
+    /**
+     * 最近一次使用时间
+     */
+    private Date lastUsedTime;
+
+    /**
+     * 叠加数量
+     */
+    private Integer stackCount;
+
+    /**
+     * 道具来源：1-商城，2-活动，3-任务等
+     */
+    private Integer sourceType;
+
+    /**
+     * 扩展信息（JSON）
+     */
+    private String metadata;
+
     /**
      * 是否装备：0-否，1-是
      */

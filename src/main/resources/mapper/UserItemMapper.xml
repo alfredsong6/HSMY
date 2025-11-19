@@ -9,6 +9,12 @@
         <result column="item_id" property="itemId"/>
         <result column="purchase_time" property="purchaseTime"/>
         <result column="purchase_price" property="purchasePrice"/>
+        <result column="remaining_uses" property="remainingUses"/>
+        <result column="usage_status" property="usageStatus"/>
+        <result column="last_used_time" property="lastUsedTime"/>
+        <result column="stack_count" property="stackCount"/>
+        <result column="source_type" property="sourceType"/>
+        <result column="metadata" property="metadata"/>
         <result column="is_equipped" property="isEquipped"/>
         <result column="expire_time" property="expireTime"/>
         <result column="create_by" property="createBy"/>
@@ -33,8 +39,9 @@
     
     <!-- 基础字段列表 -->
     <sql id="Base_Column_List">
-        ui.id, ui.user_id, ui.item_id, ui.purchase_time, ui.purchase_price, ui.is_equipped,
-        ui.expire_time, ui.create_by, ui.create_time, ui.update_by, ui.update_time, ui.is_deleted
+        ui.id, ui.user_id, ui.item_id, ui.purchase_time, ui.purchase_price,
+        ui.remaining_uses, ui.usage_status, ui.last_used_time, ui.stack_count, ui.source_type, ui.metadata,
+        ui.is_equipped, ui.expire_time, ui.create_by, ui.create_time, ui.update_by, ui.update_time, ui.is_deleted
     </sql>
     
     <!-- 根据用户ID查询用户道具列表 -->

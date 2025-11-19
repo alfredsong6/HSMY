@@ -20,6 +20,12 @@
         <result column="sold_count" property="soldCount"/>
         <result column="sort_order" property="sortOrder"/>
         <result column="is_active" property="isActive"/>
+        <result column="usage_mode" property="usageMode"/>
+        <result column="duration_hours" property="durationHours"/>
+        <result column="max_uses" property="maxUses"/>
+        <result column="stackable" property="stackable"/>
+        <result column="cooldown_seconds" property="cooldownSeconds"/>
+        <result column="auto_expire_type" property="autoExpireType"/>
         <result column="create_by" property="createBy"/>
         <result column="create_time" property="createTime"/>
         <result column="update_by" property="updateBy"/>
@@ -31,7 +37,9 @@
     <sql id="Base_Column_List">
         id, item_name, item_type, category, price, original_price, description,
         preview_url, resource_url, is_limited, limit_time_start, limit_time_end,
-        stock, sold_count, sort_order, is_active, create_by, create_time, update_by, update_time, is_deleted
+        stock, sold_count, sort_order, is_active, usage_mode, duration_hours, max_uses,
+        stackable, cooldown_seconds, auto_expire_type,
+        create_by, create_time, update_by, update_time, is_deleted
     </sql>
     
     <!-- 根据道具类型查询道具列表 -->

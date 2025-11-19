@@ -104,6 +104,10 @@ public class ShopController {
             payload.put("quantity", purchaseResult.getQuantity());
             payload.put("totalPrice", purchaseResult.getTotalPrice());
             payload.put("remainingCoins", purchaseResult.getRemainingCoins());
+            payload.put("expireTime", purchaseResult.getExpireTime());
+            payload.put("usageMode", purchaseResult.getUsageMode());
+            payload.put("remainingUses", purchaseResult.getRemainingUses());
+            payload.put("stackCount", purchaseResult.getStackCount());
             return Result.success("购买成功", payload);
         } catch (BusinessException e) {
             return Result.error(e.getMessage());

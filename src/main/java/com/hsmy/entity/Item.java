@@ -94,4 +94,34 @@ public class Item extends BaseEntity {
      * 是否上架：0-下架，1-上架
      */
     private Integer isActive;
+
+    /**
+     * 使用模式：0-永久，1-限时可重复，2-一次性/限次
+     */
+    private Integer usageMode;
+
+    /**
+     * 有效时长（小时），仅限时道具生效
+     */
+    private Integer durationHours;
+
+    /**
+     * 最大使用次数，-1 表示不限
+     */
+    private Integer maxUses;
+
+    /**
+     * 是否允许叠加购买
+     */
+    private Integer stackable;
+
+    /**
+     * 冷却时间（秒）
+     */
+    private Integer cooldownSeconds;
+
+    /**
+     * 过期策略：0-无，1-按duration，2-按活动窗口
+     */
+    private Integer autoExpireType;
 }

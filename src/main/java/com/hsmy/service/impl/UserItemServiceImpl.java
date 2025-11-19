@@ -5,6 +5,9 @@ import com.hsmy.entity.PurchaseRecord;
 import com.hsmy.entity.UserItem;
 import com.hsmy.entity.UserStats;
 import com.hsmy.entity.meditation.MeritCoinTransaction;
+import com.hsmy.enums.ItemUsageModeEnum;
+import com.hsmy.enums.UserItemSourceEnum;
+import com.hsmy.enums.UserItemUsageStatusEnum;
 import com.hsmy.exception.BusinessException;
 import com.hsmy.mapper.UserItemMapper;
 import com.hsmy.mapper.UserStatsMapper;
@@ -18,6 +21,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -60,9 +64,6 @@ public class UserItemServiceImpl implements UserItemService {
         if (quantity == null || quantity <= 0) {
             throw new BusinessException("购买数量必须大于0");
         }
-        if (quantity > 1) {
-            throw new BusinessException("该道具一次仅支持购买1件");
-        }
         Item item = itemService.getItemById(itemId);
         if (item == null || item.getIsActive() == null || item.getIsActive() != 1) {
             throw new BusinessException("道具不存在或已下架");
@@ -70,7 +71,14 @@ public class UserItemServiceImpl implements UserItemService {
         if (!itemService.checkItemAvailable(itemId, quantity)) {
             throw new BusinessException("道具不可购买或库存不足");
         }
-        if (hasItem(userId, itemId)) {
+        ItemUsageModeEnum usageModeEnum = ItemUsageModeEnum.from(item.getUsageMode());
+        boolean stackable = item.getStackable() != null && item.getStackable() == 1;
+        boolean consumable = usageModeEnum == ItemUsageModeEnum.CONSUMABLE;
+        boolean allowMultiple = stackable || consumable;
+        if (!allowMultiple && quantity > 1) {
+            throw new BusinessException("该道具一次仅支持购买1件");
+        }
+        if (!allowMultiple && hasItem(userId, itemId)) {
             throw new BusinessException("您已拥有该道具");
         }
 
@@ -87,13 +95,21 @@ public class UserItemServiceImpl implements UserItemService {
             throw new BusinessException("扣除功德币失败，请稍后再试");
         }
 
+        Date now = new Date();
         UserItem userItem = new UserItem();
         userItem.setId(IdGenerator.nextId());
         userItem.setUserId(userId);
         userItem.setItemId(itemId);
-        userItem.setPurchaseTime(new Date());
+        userItem.setPurchaseTime(now);
         userItem.setPurchasePrice(unitPrice);
+        userItem.setRemainingUses(calculateInitialUses(item, quantity));
+        userItem.setUsageStatus(UserItemUsageStatusEnum.INACTIVE.getCode());
+        userItem.setLastUsedTime(null);
+        userItem.setStackCount(allowMultiple ? quantity : 1);
+        userItem.setSourceType(UserItemSourceEnum.SHOP.getCode());
+        userItem.setMetadata(null);
         userItem.setIsEquipped(0);
+        userItem.setExpireTime(determineExpireTime(now, item));
         int insertResult = userItemMapper.insert(userItem);
         if (insertResult <= 0) {
             throw new BusinessException("添加用户道具失败");
@@ -114,6 +130,10 @@ public class UserItemServiceImpl implements UserItemService {
         result.setQuantity(quantity);
         result.setTotalPrice(totalPrice);
         result.setRemainingCoins(remainingCoins);
+        result.setExpireTime(userItem.getExpireTime());
+        result.setUsageMode(usageModeEnum.getCode());
+        result.setRemainingUses(userItem.getRemainingUses());
+        result.setStackCount(userItem.getStackCount());
         return result;
     }
     
@@ -147,9 +167,12 @@ public class UserItemServiceImpl implements UserItemService {
     @Override
     public Boolean hasItem(Long userId, Long itemId) {
         List<UserItem> userItems = userItemMapper.selectByUserId(userId);
+        Date now = new Date();
         return userItems.stream()
                 .anyMatch(userItem -> userItem.getItemId().equals(itemId) &&
-                        (userItem.getExpireTime() == null || userItem.getExpireTime().after(new Date())));
+                        (userItem.getExpireTime() == null || userItem.getExpireTime().after(now)) &&
+                        (userItem.getUsageStatus() == null || !userItem.getUsageStatus().equals(UserItemUsageStatusEnum.USED.getCode())) &&
+                        (userItem.getRemainingUses() == null || userItem.getRemainingUses() > 0));
     }
     
     @Override
@@ -168,5 +191,43 @@ public class UserItemServiceImpl implements UserItemService {
         tx.setBalanceAfter(Math.toIntExact(balanceAfter));
         tx.setRemark("购买道具-" + itemName);
         meritCoinTransactionMapper.insert(tx);
+    }
+
+    /**
+     * 根据道具模板计算初始次数.
+     */
+    private Integer calculateInitialUses(Item item, int quantity) {
+        Integer maxUses = item.getMaxUses();
+        ItemUsageModeEnum usageMode = ItemUsageModeEnum.from(item.getUsageMode());
+        if (usageMode == ItemUsageModeEnum.CONSUMABLE) {
+            int base = (maxUses != null && maxUses > 0) ? maxUses : 1;
+            return base * quantity;
+        }
+        if (usageMode == ItemUsageModeEnum.TIMED_REPEAT && maxUses != null && maxUses > 0) {
+            return maxUses * quantity;
+        }
+        return null;
+    }
+
+    /**
+     * 计算过期时间.
+     */
+    private Date determineExpireTime(Date purchaseTime, Item item) {
+        Integer autoExpireType = item.getAutoExpireType();
+        if (autoExpireType != null && autoExpireType == 2 && item.getLimitTimeEnd() != null) {
+            return item.getLimitTimeEnd();
+        }
+        Integer durationHours = item.getDurationHours();
+        ItemUsageModeEnum usageMode = ItemUsageModeEnum.from(item.getUsageMode());
+        boolean needDuration = (autoExpireType != null && autoExpireType == 1)
+                || usageMode == ItemUsageModeEnum.TIMED_REPEAT
+                || usageMode == ItemUsageModeEnum.CONSUMABLE;
+        if (needDuration && durationHours != null && durationHours > 0) {
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTime(purchaseTime);
+            calendar.add(Calendar.HOUR, durationHours);
+            return calendar.getTime();
+        }
+        return null;
     }
 }

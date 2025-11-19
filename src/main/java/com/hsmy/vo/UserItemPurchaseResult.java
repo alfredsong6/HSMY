@@ -3,6 +3,7 @@ package com.hsmy.vo;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.util.Date;
 
 /**
  * 用户购买道具的结果视图.
@@ -18,5 +19,9 @@ public class UserItemPurchaseResult implements Serializable {
     private Integer quantity;
     private Integer totalPrice;
     private Long remainingCoins;
-}
 
+    private Date expireTime;
+    private Integer usageMode;
+    private Integer remainingUses;
+    private Integer stackCount;
+}

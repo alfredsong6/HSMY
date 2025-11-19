@@ -11,10 +11,12 @@ import com.hsmy.mapper.UserScripturePurchaseMapper;
 import com.hsmy.mapper.UserStatsMapper;
 import com.hsmy.mapper.meditation.MeritCoinTransactionMapper;
 import com.hsmy.service.UserScripturePurchaseService;
+import com.hsmy.utils.DateUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -106,7 +108,7 @@ public class UserScripturePurchaseServiceImpl implements UserScripturePurchaseSe
         purchase.setMeritCoinsPaid(permanentPrice);
         purchase.setPurchaseMonths(0);
         purchase.setPurchaseTime(new Date());
-        purchase.setExpireTime(null);
+        purchase.setExpireTime(DateUtil.localDateToDate(LocalDate.of(2099,12,31)));
         purchase.setIsExpired(0);
         purchase.setReadCount(0);
         purchase.setLastReadingPosition(0);
