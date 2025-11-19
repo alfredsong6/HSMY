@@ -12,13 +12,13 @@ import com.hsmy.mapper.RechargeOrderMapper;
 import com.hsmy.mapper.UserStatsMapper;
 import com.hsmy.mapper.meditation.MeritCoinTransactionMapper;
 import com.hsmy.service.PaymentService;
+import com.hsmy.service.wechat.WechatPayClient;
 import com.hsmy.utils.IdGenerator;
 import com.hsmy.vo.WechatPayPrepayVO;
 import com.wechat.pay.java.core.Config;
 import com.wechat.pay.java.core.exception.ServiceException;
 import com.wechat.pay.java.core.notification.NotificationParser;
 import com.wechat.pay.java.core.notification.RequestParam;
-import com.wechat.pay.java.service.payments.jsapi.JsapiServiceExtension;
 import com.wechat.pay.java.service.payments.jsapi.model.Amount;
 import com.wechat.pay.java.service.payments.jsapi.model.Payer;
 import com.wechat.pay.java.service.payments.jsapi.model.PrepayRequest;
@@ -59,14 +59,16 @@ public class PaymentServiceImpl implements PaymentService {
     private final UserStatsMapper userStatsMapper;
     private final MeritCoinTransactionMapper meritCoinTransactionMapper;
     private final ObjectProvider<Config> wechatPayConfigProvider;
+    private final WechatPayClient wechatPayClient;
+    private final ObjectProvider<com.wechat.pay.java.service.payments.jsapi.JsapiServiceExtension> jsapiServiceProvider;
     private final ObjectProvider<NotificationParser> notificationParserProvider;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public WechatPayPrepayVO createWechatPrepay(Long userId, String username, WechatPayPrepayRequest request) {
-        if (!wechatPayProperties.isEnabled()) {
-            throw new BusinessException("微信支付功能未启用");
-        }
+//        if (!wechatPayProperties.isEnabled()) {
+//            throw new BusinessException("微信支付功能未启用");
+//        }
         if (userId == null) {
             throw new BusinessException("用户未登录");
         }
@@ -80,9 +82,8 @@ public class PaymentServiceImpl implements PaymentService {
         rechargeOrderMapper.insert(order);
 
         PrepayRequest prepayRequest = buildPrepayRequest(orderNo, request, amount);
-        JsapiServiceExtension service = new JsapiServiceExtension.Builder().config(getWechatPayConfig()).build();
         try {
-            PrepayWithRequestPaymentResponse response = service.prepayWithRequestPayment(prepayRequest);
+            PrepayWithRequestPaymentResponse response = wechatPayClient.prepay(prepayRequest);
             return buildPrepayResponse(orderNo, response);
         } catch (ServiceException e) {
             log.error("微信预下单失败，orderNo={}, errorCode={}, message={}", orderNo, e.getErrorCode(), e.getErrorMessage());
@@ -139,12 +140,11 @@ public class PaymentServiceImpl implements PaymentService {
             return true;
         }
 
-        JsapiServiceExtension service = new JsapiServiceExtension.Builder().config(getWechatPayConfig()).build();
-            QueryOrderByOutTradeNoRequest queryRequest = new QueryOrderByOutTradeNoRequest();
-            queryRequest.setOutTradeNo(orderNo);
-            queryRequest.setMchid(wechatPayProperties.getMchId());
-            try {
-                Transaction transaction = service.queryOrderByOutTradeNo(queryRequest);
+        QueryOrderByOutTradeNoRequest queryRequest = new QueryOrderByOutTradeNoRequest();
+        queryRequest.setOutTradeNo(orderNo);
+        queryRequest.setMchid(wechatPayProperties.getMchId());
+        try {
+            Transaction transaction = wechatPayClient.queryOrder(queryRequest);
                 TradeStateEnum tradeStateEnum = transaction.getTradeState();
                 boolean terminal = applyTradeState(orderNo, transaction);
                 if (terminal) {
