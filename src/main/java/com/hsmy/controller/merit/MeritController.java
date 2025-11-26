@@ -8,6 +8,8 @@ import com.hsmy.entity.MeritRecord;
 import com.hsmy.service.MeritService;
 import com.hsmy.utils.UserContextUtil;
 import com.hsmy.vo.ExchangeVO;
+import com.hsmy.vo.MeritStatsVO;
+import com.hsmy.vo.MeritSummaryVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.validation.annotation.Validated;
@@ -192,24 +194,21 @@ public class MeritController {
      * @return 统计信息汇总
      */
     @GetMapping("/summary")
-    public Result<Map<String, Object>> getMeritSummary() {
+    public Result<MeritSummaryVO> getMeritSummary() {
         try {
             Long userId = UserContextUtil.requireCurrentUserId();
             
-            Map<String, Object> summary = new HashMap<>();
-            //summary.put("userId", userId);
+            MeritSummaryVO summary = new MeritSummaryVO();
             LocalDate localToday = LocalDate.now();
             Date today = java.sql.Date.valueOf(localToday);
-            summary.put("totalMerit", meritService.getTotalMerit(userId));
-            summary.put("todayMerit", meritService.getTodayMerit(userId));
-            summary.put("weeklyMerit", meritService.getWeeklyMerit(userId));
-            summary.put("monthlyMerit", meritService.getMonthlyMerit(userId));
-            summary.put("meritCoins", meritService.getMeritCoins(userId));
-            summary.put("userStats", meritService.getMeritStats(userId));
-            summary.put("statDate", today);
-            summary.put("dailyMerit", meritService.getMeritByStatDate(userId, today));
-            //summary.put("apiVersion", "v1.1");
-            //summary.put("newFeatures", new String[]{"详细余额信息", "兑换前后对比", "统计汇总接口"});
+            summary.setTotalMerit(meritService.getTotalMerit(userId));
+            summary.setTodayMerit(meritService.getTodayMerit(userId));
+            summary.setWeeklyMerit(meritService.getWeeklyMerit(userId));
+            summary.setMonthlyMerit(meritService.getMonthlyMerit(userId));
+            summary.setMeritCoins(meritService.getMeritCoins(userId));
+            summary.setUserStats(buildStatsVO(meritService.getMeritStats(userId)));
+            //summary.setStatDate(today);
+            //summary.setDailyMerit(meritService.getMeritByStatDate(userId, today));
             
             return Result.success("查询成功", summary);
         } catch (Exception e) {
@@ -309,5 +308,48 @@ public class MeritController {
     public Result<Long> getMonthlyMerit(@PathVariable Long userId) {
         Long merit = meritService.getMonthlyMerit(userId);
         return Result.success(merit);
+    }
+
+    private MeritStatsVO buildStatsVO(Map<String, Object> statsMap) {
+        MeritStatsVO vo = new MeritStatsVO();
+        if (statsMap == null) {
+            return vo;
+        }
+        vo.setTotalMerit(toLong(statsMap.get("totalMerit")));
+        vo.setTotalKnocks(toLong(statsMap.get("totalKnocks")));
+        vo.setMaxCombo(toInt(statsMap.get("maxCombo")));
+        vo.setMeritCoins(toLong(statsMap.get("meritCoins")));
+        vo.setCurrentLevel(toInt(statsMap.get("currentLevel")));
+        vo.setTodayMerit(toLong(statsMap.get("todayMerit")));
+        vo.setTodayKnocks(toLong(statsMap.get("todayKnocks")));
+        vo.setWeeklyMerit(toLong(statsMap.get("weeklyMerit")));
+        vo.setMonthlyMerit(toLong(statsMap.get("monthlyMerit")));
+        return vo;
+    }
+
+    private Long toLong(Object value) {
+        if (value instanceof Number) {
+            return ((Number) value).longValue();
+        }
+        if (value != null) {
+            try {
+                return Long.parseLong(value.toString());
+            } catch (NumberFormatException ignored) {
+            }
+        }
+        return 0L;
+    }
+
+    private Integer toInt(Object value) {
+        if (value instanceof Number) {
+            return ((Number) value).intValue();
+        }
+        if (value != null) {
+            try {
+                return Integer.parseInt(value.toString());
+            } catch (NumberFormatException ignored) {
+            }
+        }
+        return 0;
     }
 }
