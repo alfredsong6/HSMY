@@ -6,6 +6,7 @@ import com.hsmy.constant.ApiVersionConstant;
 import com.hsmy.domain.auth.AuthIdentity;
 import com.hsmy.dto.*;
 import com.hsmy.entity.User;
+import com.hsmy.enums.AccountType;
 import com.hsmy.enums.BusinessType;
 import com.hsmy.exception.BusinessException;
 import com.hsmy.interceptor.LoginInterceptor;
@@ -157,7 +158,7 @@ public class AuthController {
     @PostMapping("/mini/login")
     public Result<LoginResponse> miniProgramLogin(@RequestBody @Validated WechatMiniLoginRequest request,
                                                   HttpServletRequest httpRequest) {
-        String appId =  wechatMiniAuthService.getDefaultAppId();
+        String appId = wechatMiniAuthService.getDefaultAppId();
         if (!StringUtils.hasText(appId)) {
             throw new BusinessException("小程序appId未配置");
         }
@@ -166,7 +167,8 @@ public class AuthController {
         WechatSessionInfo sessionInfo = wechatMiniAuthService.code2Session(appId, request.getAuthCode());
 
         // 2) 通过 phoneCode + sessionKey 获取手机号（后端调微信接口）
-        WechatPhoneInfo phoneInfo = wechatMiniAuthService.getPhoneNumber(sessionInfo.getSessionKey());
+        WechatPhoneInfo phoneInfo = wechatMiniAuthService.getPhoneNumber(request.getPhoneCode(), sessionInfo.getSessionKey());
+        log.info("获取手机号，phoneCode: {}, phoneInfo: {}", request.getPhoneCode(), phoneInfo);
         String phone = StringUtils.hasText(phoneInfo.getPurePhoneNumber()) ? phoneInfo.getPurePhoneNumber() : phoneInfo.getPhoneNumber();
         if (!StringUtils.hasText(phone)) {
             throw new BusinessException("获取手机号失败");
@@ -191,7 +193,7 @@ public class AuthController {
             if (user == null) {
                 RegisterByCodeRequest registerRequest = new RegisterByCodeRequest();
                 registerRequest.setAccount(phone);
-                registerRequest.setAccountType(com.hsmy.enums.AccountType.PHONE);
+                registerRequest.setAccountType(AccountType.PHONE);
                 registerRequest.setCode("000000"); // 后端直注册，不校验短信
                 registerRequest.setNickname(resolveNickname(phone, request.getNickname()));
                 Long userId = userService.registerByCode(registerRequest);

@@ -1,6 +1,7 @@
 package com.hsmy.service.wechat.impl;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hsmy.config.WechatMiniProperties;
 import com.hsmy.exception.BusinessException;
 import com.hsmy.service.wechat.WechatMiniAuthService;
@@ -33,6 +34,7 @@ public class WechatMiniAuthServiceImpl implements WechatMiniAuthService {
     private final WechatMiniProperties properties;
     private final StringRedisTemplate stringRedisTemplate;
     private final RestTemplateBuilder restTemplateBuilder;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     private static final String ACCESS_TOKEN_CACHE_KEY = "wechat:mini:access_token";
 
@@ -50,7 +52,8 @@ public class WechatMiniAuthServiceImpl implements WechatMiniAuthService {
                 .queryParam("grant_type", "authorization_code")
                 .toUriString();
 
-        JsonNode resp = getRestTemplate().getForObject(url, JsonNode.class);
+        String body = getRestTemplate().getForObject(url, String.class);
+        JsonNode resp = parseJson(body, "jscode2session");
         checkWechatError(resp, "jscode2session");
 
         WechatSessionInfo info = new WechatSessionInfo();
@@ -65,9 +68,12 @@ public class WechatMiniAuthServiceImpl implements WechatMiniAuthService {
     }
 
     @Override
-    public WechatPhoneInfo getPhoneNumber(String sessionKey) {
+    public WechatPhoneInfo getPhoneNumber(String phoneCode, String sessionKey) {
         if (!StringUtils.hasText(sessionKey)) {
             throw new BusinessException("sessionKey缺失，请先调用code2session");
+        }
+        if (!StringUtils.hasText(phoneCode)) {
+            throw new BusinessException("phoneCode不能为空");
         }
         String accessToken = getAccessToken();
         String url = UriComponentsBuilder
@@ -78,11 +84,11 @@ public class WechatMiniAuthServiceImpl implements WechatMiniAuthService {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
-        //String body = "{\"code\":\"" + phoneCode + "\"}";
-        HttpEntity<String> entity = new HttpEntity<>(headers);
+        String body = "{\"code\":\"" + phoneCode + "\"}";
+        HttpEntity<String> entity = new HttpEntity<>(body, headers);
 
-        ResponseEntity<JsonNode> respEntity = getRestTemplate().postForEntity(url, entity, JsonNode.class);
-        JsonNode resp = respEntity.getBody();
+        ResponseEntity<String> respEntity = getRestTemplate().postForEntity(url, entity, String.class);
+        JsonNode resp = parseJson(respEntity.getBody(), "getuserphonenumber");
         checkWechatError(resp, "getuserphonenumber");
 
         JsonNode phoneInfoNode = resp.path("phone_info");
@@ -114,7 +120,8 @@ public class WechatMiniAuthServiceImpl implements WechatMiniAuthService {
                 .queryParam("secret", properties.getSecret())
                 .toUriString();
 
-        JsonNode resp = getRestTemplate().getForObject(url, JsonNode.class);
+        String body = getRestTemplate().getForObject(url, String.class);
+        JsonNode resp = parseJson(body, "getAccessToken");
         checkWechatError(resp, "getAccessToken");
 
         String token = resp.path("access_token").asText(null);
@@ -143,5 +150,14 @@ public class WechatMiniAuthServiceImpl implements WechatMiniAuthService {
                 .setConnectTimeout(Duration.ofSeconds(5))
                 .setReadTimeout(Duration.ofSeconds(5))
                 .build();
+    }
+
+    private JsonNode parseJson(String body, String api) {
+        try {
+            return objectMapper.readTree(body);
+        } catch (Exception e) {
+            log.error("解析微信响应失败, api={}, body={}", api, body, e);
+            throw new BusinessException("微信接口响应解析失败: " + api);
+        }
     }
 }

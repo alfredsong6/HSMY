@@ -8,6 +8,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.hsmy.dto.RegisterByCodeRequest;
 import com.hsmy.entity.User;
 import com.hsmy.entity.UserStats;
+import com.hsmy.enums.AccountType;
 import com.hsmy.exception.BusinessException;
 import com.hsmy.mapper.UserMapper;
 import com.hsmy.mapper.UserStatsMapper;
@@ -281,11 +282,11 @@ public class UserServiceImpl implements UserService {
     @Transactional(rollbackFor = Exception.class)
     public Long registerByCode(RegisterByCodeRequest request) {
         // 检查账号是否已存在
-        if (com.hsmy.enums.AccountType.PHONE.equals(request.getAccountType())) {
+        if (AccountType.PHONE.equals(request.getAccountType())) {
             if (checkPhoneExists(request.getAccount())) {
                 throw new BusinessException("该手机号已被注册");
             }
-        } else if (com.hsmy.enums.AccountType.EMAIL.equals(request.getAccountType())) {
+        } else if (AccountType.EMAIL.equals(request.getAccountType())) {
             if (checkEmailExists(request.getAccount())) {
                 throw new BusinessException("该邮箱已被注册");
             }

@@ -2,8 +2,6 @@ package com.hsmy.dto;
 
 import lombok.Data;
 
-import javax.validation.constraints.NotBlank;
-
 /**
  * 微信小程序登录/注册请求.
  */
@@ -12,13 +10,14 @@ public class WechatMiniLoginRequest {
     /**
      * wx.login 获取的 code.
      */
-    @NotBlank(message = "authCode不能为空")
+    //@NotBlank(message = "authCode不能为空")
     private String authCode;
 
     /**
      * wx.getPhoneNumber 返回的 code.
      */
-//    private String phoneCode;
+    //@NotBlank(message = "phoneCode不能为空")
+    private String phoneCode;
 
     /**
      * 用户昵称（可选，若不传则使用微信昵称或默认值）.

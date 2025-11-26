@@ -16,7 +16,7 @@ public interface WechatMiniAuthService {
     /**
      * 通过 phoneCode 获取手机号.
      */
-    WechatPhoneInfo getPhoneNumber(String sessionKey);
+    WechatPhoneInfo getPhoneNumber(String phoneCode, String sessionKey);
 
     /**
      * 默认 appId.
