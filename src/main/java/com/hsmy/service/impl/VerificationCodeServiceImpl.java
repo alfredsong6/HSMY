@@ -43,9 +43,9 @@ public class VerificationCodeServiceImpl implements VerificationCodeService {
     private static final int MAX_DAILY_SEND_COUNT = 10;
     
     @Override
-    public boolean sendCode(String account, String accountType, String businessType, String ipAddress) {
+    public boolean sendCode(String account, com.hsmy.enums.AccountType accountType, com.hsmy.enums.BusinessType businessType, String ipAddress) {
         // 检查发送间隔
-        LocalDateTime lastSendTime = verificationCodeMapper.getLastSendTime(account, businessType);
+        LocalDateTime lastSendTime = verificationCodeMapper.getLastSendTime(account, businessType.getCode());
         if (lastSendTime != null) {
             long seconds = ChronoUnit.SECONDS.between(lastSendTime, LocalDateTime.now());
             if (seconds < MIN_SEND_INTERVAL_SECONDS) {
@@ -68,9 +68,9 @@ public class VerificationCodeServiceImpl implements VerificationCodeService {
         VerificationCode verificationCode = new VerificationCode();
         verificationCode.setId(IdGenerator.nextId());
         verificationCode.setAccount(account);
-        verificationCode.setAccountType(accountType);
+        verificationCode.setAccountType(accountType.getCode());
         verificationCode.setCode(code);
-        verificationCode.setBusinessType(businessType);
+        verificationCode.setBusinessType(businessType.getCode());
         verificationCode.setUsed(false);
         verificationCode.setExpireTime(LocalDateTime.now().plusMinutes(CODE_EXPIRE_MINUTES));
         verificationCode.setIpAddress(ipAddress);
@@ -78,7 +78,7 @@ public class VerificationCodeServiceImpl implements VerificationCodeService {
         verificationCodeMapper.insert(verificationCode);
         
         // 保存到Redis，用于快速验证
-        String redisKey = getRedisKey(account, businessType);
+        String redisKey = getRedisKey(account, businessType.getCode());
         stringRedisTemplate.opsForValue().set(redisKey, code, CODE_EXPIRE_MINUTES, TimeUnit.MINUTES);
         
         // 实际发送验证码（这里应该调用短信或邮件服务）
@@ -97,13 +97,13 @@ public class VerificationCodeServiceImpl implements VerificationCodeService {
     }
     
     @Override
-    public boolean verifyCode(String account, String code, String businessType) {
+    public boolean verifyCode(String account, String code, com.hsmy.enums.BusinessType businessType) {
         if ("dev".equals(activeProfile)) {
             return true;
         }
         
         // 先从Redis验证
-        String redisKey = getRedisKey(account, businessType);
+        String redisKey = getRedisKey(account, businessType.getCode());
         String cachedCode = stringRedisTemplate.opsForValue().get(redisKey);
         
         if (cachedCode != null && cachedCode.equals(code)) {
@@ -114,7 +114,7 @@ public class VerificationCodeServiceImpl implements VerificationCodeService {
         LambdaQueryWrapper<VerificationCode> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(VerificationCode::getAccount, account)
                .eq(VerificationCode::getCode, code)
-               .eq(VerificationCode::getBusinessType, businessType)
+               .eq(VerificationCode::getBusinessType, businessType.getCode())
                .eq(VerificationCode::getUsed, false)
                .gt(VerificationCode::getExpireTime, LocalDateTime.now())
                .orderByDesc(VerificationCode::getCreateTime)
@@ -126,16 +126,16 @@ public class VerificationCodeServiceImpl implements VerificationCodeService {
     
     @Override
     @Transactional
-    public boolean verify(String account, String accountType, String code, String businessType) {
+    public boolean verify(String account, com.hsmy.enums.AccountType accountType, String code, com.hsmy.enums.BusinessType businessType) {
         // 验证验证码
         boolean isValid = verifyCode(account, code, businessType);
         
         if (isValid) {
             // 验证成功后标记为已使用
             markCodeAsUsed(account, code, businessType);
-            log.info("验证码验证成功并已标记为已使用，account: {}, businessType: {}", account, businessType);
+            log.info("验证码验证成功并已标记为已使用，account: {}, businessType: {}", account, businessType.getCode());
         } else {
-            log.warn("验证码验证失败，account: {}, code: {}, businessType: {}", account, code, businessType);
+            log.warn("验证码验证失败，account: {}, code: {}, businessType: {}", account, code, businessType.getCode());
         }
         
         return isValid;
@@ -143,12 +143,12 @@ public class VerificationCodeServiceImpl implements VerificationCodeService {
     
     @Override
     @Transactional
-    public void markCodeAsUsed(String account, String code, String businessType) {
+    public void markCodeAsUsed(String account, String code, com.hsmy.enums.BusinessType businessType) {
         // 标记数据库中的验证码为已使用
         LambdaQueryWrapper<VerificationCode> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(VerificationCode::getAccount, account)
                .eq(VerificationCode::getCode, code)
-               .eq(VerificationCode::getBusinessType, businessType)
+               .eq(VerificationCode::getBusinessType, businessType.getCode())
                .eq(VerificationCode::getUsed, false);
         
         VerificationCode verificationCode = verificationCodeMapper.selectOne(wrapper);
@@ -159,7 +159,7 @@ public class VerificationCodeServiceImpl implements VerificationCodeService {
         }
         
         // 从Redis中删除
-        String redisKey = getRedisKey(account, businessType);
+        String redisKey = getRedisKey(account, businessType.getCode());
         stringRedisTemplate.delete(redisKey);
     }
     
@@ -178,15 +178,15 @@ public class VerificationCodeServiceImpl implements VerificationCodeService {
     /**
      * 实际发送验证码到手机或邮箱
      */
-    private boolean sendToAccount(String account, String accountType, String code) {
+    private boolean sendToAccount(String account, com.hsmy.enums.AccountType accountType, String code) {
         try {
             SmsResult result;
             
-            if ("phone".equals(accountType)) {
+            if (accountType == com.hsmy.enums.AccountType.PHONE) {
                 // 发送短信验证码
                 result = smsServiceFactory.getSmsService().sendVerificationCode(account, code);
                 log.info("短信验证码发送结果，手机号: {}, 成功: {}, 消息: {}", account, result.isSuccess(), result.getErrorMessage());
-            } else if ("email".equals(accountType)) {
+            } else if (accountType == com.hsmy.enums.AccountType.EMAIL) {
                 // 发送邮件验证码
                 result = emailService.sendVerificationCode(account, code);
                 log.info("邮件验证码发送结果，邮箱: {}, 成功: {}, 消息: {}", account, result.isSuccess(), result.getErrorMessage());

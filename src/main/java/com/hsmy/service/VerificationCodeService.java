@@ -13,7 +13,7 @@ public interface VerificationCodeService {
      * @param ipAddress IP地址
      * @return 是否发送成功
      */
-    boolean sendCode(String account, String accountType, String businessType, String ipAddress);
+    boolean sendCode(String account, com.hsmy.enums.AccountType accountType, com.hsmy.enums.BusinessType businessType, String ipAddress);
 
     /**
      * 验证验证码
@@ -22,7 +22,7 @@ public interface VerificationCodeService {
      * @param businessType 业务类型
      * @return 是否验证成功
      */
-    boolean verifyCode(String account, String code, String businessType);
+    boolean verifyCode(String account, String code, com.hsmy.enums.BusinessType businessType);
     
     /**
      * 验证验证码并标记为已使用
@@ -32,7 +32,7 @@ public interface VerificationCodeService {
      * @param businessType 业务类型
      * @return 是否验证成功
      */
-    boolean verify(String account, String accountType, String code, String businessType);
+    boolean verify(String account, com.hsmy.enums.AccountType accountType, String code, com.hsmy.enums.BusinessType businessType);
     
     /**
      * 标记验证码已使用
@@ -40,5 +40,5 @@ public interface VerificationCodeService {
      * @param code 验证码
      * @param businessType 业务类型
      */
-    void markCodeAsUsed(String account, String code, String businessType);
+    void markCodeAsUsed(String account, String code, com.hsmy.enums.BusinessType businessType);
 }

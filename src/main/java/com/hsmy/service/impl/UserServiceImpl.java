@@ -281,11 +281,11 @@ public class UserServiceImpl implements UserService {
     @Transactional(rollbackFor = Exception.class)
     public Long registerByCode(RegisterByCodeRequest request) {
         // 检查账号是否已存在
-        if ("phone".equals(request.getAccountType())) {
+        if (com.hsmy.enums.AccountType.PHONE.equals(request.getAccountType())) {
             if (checkPhoneExists(request.getAccount())) {
                 throw new BusinessException("该手机号已被注册");
             }
-        } else if ("email".equals(request.getAccountType())) {
+        } else if (com.hsmy.enums.AccountType.EMAIL.equals(request.getAccountType())) {
             if (checkEmailExists(request.getAccount())) {
                 throw new BusinessException("该邮箱已被注册");
             }
@@ -301,9 +301,9 @@ public class UserServiceImpl implements UserService {
         user.setNickname(StrUtil.isBlank(request.getNickname()) ? defaultUsername : request.getNickname());
         
         // 设置手机号或邮箱
-        if ("phone".equals(request.getAccountType())) {
+        if (com.hsmy.enums.AccountType.PHONE.equals(request.getAccountType())) {
             user.setPhone(request.getAccount());
-        } else if ("email".equals(request.getAccountType())) {
+        } else if (com.hsmy.enums.AccountType.EMAIL.equals(request.getAccountType())) {
             user.setEmail(request.getAccount());
         }
         
@@ -480,7 +480,7 @@ public class UserServiceImpl implements UserService {
     @Transactional(rollbackFor = Exception.class)
     public Boolean resetPasswordWithSms(String phone, String code, String newPassword) {
         // 验证短信验证码
-        boolean isValid = verificationCodeService.verify(phone, "phone", code, "reset_password");
+        boolean isValid = verificationCodeService.verify(phone, com.hsmy.enums.AccountType.PHONE, code, com.hsmy.enums.BusinessType.RESET_PASSWORD);
         if (!isValid) {
             throw new BusinessException("验证码错误或已过期");
         }

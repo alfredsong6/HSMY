@@ -3,16 +3,13 @@ package com.hsmy.controller.auth;
 import com.hsmy.annotation.ApiVersion;
 import com.hsmy.common.Result;
 import com.hsmy.constant.ApiVersionConstant;
-import com.hsmy.dto.*;
 import com.hsmy.domain.auth.AuthIdentity;
+import com.hsmy.dto.*;
 import com.hsmy.entity.User;
+import com.hsmy.enums.BusinessType;
 import com.hsmy.exception.BusinessException;
 import com.hsmy.interceptor.LoginInterceptor;
-import com.hsmy.service.AuthIdentityService;
-import com.hsmy.service.AuthTokenService;
-import com.hsmy.service.SessionService;
-import com.hsmy.service.UserService;
-import com.hsmy.service.VerificationCodeService;
+import com.hsmy.service.*;
 import com.hsmy.service.wechat.WechatMiniAuthService;
 import com.hsmy.service.wechat.dto.WechatPhoneInfo;
 import com.hsmy.service.wechat.dto.WechatSessionInfo;
@@ -67,27 +64,27 @@ public class AuthController {
         String ipAddress = getClientIpAddress(httpRequest);
         
         // 验证账号格式
-        if ("phone".equals(request.getAccountType())) {
+        if (request.getAccountType() == com.hsmy.enums.AccountType.PHONE) {
             if (!request.getAccount().matches("^1[3-9]\\d{9}$")) {
                 throw new BusinessException("手机号格式不正确");
             }
-        } else if ("email".equals(request.getAccountType())) {
+        } else if (request.getAccountType() == com.hsmy.enums.AccountType.EMAIL) {
             if (!request.getAccount().matches("^[a-zA-Z0-9_-]+@[a-zA-Z0-9_-]+(\\.[a-zA-Z0-9_-]+)+$")) {
                 throw new BusinessException("邮箱格式不正确");
             }
         }
         
         // 如果是注册，检查账号是否已存在
-        if ("register".equals(request.getBusinessType())) {
+        if (request.getBusinessType() == com.hsmy.enums.BusinessType.REGISTER) {
             User existingUser = null;
-            if ("phone".equals(request.getAccountType())) {
+            if (request.getAccountType() == com.hsmy.enums.AccountType.PHONE) {
                 existingUser = userService.getUserByPhone(request.getAccount());
-            } else if ("email".equals(request.getAccountType())) {
+            } else if (request.getAccountType() == com.hsmy.enums.AccountType.EMAIL) {
                 existingUser = userService.getUserByEmail(request.getAccount());
             }
             
             if (existingUser != null) {
-                throw new BusinessException("该" + ("phone".equals(request.getAccountType()) ? "手机号" : "邮箱") + "已被注册");
+                throw new BusinessException("该" + (request.getAccountType() == com.hsmy.enums.AccountType.PHONE ? "手机号" : "邮箱") + "已被注册");
             }
         }
         
@@ -119,7 +116,7 @@ public class AuthController {
         boolean valid = verificationCodeService.verifyCode(
             request.getAccount(),
             request.getCode(),
-            "register"
+            com.hsmy.enums.BusinessType.REGISTER
         );
         
         if (!valid) {
@@ -130,7 +127,7 @@ public class AuthController {
         Long userId = userService.registerByCode(request);
         
         // 标记验证码已使用
-        verificationCodeService.markCodeAsUsed(request.getAccount(), request.getCode(), "register");
+        verificationCodeService.markCodeAsUsed(request.getAccount(), request.getCode(), BusinessType.REGISTER);
         
         // 自动登录
         User user = userService.getUserById(userId);
@@ -194,7 +191,7 @@ public class AuthController {
             if (user == null) {
                 RegisterByCodeRequest registerRequest = new RegisterByCodeRequest();
                 registerRequest.setAccount(phone);
-                registerRequest.setAccountType("phone");
+                registerRequest.setAccountType(com.hsmy.enums.AccountType.PHONE);
                 registerRequest.setCode("000000"); // 后端直注册，不校验短信
                 registerRequest.setNickname(resolveNickname(phone, request.getNickname()));
                 Long userId = userService.registerByCode(registerRequest);
@@ -233,7 +230,8 @@ public class AuthController {
     @PostMapping("/app/login")
     public Result<LoginResponse> appPhoneLogin(@RequestBody @Validated AppPhoneLoginRequest request,
                                                HttpServletRequest httpRequest) {
-        boolean valid = verificationCodeService.verify(request.getPhone(), "phone", request.getCode(), "login");
+        boolean valid = verificationCodeService.verify(request.getPhone(),
+                com.hsmy.enums.AccountType.PHONE, request.getCode(), com.hsmy.enums.BusinessType.LOGIN);
         if (!valid) {
             throw new BusinessException("验证码无效或已过期");
         }
@@ -242,7 +240,7 @@ public class AuthController {
         if (user == null) {
             RegisterByCodeRequest registerRequest = new RegisterByCodeRequest();
             registerRequest.setAccount(request.getPhone());
-            registerRequest.setAccountType("phone");
+            registerRequest.setAccountType(com.hsmy.enums.AccountType.PHONE);
             registerRequest.setCode(request.getCode());
             registerRequest.setNickname(request.getNickname());
             Long userId = userService.registerByCode(registerRequest);
@@ -363,7 +361,7 @@ public class AuthController {
             boolean valid = verificationCodeService.verifyCode(
                 loginRequest.getLoginAccount(),
                 loginRequest.getCode(),
-                "login"
+                com.hsmy.enums.BusinessType.LOGIN
             );
             
             if (!valid) {
@@ -377,7 +375,7 @@ public class AuthController {
             }
             
             // 标记验证码已使用
-            verificationCodeService.markCodeAsUsed(loginRequest.getLoginAccount(), loginRequest.getCode(), "login");
+            verificationCodeService.markCodeAsUsed(loginRequest.getLoginAccount(), loginRequest.getCode(), com.hsmy.enums.BusinessType.LOGIN);
         } else {
             throw new BusinessException("不支持的登录方式");
         }

@@ -2,8 +2,11 @@ package com.hsmy.dto;
 
 import lombok.Data;
 
+import com.hsmy.enums.AccountType;
+import com.hsmy.enums.BusinessType;
+
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.Pattern;
+import javax.validation.constraints.NotNull;
 
 /**
  * 发送验证码请求DTO
@@ -20,14 +23,12 @@ public class SendCodeRequest {
     /**
      * 账号类型：phone/email
      */
-    @NotBlank(message = "账号类型不能为空")
-    @Pattern(regexp = "^(phone|email)$", message = "账号类型只能是phone或email")
-    private String accountType;
+    @NotNull(message = "账号类型不能为空")
+    private AccountType accountType;
     
     /**
      * 业务类型：register/login/reset_password
      */
-    @NotBlank(message = "业务类型不能为空")
-    @Pattern(regexp = "^(register|login|reset_password)$", message = "业务类型不合法")
-    private String businessType;
+    @NotNull(message = "业务类型不能为空")
+    private BusinessType businessType;
 }

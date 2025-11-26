@@ -2,7 +2,10 @@ package com.hsmy.dto;
 
 import lombok.Data;
 
+import com.hsmy.enums.AccountType;
+
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 
 /**
@@ -20,9 +23,8 @@ public class RegisterByCodeRequest {
     /**
      * 账号类型：phone/email
      */
-    @NotBlank(message = "账号类型不能为空")
-    @Pattern(regexp = "^(phone|email)$", message = "账号类型只能是phone或email")
-    private String accountType;
+    @NotNull(message = "账号类型不能为空")
+    private AccountType accountType;
     
     /**
      * 验证码
