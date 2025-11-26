@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hsmy.mapper.AuthTokenMapper">
+
+    <!-- 基础结果映射 -->
+    <resultMap id="BaseResultMap" type="com.hsmy.domain.auth.AuthToken">
+        <id column="id" property="id"/>
+        <result column="user_id" property="userId"/>
+        <result column="token" property="token"/>
+        <result column="expires_at" property="expiresAt"/>
+        <result column="revoked_at" property="revokedAt"/>
+        <result column="client_type" property="clientType"/>
+        <result column="device_id" property="deviceId"/>
+        <result column="create_by" property="createBy"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_by" property="updateBy"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="is_deleted" property="isDeleted"/>
+    </resultMap>
+
+    <!-- 基础字段列表 -->
+    <sql id="Base_Column_List">
+        id, user_id, token, expires_at, revoked_at, client_type, device_id,
+        create_by, create_time, update_by, update_time, is_deleted
+    </sql>
+
+    <select id="selectByToken" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM t_auth_token
+        WHERE token = #{token}
+          AND is_deleted = 0
+        LIMIT 1
+    </select>
+
+    <update id="revokeByToken">
+        UPDATE t_auth_token
+        SET revoked_at = NOW(),
+            is_deleted = 1,
+            update_time = NOW()
+        WHERE token = #{token}
+          AND is_deleted = 0
+    </update>
+</mapper>

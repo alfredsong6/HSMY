@@ -68,3 +68,8 @@ wechatpay:
   private-key-path: ${WECHATPAY_PRIVATE_KEY_PATH_TEST:}
   notify-url: ${WECHATPAY_NOTIFY_URL_TEST:https://test.hsmy.com/api/v1.0/payment/wechat/notify}
   description: ${WECHATPAY_DESCRIPTION_TEST:功德充值}
+
+wechat:
+  mini:
+    app-id: ${WECHAT_MINI_APP_ID_TEST:}
+    secret: ${WECHAT_MINI_SECRET_TEST:}

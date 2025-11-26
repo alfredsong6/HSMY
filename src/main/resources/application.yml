@@ -41,6 +41,11 @@ logging:
   level:
     com.hsmy: debug
 
+wechat:
+  mini:
+    app-id: ${WECHAT_MINI_APP_ID:}
+    secret: ${WECHAT_MINI_SECRET:}
+
 # 认证白名单配置
 auth:
   whitelist:
@@ -53,6 +58,8 @@ auth:
       - /auth/register-by-code
       - /auth/send-code
       - /auth/logout
+      - /auth/mini/login
+      - /auth/app/login
       - /auth/code
       - /auth/health
       # 文件接口（下载不需要登录）

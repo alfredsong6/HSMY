@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hsmy.mapper.AuthIdentityMapper">
+
+    <!-- 基础结果映射 -->
+    <resultMap id="BaseResultMap" type="com.hsmy.domain.auth.AuthIdentity">
+        <id column="id" property="id"/>
+        <result column="user_id" property="userId"/>
+        <result column="provider" property="provider"/>
+        <result column="appid_or_client_id" property="appidOrClientId"/>
+        <result column="open_id" property="openId"/>
+        <result column="union_id" property="unionId"/>
+        <result column="phone" property="phone"/>
+        <result column="session_key_enc" property="sessionKeyEnc"/>
+        <result column="last_login_at" property="lastLoginAt"/>
+        <result column="create_by" property="createBy"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_by" property="updateBy"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="is_deleted" property="isDeleted"/>
+    </resultMap>
+
+    <!-- 基础字段列表 -->
+    <sql id="Base_Column_List">
+        id, user_id, provider, appid_or_client_id, open_id, union_id, phone,
+        session_key_enc, last_login_at, create_by, create_time, update_by, update_time, is_deleted
+    </sql>
+
+    <select id="selectByOpenId" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM t_auth_identity
+        WHERE provider = #{provider}
+          AND appid_or_client_id = #{appidOrClientId}
+          AND open_id = #{openId}
+          AND is_deleted = 0
+        LIMIT 1
+    </select>
+
+    <select id="selectByUnionId" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM t_auth_identity
+        WHERE provider = #{provider}
+          AND union_id = #{unionId}
+          AND is_deleted = 0
+        LIMIT 1
+    </select>
+
+    <select id="selectByPhone" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM t_auth_identity
+        WHERE provider = #{provider}
+          AND phone = #{phone}
+          AND is_deleted = 0
+        LIMIT 1
+    </select>
+
+    <update id="touchLogin">
+        UPDATE t_auth_identity
+        <set>
+            <if test="userId != null">user_id = #{userId},</if>
+            <if test="phone != null">phone = #{phone},</if>
+            <if test="unionId != null">union_id = #{unionId},</if>
+            <if test="sessionKeyEnc != null">session_key_enc = #{sessionKeyEnc},</if>
+            last_login_at = #{lastLoginAt},
+            update_time = NOW()
+        </set>
+        WHERE id = #{id}
+          AND is_deleted = 0
+    </update>
+</mapper>

@@ -4,12 +4,18 @@ import com.hsmy.annotation.ApiVersion;
 import com.hsmy.common.Result;
 import com.hsmy.constant.ApiVersionConstant;
 import com.hsmy.dto.*;
+import com.hsmy.domain.auth.AuthIdentity;
 import com.hsmy.entity.User;
 import com.hsmy.exception.BusinessException;
 import com.hsmy.interceptor.LoginInterceptor;
+import com.hsmy.service.AuthIdentityService;
+import com.hsmy.service.AuthTokenService;
 import com.hsmy.service.SessionService;
 import com.hsmy.service.UserService;
 import com.hsmy.service.VerificationCodeService;
+import com.hsmy.service.wechat.WechatMiniAuthService;
+import com.hsmy.service.wechat.dto.WechatPhoneInfo;
+import com.hsmy.service.wechat.dto.WechatSessionInfo;
 import com.hsmy.utils.UserContextUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,6 +25,8 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.Date;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 认证Controller
@@ -36,6 +44,15 @@ public class AuthController {
     private final UserService userService;
     private final SessionService sessionService;
     private final VerificationCodeService verificationCodeService;
+    private final AuthIdentityService authIdentityService;
+    private final AuthTokenService authTokenService;
+    private final WechatMiniAuthService wechatMiniAuthService;
+
+    private static final String PROVIDER_WECHAT_MINI = "wechat_mini";
+    private static final String PROVIDER_SMS = "sms";
+    private static final String CLIENT_MINIAPP = "miniapp";
+    private static final String CLIENT_APP = "app";
+    private static final long TOKEN_EXPIRE_SECONDS = TimeUnit.DAYS.toSeconds(7);
     
     /**
      * 发送验证码
@@ -132,6 +149,125 @@ public class AuthController {
         
         log.info("用户通过验证码注册成功，userId: {}, account: {}", userId, request.getAccount());
         return Result.success(response);
+    }
+
+    /**
+     * 微信小程序登录/自动注册.
+     *
+     * @param request 小程序登录请求（openId+手机号）
+     * @return 登录结果
+     */
+    @PostMapping("/mini/login")
+    public Result<LoginResponse> miniProgramLogin(@RequestBody @Validated WechatMiniLoginRequest request,
+                                                  HttpServletRequest httpRequest) {
+        String appId =  wechatMiniAuthService.getDefaultAppId();
+        if (!StringUtils.hasText(appId)) {
+            throw new BusinessException("小程序appId未配置");
+        }
+
+        // 1) code2session 获取 openId/unionId/sessionKey
+        WechatSessionInfo sessionInfo = wechatMiniAuthService.code2Session(appId, request.getAuthCode());
+
+        // 2) 通过 phoneCode + sessionKey 获取手机号（后端调微信接口）
+        WechatPhoneInfo phoneInfo = wechatMiniAuthService.getPhoneNumber(sessionInfo.getSessionKey());
+        String phone = StringUtils.hasText(phoneInfo.getPurePhoneNumber()) ? phoneInfo.getPurePhoneNumber() : phoneInfo.getPhoneNumber();
+        if (!StringUtils.hasText(phone)) {
+            throw new BusinessException("获取手机号失败");
+        }
+
+        // 3) 查找身份记录
+        AuthIdentity identity = authIdentityService.getByOpenId(PROVIDER_WECHAT_MINI, appId, sessionInfo.getOpenId());
+        User user = identity != null && identity.getUserId() != null ? userService.getUserById(identity.getUserId()) : null;
+
+        // 4) unionId 合并
+        if (user == null && StringUtils.hasText(sessionInfo.getUnionId())) {
+            AuthIdentity unionIdentity = authIdentityService.getByUnionId(PROVIDER_WECHAT_MINI, sessionInfo.getUnionId());
+            if (unionIdentity != null && unionIdentity.getUserId() != null) {
+                user = userService.getUserById(unionIdentity.getUserId());
+                identity = identity == null ? unionIdentity : identity;
+            }
+        }
+
+        // 5) 手机号复用/创建
+        if (user == null) {
+            user = userService.getUserByPhone(phone);
+            if (user == null) {
+                RegisterByCodeRequest registerRequest = new RegisterByCodeRequest();
+                registerRequest.setAccount(phone);
+                registerRequest.setAccountType("phone");
+                registerRequest.setCode("000000"); // 后端直注册，不校验短信
+                registerRequest.setNickname(resolveNickname(phone, request.getNickname()));
+                Long userId = userService.registerByCode(registerRequest);
+                user = userService.getUserById(userId);
+                log.info("微信小程序自动注册新用户，userId: {}, openId: {}", user.getId(), sessionInfo.getOpenId());
+            }
+        }
+
+        // 6) 维护身份
+        if (identity == null) {
+            authIdentityService.createIdentity(user.getId(), PROVIDER_WECHAT_MINI, appId,
+                    sessionInfo.getOpenId(), sessionInfo.getUnionId(), phone, sessionInfo.getSessionKey());
+        } else {
+            authIdentityService.touchLogin(identity.getId(), user.getId(), phone,
+                    sessionInfo.getUnionId(), sessionInfo.getSessionKey(), new Date());
+        }
+
+        ensureUserEnabled(user);
+
+        String sessionId = sessionService.createSession(user, httpRequest);
+        if (sessionId == null) {
+            throw new BusinessException("登录失败，请稍后重试");
+        }
+        recordAuthToken(user.getId(), sessionId, CLIENT_MINIAPP, null);
+
+        log.info("微信小程序登录成功，userId: {}, openId: {}", user.getId(), sessionInfo.getOpenId());
+        return Result.success(buildLoginResponse(user, sessionId));
+    }
+
+    /**
+     * App端手机号登录/注册.
+     *
+     * @param request 登录请求
+     * @return 登录结果
+     */
+    @PostMapping("/app/login")
+    public Result<LoginResponse> appPhoneLogin(@RequestBody @Validated AppPhoneLoginRequest request,
+                                               HttpServletRequest httpRequest) {
+        boolean valid = verificationCodeService.verify(request.getPhone(), "phone", request.getCode(), "login");
+        if (!valid) {
+            throw new BusinessException("验证码无效或已过期");
+        }
+
+        User user = userService.getUserByPhone(request.getPhone());
+        if (user == null) {
+            RegisterByCodeRequest registerRequest = new RegisterByCodeRequest();
+            registerRequest.setAccount(request.getPhone());
+            registerRequest.setAccountType("phone");
+            registerRequest.setCode(request.getCode());
+            registerRequest.setNickname(request.getNickname());
+            Long userId = userService.registerByCode(registerRequest);
+            user = userService.getUserById(userId);
+            log.info("App端手机号注册成功，userId: {}", user.getId());
+        }
+
+        // 维护手机号身份映射
+        AuthIdentity phoneIdentity = authIdentityService.getByPhone(PROVIDER_SMS, request.getPhone());
+        if (phoneIdentity == null) {
+            authIdentityService.createIdentity(user.getId(), PROVIDER_SMS, CLIENT_APP, null, null, request.getPhone(), null);
+        } else {
+            authIdentityService.touchLogin(phoneIdentity.getId(), user.getId(), request.getPhone(), null, null, new Date());
+        }
+
+        ensureUserEnabled(user);
+
+        String sessionId = sessionService.createSession(user, httpRequest);
+        if (sessionId == null) {
+            throw new BusinessException("登录失败，请稍后重试");
+        }
+        recordAuthToken(user.getId(), sessionId, CLIENT_APP, request.getDeviceId());
+
+        log.info("App端手机号登录成功，userId: {}", user.getId());
+        return Result.success(buildLoginResponse(user, sessionId));
     }
     
 //    /**
@@ -470,6 +606,41 @@ public class AuthController {
     @GetMapping("/health")
     public Result<String> health() {
         return Result.success("服务正常");
+    }
+
+    private void ensureUserEnabled(User user) {
+        if (user == null) {
+            throw new BusinessException("用户不存在");
+        }
+        if (user.getStatus() == null || user.getStatus() != 1) {
+            throw new BusinessException("账号已被禁用");
+        }
+    }
+
+    private void recordAuthToken(Long userId, String token, String clientType, String deviceId) {
+        Date expiresAt = new Date(System.currentTimeMillis() + TOKEN_EXPIRE_SECONDS * 1000);
+        authTokenService.recordToken(userId, token, expiresAt, clientType, deviceId);
+    }
+
+    private String resolveNickname(String phone, String candidate) {
+        if (StringUtils.hasText(candidate)) {
+            return candidate;
+        }
+        String suffix = phone.length() >= 4 ? phone.substring(phone.length() - 4) : phone;
+        return "微信用户" + suffix;
+    }
+
+    private LoginResponse buildLoginResponse(User user, String sessionId) {
+        LoginResponse response = new LoginResponse();
+        response.setSessionId(sessionId);
+        response.setToken(sessionId);
+        response.setTokenType("Bearer");
+        response.setUserId(user.getId());
+        response.setUsername(user.getUsername());
+        response.setNickname(user.getNickname());
+        response.setPhone(user.getPhone());
+        response.setEmail(user.getEmail());
+        return response;
     }
     
     /**
