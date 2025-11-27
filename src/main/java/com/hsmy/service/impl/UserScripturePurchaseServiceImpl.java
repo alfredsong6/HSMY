@@ -5,6 +5,7 @@ import com.hsmy.entity.Scripture;
 import com.hsmy.entity.UserScripturePurchase;
 import com.hsmy.entity.UserStats;
 import com.hsmy.entity.meditation.MeritCoinTransaction;
+import com.hsmy.enums.MeritBizType;
 import com.hsmy.exception.BusinessException;
 import com.hsmy.mapper.ScriptureMapper;
 import com.hsmy.mapper.UserScripturePurchaseMapper;
@@ -35,10 +36,6 @@ public class UserScripturePurchaseServiceImpl implements UserScripturePurchaseSe
     private final ScriptureMapper scriptureMapper;
     private final UserStatsMapper userStatsMapper;
     private final MeritCoinTransactionMapper meritCoinTransactionMapper;
-
-    private static final String BIZ_TYPE_SUBSCRIBE = "SCRIPTURE_SUBSCRIBE";
-    private static final String BIZ_TYPE_PERMANENT = "SCRIPTURE_PERMANENT";
-    private static final String BIZ_TYPE_RENEW = "SCRIPTURE_RENEW";
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -79,7 +76,7 @@ public class UserScripturePurchaseServiceImpl implements UserScripturePurchaseSe
         }
 
         scriptureMapper.increasePurchaseCount(scriptureId);
-        recordMeritCoinTransaction(userId, purchase.getId(), BIZ_TYPE_SUBSCRIBE,
+        recordMeritCoinTransaction(userId, purchase.getId(), MeritBizType.SCRIPTURE_SUBSCRIBE,
                 String.format("订阅典籍-%s", scripture.getScriptureName()), totalAmount, balanceAfter);
         return true;
     }
@@ -120,7 +117,7 @@ public class UserScripturePurchaseServiceImpl implements UserScripturePurchaseSe
         }
 
         scriptureMapper.increasePurchaseCount(scriptureId);
-        recordMeritCoinTransaction(userId, purchase.getId(), BIZ_TYPE_PERMANENT,
+        recordMeritCoinTransaction(userId, purchase.getId(), MeritBizType.SCRIPTURE_PERMANENT,
                 String.format("买断典籍-%s", scripture.getScriptureName()), permanentPrice, balanceAfter);
         return true;
     }
@@ -252,7 +249,7 @@ public class UserScripturePurchaseServiceImpl implements UserScripturePurchaseSe
         if (result <= 0) {
             throw new BusinessException("续费失败，请稍后再试");
         }
-        recordMeritCoinTransaction(userId, purchase.getId(), BIZ_TYPE_RENEW,
+        recordMeritCoinTransaction(userId, purchase.getId(), MeritBizType.SCRIPTURE_RENEW,
                 String.format("续费典籍-%s", scripture.getScriptureName()), totalAmount, balanceAfter);
         return true;
     }
@@ -334,11 +331,11 @@ public class UserScripturePurchaseServiceImpl implements UserScripturePurchaseSe
         }
     }
 
-    private void recordMeritCoinTransaction(Long userId, Long purchaseId, String bizType,
+    private void recordMeritCoinTransaction(Long userId, Long purchaseId, MeritBizType bizType,
                                             String remark, int amount, long balanceAfter) {
         MeritCoinTransaction tx = new MeritCoinTransaction();
         tx.setUserId(userId);
-        tx.setBizType(bizType);
+        tx.setBizType(bizType.getCode());
         tx.setBizId(purchaseId);
         tx.setChangeAmount(-amount);
         tx.setBalanceAfter(Math.toIntExact(balanceAfter));

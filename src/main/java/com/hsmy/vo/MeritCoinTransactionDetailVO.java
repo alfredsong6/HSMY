@@ -27,6 +27,6 @@ public class MeritCoinTransactionDetailVO implements Serializable {
         private String title;
         private String description;
         private String extraInfo;
+        private String itemName;
     }
 }
-

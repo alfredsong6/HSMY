@@ -13,9 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * 商城Controller
@@ -90,25 +88,13 @@ public class ShopController {
      * @return 购买结果
      */
     @PostMapping("/purchase")
-    public Result<Map<String, Object>> purchaseItem(@RequestParam Long itemId,
-                                                   @RequestParam(defaultValue = "1") Integer quantity,
-                                                   HttpServletRequest request) {
+    public Result<UserItemPurchaseResult> purchaseItem(@RequestParam Long itemId,
+                                                       @RequestParam(defaultValue = "1") Integer quantity,
+                                                       HttpServletRequest request) {
         try {
             Long userId = UserContextUtil.requireCurrentUserId();
             UserItemPurchaseResult purchaseResult = userItemService.purchaseItem(userId, itemId, quantity);
-            Map<String, Object> payload = new HashMap<>();
-            payload.put("success", true);
-            payload.put("orderNo", purchaseResult.getOrderNo());
-            payload.put("itemId", purchaseResult.getItemId());
-            payload.put("itemName", purchaseResult.getItemName());
-            payload.put("quantity", purchaseResult.getQuantity());
-            payload.put("totalPrice", purchaseResult.getTotalPrice());
-            payload.put("remainingCoins", purchaseResult.getRemainingCoins());
-            payload.put("expireTime", purchaseResult.getExpireTime());
-            payload.put("usageMode", purchaseResult.getUsageMode());
-            payload.put("remainingUses", purchaseResult.getRemainingUses());
-            payload.put("stackCount", purchaseResult.getStackCount());
-            return Result.success("购买成功", payload);
+            return Result.success("购买成功", purchaseResult);
         } catch (BusinessException e) {
             return Result.error(e.getMessage());
         } catch (Exception e) {

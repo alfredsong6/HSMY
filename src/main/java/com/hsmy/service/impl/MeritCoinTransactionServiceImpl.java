@@ -7,6 +7,7 @@ import com.hsmy.entity.Scripture;
 import com.hsmy.entity.UserScripturePurchase;
 import com.hsmy.entity.UserItem;
 import com.hsmy.entity.meditation.MeritCoinTransaction;
+import com.hsmy.enums.MeritBizType;
 import com.hsmy.mapper.ItemMapper;
 import com.hsmy.mapper.RechargeOrderMapper;
 import com.hsmy.mapper.ScriptureMapper;
@@ -28,13 +29,6 @@ import java.util.Objects;
 @Service
 @RequiredArgsConstructor
 public class MeritCoinTransactionServiceImpl implements MeritCoinTransactionService {
-
-    private static final String BIZ_TYPE_RECHARGE_PURCHASE = "RECHARGE_PURCHASE";
-    private static final String BIZ_TYPE_RECHARGE_BONUS = "RECHARGE_BONUS";
-    private static final String BIZ_TYPE_ITEM_PURCHASE = "ITEM_PURCHASE";
-    private static final String BIZ_TYPE_SCRIPTURE_SUBSCRIBE = "SCRIPTURE_SUBSCRIBE";
-    private static final String BIZ_TYPE_SCRIPTURE_PERMANENT = "SCRIPTURE_PERMANENT";
-    private static final String BIZ_TYPE_SCRIPTURE_RENEW = "SCRIPTURE_RENEW";
 
     private final MeritCoinTransactionMapper transactionMapper;
     private final RechargeOrderMapper rechargeOrderMapper;
@@ -95,16 +89,21 @@ public class MeritCoinTransactionServiceImpl implements MeritCoinTransactionServ
     }
 
     private MeritCoinTransactionDetailVO.Detail resolveDetail(MeritCoinTransaction tx) {
-        String bizType = tx.getBizType();
-        if (Objects.equals(bizType, BIZ_TYPE_RECHARGE_PURCHASE) || Objects.equals(bizType, BIZ_TYPE_RECHARGE_BONUS)) {
+        MeritBizType bizType;
+        try {
+            bizType = MeritBizType.fromCode(tx.getBizType());
+        } catch (IllegalArgumentException e) {
+            bizType = null;
+        }
+        if (bizType == MeritBizType.RECHARGE_PURCHASE || bizType == MeritBizType.RECHARGE_BONUS) {
             return buildRechargeDetail(tx);
         }
-        if (Objects.equals(bizType, BIZ_TYPE_ITEM_PURCHASE)) {
+        if (bizType == MeritBizType.ITEM_PURCHASE) {
             return buildItemDetail(tx);
         }
-        if (Objects.equals(bizType, BIZ_TYPE_SCRIPTURE_SUBSCRIBE)
-                || Objects.equals(bizType, BIZ_TYPE_SCRIPTURE_PERMANENT)
-                || Objects.equals(bizType, BIZ_TYPE_SCRIPTURE_RENEW)) {
+        if (bizType == MeritBizType.SCRIPTURE_SUBSCRIBE
+                || bizType == MeritBizType.SCRIPTURE_PERMANENT
+                || bizType == MeritBizType.SCRIPTURE_RENEW) {
             return buildScriptureDetail(tx);
         }
         MeritCoinTransactionDetailVO.Detail detail = new MeritCoinTransactionDetailVO.Detail();
@@ -131,18 +130,27 @@ public class MeritCoinTransactionServiceImpl implements MeritCoinTransactionServ
 
     private MeritCoinTransactionDetailVO.Detail buildItemDetail(MeritCoinTransaction tx) {
         MeritCoinTransactionDetailVO.Detail detail = new MeritCoinTransactionDetailVO.Detail();
+        Item item = itemMapper.selectById(tx.getBizId());
+        if (item != null) {
+            detail.setTitle("购买道具");
+            detail.setItemName(item.getItemName());
+            detail.setDescription("道具：" + item.getItemName());
+            detail.setExtraInfo("购入价格：" + item.getPrice());
+            return detail;
+        }
         UserItem userItem = userItemMapper.selectById(tx.getBizId());
         if (userItem != null) {
-            Item item = itemMapper.selectById(userItem.getItemId());
+            Item fallbackItem = itemMapper.selectById(userItem.getItemId());
+            String itemName = fallbackItem != null ? fallbackItem.getItemName() : String.valueOf(userItem.getItemId());
             detail.setTitle("购买道具");
-            String itemName = item != null ? item.getItemName() : String.valueOf(userItem.getItemId());
+            detail.setItemName(itemName);
             detail.setDescription("道具：" + itemName);
             detail.setExtraInfo("购入价格：" + userItem.getPurchasePrice());
-        } else {
-            detail.setTitle("购买道具");
-            detail.setDescription("道具信息已失效");
-            detail.setExtraInfo("");
+            return detail;
         }
+        detail.setTitle("购买道具");
+        detail.setDescription("道具信息已失效");
+        detail.setExtraInfo("");
         return detail;
     }
 

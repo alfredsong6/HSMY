@@ -6,6 +6,7 @@ import com.hsmy.entity.UserItem;
 import com.hsmy.entity.UserStats;
 import com.hsmy.entity.meditation.MeritCoinTransaction;
 import com.hsmy.enums.ItemUsageModeEnum;
+import com.hsmy.enums.MeritBizType;
 import com.hsmy.enums.UserItemSourceEnum;
 import com.hsmy.enums.UserItemUsageStatusEnum;
 import com.hsmy.exception.BusinessException;
@@ -41,8 +42,6 @@ public class UserItemServiceImpl implements UserItemService {
     private final PurchaseRecordService purchaseRecordService;
     private final MeritCoinTransactionMapper meritCoinTransactionMapper;
 
-    private static final String BIZ_TYPE_ITEM_PURCHASE = "ITEM_PURCHASE";
-    
     @Override
     public List<UserItem> getUserItemsByUserId(Long userId) {
         return userItemMapper.selectByUserId(userId);
@@ -185,7 +184,7 @@ public class UserItemServiceImpl implements UserItemService {
     private void recordMeritCoinTransaction(Long userId, Long userItemId, String itemName, int totalPrice, long balanceAfter) {
         MeritCoinTransaction tx = new MeritCoinTransaction();
         tx.setUserId(userId);
-        tx.setBizType(BIZ_TYPE_ITEM_PURCHASE);
+        tx.setBizType(MeritBizType.ITEM_PURCHASE.getCode());
         tx.setBizId(userItemId);
         tx.setChangeAmount(-totalPrice);
         tx.setBalanceAfter(Math.toIntExact(balanceAfter));

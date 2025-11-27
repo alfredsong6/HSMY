@@ -16,6 +16,7 @@ import com.hsmy.mapper.RechargeOrderMapper;
 import com.hsmy.mapper.UserStatsMapper;
 import com.hsmy.mapper.meditation.MeritCoinTransactionMapper;
 import com.hsmy.enums.AuthProvider;
+import com.hsmy.enums.MeritBizType;
 import com.hsmy.service.AuthIdentityService;
 import com.hsmy.service.PaymentService;
 import com.hsmy.service.wechat.WechatPayClient;
@@ -58,8 +59,8 @@ public class PaymentServiceImpl implements PaymentService {
     private static final int STATUS_FAILED = 2;
     private static final int STATUS_REFUND = 3;
     private static final AuthProvider PROVIDER_WECHAT_MINI = AuthProvider.WECHAT_MINI;
-    private static final String BIZ_TYPE_RECHARGE_PURCHASE = "RECHARGE_PURCHASE";
-    private static final String BIZ_TYPE_RECHARGE_BONUS = "RECHARGE_BONUS";
+    private static final MeritBizType BIZ_TYPE_RECHARGE_PURCHASE = MeritBizType.RECHARGE_PURCHASE;
+    private static final MeritBizType BIZ_TYPE_RECHARGE_BONUS = MeritBizType.RECHARGE_BONUS;
     private static final String INVALID_PRODUCT_MESSAGE = "商品信息已失效，请重新刷新页面";
 
     private final ActivityMapper activityMapper;
@@ -319,10 +320,10 @@ public class PaymentServiceImpl implements PaymentService {
         }
     }
 
-    private boolean existsTransaction(Long orderId, String bizType) {
+    private boolean existsTransaction(Long orderId, MeritBizType bizType) {
         LambdaQueryWrapper<MeritCoinTransaction> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(MeritCoinTransaction::getBizId, orderId)
-                .eq(MeritCoinTransaction::getBizType, bizType);
+                .eq(MeritCoinTransaction::getBizType, bizType.getCode());
         return meritCoinTransactionMapper.selectCount(wrapper) > 0;
     }
 
@@ -340,10 +341,10 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     private void recordTransaction(RechargeOrder order, int changeAmount, long balanceAfter,
-                                   String bizType, String remark) {
+                                   MeritBizType bizType, String remark) {
         MeritCoinTransaction tx = new MeritCoinTransaction();
         tx.setUserId(order.getUserId());
-        tx.setBizType(bizType);
+        tx.setBizType(bizType.getCode());
         tx.setBizId(order.getId());
         tx.setChangeAmount(changeAmount);
         tx.setBalanceAfter(Math.toIntExact(balanceAfter));
