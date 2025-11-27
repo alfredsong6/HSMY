@@ -63,10 +63,10 @@ public class DailyWishRecordController {
      * @return 当天愿望记录
      */
     @GetMapping("/today")
-    public Result<List<DailyWishRecordVO>> listTodayDailyWishes() {
+    public Result<DailyWishRecordVO> getTodayDailyWish() {
         Long userId = UserContextUtil.requireCurrentUserId();
-        List<DailyWishRecordVO> records = dailyWishRecordService.listTodayDailyWishes(userId);
-        return Result.success(records);
+        DailyWishRecordVO record = dailyWishRecordService.getTodayDailyWish(userId);
+        return Result.success(record);
     }
 
     /**

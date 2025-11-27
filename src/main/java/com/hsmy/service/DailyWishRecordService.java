@@ -33,9 +33,9 @@ public interface DailyWishRecordService {
      * 查询用户当天愿望记录
      *
      * @param userId 用户ID
-     * @return 当天愿望记录列表
+     * @return 当天愿望记录（单条）
      */
-    List<DailyWishRecordVO> listTodayDailyWishes(Long userId);
+    DailyWishRecordVO getTodayDailyWish(Long userId);
 
     /**
      * 查询用户最近一次愿望记录

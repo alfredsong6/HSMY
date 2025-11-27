@@ -47,12 +47,15 @@ public class DailyWishRecordServiceImpl implements DailyWishRecordService {
     }
 
     @Override
-    public List<DailyWishRecordVO> listTodayDailyWishes(Long userId) {
+    public DailyWishRecordVO getTodayDailyWish(Long userId) {
         LocalDate today = LocalDate.now();
         LocalDateTime startTime = today.atStartOfDay();
         LocalDateTime endTime = startTime.plusDays(1);
         List<DailyWishRecord> records = dailyWishRecordMapper.selectByUserIdAndTimeRange(userId, startTime, endTime);
-        return convertToList(records);
+        if (records == null || records.isEmpty()) {
+            return null;
+        }
+        return convertToVO(records.get(0));
     }
 
     @Override
