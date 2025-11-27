@@ -1,4 +1,4 @@
-package com.hsmy.config.mock;
+package com.hsmy.controller.mock;
 
 import com.hsmy.service.wechat.WechatPayClient;
 import com.wechat.pay.java.service.payments.jsapi.model.PrepayRequest;

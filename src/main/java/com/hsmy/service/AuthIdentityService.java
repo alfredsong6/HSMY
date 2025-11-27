@@ -1,8 +1,10 @@
 package com.hsmy.service;
 
 import com.hsmy.domain.auth.AuthIdentity;
+import com.hsmy.enums.AuthProvider;
 
 import java.util.Date;
+import java.util.List;
 
 /**
  * 登录身份 service.
@@ -12,23 +14,33 @@ public interface AuthIdentityService {
     /**
      * 根据 openId 查询身份.
      */
-    AuthIdentity getByOpenId(String provider, String appidOrClientId, String openId);
+    AuthIdentity getByOpenId(AuthProvider provider, String appidOrClientId, String openId);
 
     /**
      * 根据 unionId 查询身份.
      */
-    AuthIdentity getByUnionId(String provider, String unionId);
+    AuthIdentity getByUnionId(AuthProvider provider, String unionId);
+
+    /**
+     * 根据 provider + userId 查询身份.
+     */
+    AuthIdentity getByProviderAndUserId(AuthProvider provider, Long userId);
 
     /**
      * 根据手机号查询身份.
      */
-    AuthIdentity getByPhone(String provider, String phone);
+    AuthIdentity getByPhone(AuthProvider provider, String phone);
+
+    /**
+     * 根据 userId 查询全部身份.
+     */
+    List<AuthIdentity> listByUserId(Long userId);
 
     /**
      * 创建身份记录.
      */
     AuthIdentity createIdentity(Long userId,
-                                String provider,
+                                AuthProvider provider,
                                 String appidOrClientId,
                                 String openId,
                                 String unionId,

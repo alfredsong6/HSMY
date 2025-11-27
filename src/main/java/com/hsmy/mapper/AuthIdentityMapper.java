@@ -6,6 +6,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.Date;
+import java.util.List;
 
 /**
  * 登录身份表 Mapper.
@@ -27,10 +28,21 @@ public interface AuthIdentityMapper extends BaseMapper<AuthIdentity> {
                                  @Param("unionId") String unionId);
 
     /**
+     * 根据 provider + userId 查询.
+     */
+    AuthIdentity selectByProviderAndUserId(@Param("provider") String provider,
+                                           @Param("userId") Long userId);
+
+    /**
      * 根据 provider + phone 查询.
      */
     AuthIdentity selectByPhone(@Param("provider") String provider,
                                @Param("phone") String phone);
+
+    /**
+     * 根据 userId 查询全部身份.
+     */
+    List<AuthIdentity> selectByUserId(@Param("userId") Long userId);
 
     /**
      * 更新登录元信息.

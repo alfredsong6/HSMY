@@ -3,14 +3,20 @@ package com.hsmy.service.impl;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.hsmy.config.WechatPayProperties;
+import com.hsmy.domain.activity.ActivityDomain;
+import com.hsmy.domain.activity.ActivityRule;
+import com.hsmy.domain.auth.AuthIdentity;
 import com.hsmy.dto.WechatPayPrepayRequest;
 import com.hsmy.entity.RechargeOrder;
 import com.hsmy.entity.UserStats;
 import com.hsmy.entity.meditation.MeritCoinTransaction;
 import com.hsmy.exception.BusinessException;
+import com.hsmy.mapper.ActivityMapper;
 import com.hsmy.mapper.RechargeOrderMapper;
 import com.hsmy.mapper.UserStatsMapper;
 import com.hsmy.mapper.meditation.MeritCoinTransactionMapper;
+import com.hsmy.enums.AuthProvider;
+import com.hsmy.service.AuthIdentityService;
 import com.hsmy.service.PaymentService;
 import com.hsmy.service.wechat.WechatPayClient;
 import com.hsmy.utils.IdGenerator;
@@ -51,9 +57,12 @@ public class PaymentServiceImpl implements PaymentService {
     private static final int STATUS_SUCCESS = 1;
     private static final int STATUS_FAILED = 2;
     private static final int STATUS_REFUND = 3;
+    private static final AuthProvider PROVIDER_WECHAT_MINI = AuthProvider.WECHAT_MINI;
     private static final String BIZ_TYPE_RECHARGE_PURCHASE = "RECHARGE_PURCHASE";
     private static final String BIZ_TYPE_RECHARGE_BONUS = "RECHARGE_BONUS";
+    private static final String INVALID_PRODUCT_MESSAGE = "商品信息已失效，请重新刷新页面";
 
+    private final ActivityMapper activityMapper;
     private final WechatPayProperties wechatPayProperties;
     private final RechargeOrderMapper rechargeOrderMapper;
     private final UserStatsMapper userStatsMapper;
@@ -62,6 +71,7 @@ public class PaymentServiceImpl implements PaymentService {
     private final WechatPayClient wechatPayClient;
     private final ObjectProvider<com.wechat.pay.java.service.payments.jsapi.JsapiServiceExtension> jsapiServiceProvider;
     private final ObjectProvider<NotificationParser> notificationParserProvider;
+    private final AuthIdentityService authIdentityService;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -71,6 +81,12 @@ public class PaymentServiceImpl implements PaymentService {
 //        }
         if (userId == null) {
             throw new BusinessException("用户未登录");
+        }
+        validateProduct(request);
+        AuthIdentity identity = authIdentityService.getByProviderAndUserId(PROVIDER_WECHAT_MINI, userId);
+        if (identity == null || !Objects.equals(identity.getUserId(), userId)) {
+            log.error("微信身份验证失败，userId={}, provider={}, openId={}", userId, PROVIDER_WECHAT_MINI, request.getPayerOpenId());
+            throw new BusinessException("未找到对应的微信身份，请重新登录");
         }
         BigDecimal amount = request.getAmount();
         if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
@@ -339,6 +355,30 @@ public class PaymentServiceImpl implements PaymentService {
         return amount.multiply(BigDecimal.valueOf(100))
                 .setScale(0, RoundingMode.HALF_UP)
                 .intValueExact();
+    }
+
+    private void validateProduct(WechatPayPrepayRequest request) {
+        Long productId = request.getProductId();
+        if (productId == null) {
+            throw new BusinessException(INVALID_PRODUCT_MESSAGE);
+        }
+        ActivityDomain activity = activityMapper.selectById(productId);
+        if (activity == null || activity.getRules() == null) {
+            throw new BusinessException(INVALID_PRODUCT_MESSAGE);
+        }
+        ActivityRule rule = activity.getRules();
+        if (rule.getAmount() == null || request.getAmount() == null ||
+                rule.getAmount().compareTo(request.getAmount()) != 0) {
+            throw new BusinessException(INVALID_PRODUCT_MESSAGE);
+        }
+        BigDecimal requestMeritCoins = BigDecimal.valueOf(request.getMeritCoins() == null ? 0 : request.getMeritCoins());
+        BigDecimal requestBonusCoins = BigDecimal.valueOf(request.getBonusCoins() == null ? 0 : request.getBonusCoins());
+        if (rule.getGive() == null || rule.getGive().compareTo(requestMeritCoins) != 0) {
+            throw new BusinessException(INVALID_PRODUCT_MESSAGE);
+        }
+        if (rule.getGift() == null || rule.getGift().compareTo(requestBonusCoins) != 0) {
+            throw new BusinessException(INVALID_PRODUCT_MESSAGE);
+        }
     }
 
     private Date convertToDate(String successTime) {

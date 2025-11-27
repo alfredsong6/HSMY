@@ -47,6 +47,16 @@
         LIMIT 1
     </select>
 
+    <select id="selectByProviderAndUserId" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM t_auth_identity
+        WHERE provider = #{provider}
+          AND user_id = #{userId}
+          AND is_deleted = 0
+        LIMIT 1
+    </select>
+
     <select id="selectByPhone" resultMap="BaseResultMap">
         SELECT
         <include refid="Base_Column_List"/>
@@ -55,6 +65,14 @@
           AND phone = #{phone}
           AND is_deleted = 0
         LIMIT 1
+    </select>
+
+    <select id="selectByUserId" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM t_auth_identity
+        WHERE user_id = #{userId}
+          AND is_deleted = 0
     </select>
 
     <update id="touchLogin">

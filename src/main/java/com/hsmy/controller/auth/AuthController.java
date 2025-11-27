@@ -7,6 +7,7 @@ import com.hsmy.domain.auth.AuthIdentity;
 import com.hsmy.dto.*;
 import com.hsmy.entity.User;
 import com.hsmy.enums.AccountType;
+import com.hsmy.enums.AuthProvider;
 import com.hsmy.enums.BusinessType;
 import com.hsmy.exception.BusinessException;
 import com.hsmy.interceptor.LoginInterceptor;
@@ -46,8 +47,8 @@ public class AuthController {
     private final AuthTokenService authTokenService;
     private final WechatMiniAuthService wechatMiniAuthService;
 
-    private static final String PROVIDER_WECHAT_MINI = "wechat_mini";
-    private static final String PROVIDER_SMS = "sms";
+    private static final AuthProvider PROVIDER_WECHAT_MINI = AuthProvider.WECHAT_MINI;
+    private static final AuthProvider PROVIDER_SMS = AuthProvider.SMS;
     private static final String CLIENT_MINIAPP = "miniapp";
     private static final String CLIENT_APP = "app";
     private static final long TOKEN_EXPIRE_SECONDS = TimeUnit.DAYS.toSeconds(7);

@@ -1,4 +1,4 @@
-package com.hsmy.config.mock;
+package com.hsmy.controller.mock;
 
 import cn.hutool.json.JSONUtil;
 import com.wechat.pay.java.core.cipher.AeadCipher;

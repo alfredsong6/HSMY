@@ -3,7 +3,6 @@ package com.hsmy.dto;
 import lombok.Data;
 
 import javax.validation.constraints.DecimalMin;
-import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 
@@ -12,6 +11,12 @@ import java.math.BigDecimal;
  */
 @Data
 public class WechatPayPrepayRequest {
+
+    /**
+     * 商品ID（关联活动ID）
+     */
+    @NotNull(message = "商品ID不能为空")
+    private Long productId;
 
     /**
      * 充值金额（单位：元）
@@ -38,7 +43,7 @@ public class WechatPayPrepayRequest {
     /**
      * JSAPI 支付需提供用户 openid
      */
-    @NotBlank(message = "微信 openId 不能为空")
+    //@NotBlank(message = "微信 openId 不能为空")
     private String payerOpenId;
 
     /**

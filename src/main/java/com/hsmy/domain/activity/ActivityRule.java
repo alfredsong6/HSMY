@@ -14,10 +14,15 @@ public class ActivityRule {
     /**
      * 充值金额.
      */
-    private BigDecimal price;
+    private BigDecimal amount;
 
     /**
-     * 赠送的功德币数量.
+     * 充值赠送功德币数量.
+     */
+    private BigDecimal gift;
+
+    /**
+     * 获得功德币数量.
      */
     private BigDecimal give;
 
