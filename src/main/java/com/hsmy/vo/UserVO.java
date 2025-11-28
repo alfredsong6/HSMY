@@ -105,7 +105,12 @@ public class UserVO implements Serializable {
      * 当前等级
      */
     private Integer currentLevel;
-    
+
+    /**
+     * 今日愿望是否已完成
+     */
+    private Boolean dailyWishCompleted;
+
     /**
      * Token（登录成功后返回）
      */

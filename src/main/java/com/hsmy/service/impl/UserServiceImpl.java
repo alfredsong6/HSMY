@@ -6,10 +6,12 @@ import cn.hutool.crypto.SecureUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.hsmy.dto.RegisterByCodeRequest;
+import com.hsmy.entity.DailyWishRecord;
 import com.hsmy.entity.User;
 import com.hsmy.entity.UserStats;
 import com.hsmy.enums.AccountType;
 import com.hsmy.exception.BusinessException;
+import com.hsmy.mapper.DailyWishRecordMapper;
 import com.hsmy.mapper.UserMapper;
 import com.hsmy.mapper.UserStatsMapper;
 import com.hsmy.service.UserService;
@@ -26,7 +28,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.DigestUtils;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Date;
+import java.util.List;
 import java.util.Random;
 
 /**
@@ -41,6 +46,7 @@ public class UserServiceImpl implements UserService {
     
     private final UserMapper userMapper;
     private final UserStatsMapper userStatsMapper;
+    private final DailyWishRecordMapper dailyWishRecordMapper;
     private final VerificationCodeService verificationCodeService;
     private final UserSettingService userSettingService;
     
@@ -158,7 +164,13 @@ public class UserServiceImpl implements UserService {
             userVO.setMeritCoins(userStats.getMeritCoins());
             userVO.setCurrentLevel(userStats.getCurrentLevel());
         }
-        
+
+        // 今日愿望记录完成标识
+        LocalDateTime startOfToday = LocalDate.now().atStartOfDay();
+        LocalDateTime endOfToday = startOfToday.plusDays(1);
+        List<DailyWishRecord> todayRecords = dailyWishRecordMapper.selectByUserIdAndTimeRange(userId, startOfToday, endOfToday);
+        userVO.setDailyWishCompleted(todayRecords != null && !todayRecords.isEmpty());
+
         return userVO;
     }
     
