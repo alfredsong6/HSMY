@@ -24,10 +24,12 @@ public class KnockVO implements Serializable {
     //@NotNull(message = "用户ID不能为空")
     private Long userId;
 
+    private String requestId;
+
     /**
      * 敲击次数
      */
-    private Integer knockCount = 1;
+    private Integer knockCount;
 
     /**
      * 敲击类型: 1-普通敲击, 2-连击敲击

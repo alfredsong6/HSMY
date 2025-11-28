@@ -1,6 +1,7 @@
 package com.hsmy.controller.knock;
 
 import com.hsmy.common.Result;
+import com.hsmy.exception.BusinessException;
 import com.hsmy.service.KnockService;
 import com.hsmy.utils.UserContextUtil;
 import com.hsmy.vo.AutoKnockHeartbeatVO;
@@ -41,20 +42,19 @@ public class KnockController {
      */
     @PostMapping("/manual")
     public Result<Map<String, Object>> manualKnock(@Validated @RequestBody KnockVO knockVO, HttpServletRequest request) {
-        try {
-            // 获取用户ID
-            Long userId = UserContextUtil.requireCurrentUserId();
-            knockVO.setUserId(userId);
-            knockVO.setKnockMode("MANUAL");
-
-            // 调用服务层处理业务逻辑
-            Map<String, Object> result = knockService.manualKnock(knockVO);
-
-            return Result.success("敲击成功", result);
-        } catch (Exception e) {
-            log.error("手动敲击失败", e);
-            return Result.error("敲击失败：" + e.getMessage());
+        if (knockVO == null || knockVO.getRequestId() == null) {
+            throw new BusinessException("参数错误");
         }
+        // 获取用户ID
+        Long userId = UserContextUtil.requireCurrentUserId();
+        knockVO.setUserId(userId);
+        knockVO.setSessionId(knockVO.getRequestId());
+        knockVO.setKnockMode("MANUAL");
+
+        // 调用服务层处理业务逻辑
+        knockService.manualKnock(knockVO);
+
+        return Result.success();
     }
 
     /**

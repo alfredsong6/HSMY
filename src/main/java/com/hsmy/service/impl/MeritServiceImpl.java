@@ -21,6 +21,7 @@ import com.hsmy.vo.KnockVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -90,35 +91,40 @@ public class MeritServiceImpl implements MeritService {
         long knockCountLong = knockCount;
         long totalMeritLong = totalMerit;
 
-        if ("manual".equals(knockType)) {
-            LambdaQueryWrapper<MeritRecord> wrapper = new LambdaQueryWrapper<>();
-            wrapper.eq(MeritRecord::getUserId, knockVO.getUserId())
-                   .eq(MeritRecord::getKnockType, knockType)
-                   .eq(MeritRecord::getSource, "knock")
-                   .ge(MeritRecord::getCreateTime, hourStart)
-                   .le(MeritRecord::getCreateTime, hourEnd);
-
-            MeritRecord existingRecord = meritRecordMapper.selectOne(wrapper);
-            if (existingRecord != null) {
-                int newTotalMerit = existingRecord.getMeritGained() + totalMerit;
-                int existingBase = existingRecord.getBaseMerit() != null ? existingRecord.getBaseMerit() : 0;
-
-                existingRecord.setMeritGained(newTotalMerit);
-                existingRecord.setBaseMerit(existingBase + baseMerit);
-                existingRecord.setBonusRate(bonusRate);
-                existingRecord.setPropSnapshot(knockVO.getPropSnapshot());
-                existingRecord.setKnockMode(knockMode);
-                existingRecord.setStatDate(statDate);
-                existingRecord.setDescription("手动敲击获得功德(本小时累计功德: " + newTotalMerit + ")");
-
-                meritRecordMapper.updateById(existingRecord);
-
-                userStatsMapper.updateKnockStats(knockVO.getUserId(), knockCountLong, totalMeritLong);
-                userPeriodStatsService.recordKnock(knockVO.getUserId(), knockCountLong, totalMeritLong,
-                        knockVO.getComboCount() != null ? knockVO.getComboCount() : 0, knockTime);
-                return totalMerit;
-            }
+        if (existsBySessionId(knockVO.getSessionId())) {
+            return 0;
         }
+
+
+//        if ("manual".equals(knockType)) {
+//            LambdaQueryWrapper<MeritRecord> wrapper = new LambdaQueryWrapper<>();
+//            wrapper.eq(MeritRecord::getUserId, knockVO.getUserId())
+//                   .eq(MeritRecord::getKnockType, knockType)
+//                   .eq(MeritRecord::getSource, "knock")
+//                   .ge(MeritRecord::getCreateTime, hourStart)
+//                   .le(MeritRecord::getCreateTime, hourEnd);
+//
+//            MeritRecord existingRecord = meritRecordMapper.selectOne(wrapper);
+//            if (existingRecord != null) {
+//                int newTotalMerit = existingRecord.getMeritGained() + totalMerit;
+//                int existingBase = existingRecord.getBaseMerit() != null ? existingRecord.getBaseMerit() : 0;
+//
+//                existingRecord.setMeritGained(newTotalMerit);
+//                existingRecord.setBaseMerit(existingBase + baseMerit);
+//                existingRecord.setBonusRate(bonusRate);
+//                existingRecord.setPropSnapshot(knockVO.getPropSnapshot());
+//                existingRecord.setKnockMode(knockMode);
+//                existingRecord.setStatDate(statDate);
+//                existingRecord.setDescription("手动敲击获得功德(本小时累计功德: " + newTotalMerit + ")");
+//
+//                meritRecordMapper.updateById(existingRecord);
+//
+//                userStatsMapper.updateKnockStats(knockVO.getUserId(), knockCountLong, totalMeritLong);
+//                userPeriodStatsService.recordKnock(knockVO.getUserId(), knockCountLong, totalMeritLong,
+//                        knockVO.getComboCount() != null ? knockVO.getComboCount() : 0, knockTime);
+//                return totalMerit;
+//            }
+//        }
 
         MeritRecord record = new MeritRecord();
         record.setId(IdGenerator.nextId());
@@ -284,6 +290,16 @@ public class MeritServiceImpl implements MeritService {
             return getTodayMerit(userId);
         }
         return meritRecordMapper.sumMeritByStatDate(userId, statDate);
+    }
+
+    @Override
+    public Boolean existsBySessionId(String sessionId) {
+        if (!StringUtils.hasText(sessionId)) {
+            return false;
+        }
+        LambdaQueryWrapper<MeritRecord> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(MeritRecord::getSessionId, sessionId).last("limit 1");
+        return meritRecordMapper.selectCount(wrapper) > 0;
     }
 
     @Override

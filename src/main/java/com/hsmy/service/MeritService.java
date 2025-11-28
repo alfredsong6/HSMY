@@ -139,4 +139,12 @@ public interface MeritService {
      * @return 功德值
      */
     Long getMeritByStatDate(Long userId, Date statDate);
+
+    /**
+     * 检查指定会话ID的功德记录是否存在
+     *
+     * @param sessionId 会话ID
+     * @return true 表示存在记录
+     */
+    Boolean existsBySessionId(String sessionId);
 }

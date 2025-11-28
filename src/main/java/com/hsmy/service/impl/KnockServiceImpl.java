@@ -4,26 +4,22 @@ import cn.hutool.core.util.IdUtil;
 import com.hsmy.entity.AutoKnockSession;
 import com.hsmy.entity.UserPeriodStats;
 import com.hsmy.entity.UserStats;
-import com.hsmy.exception.BusinessException;
 import com.hsmy.enums.PeriodType;
+import com.hsmy.exception.BusinessException;
 import com.hsmy.mapper.UserStatsMapper;
-import com.hsmy.service.AchievementService;
-import com.hsmy.service.KnockService;
-import com.hsmy.service.MeritService;
-import com.hsmy.service.UserPeriodStatsService;
-import com.hsmy.service.TaskService;
+import com.hsmy.service.*;
+import com.hsmy.utils.UserLockManager;
 import com.hsmy.vo.AutoKnockHeartbeatVO;
 import com.hsmy.vo.AutoKnockStartVO;
 import com.hsmy.vo.AutoKnockStopVO;
 import com.hsmy.vo.KnockVO;
 import com.hsmy.websocket.KnockRealtimeNotifier;
-import com.hsmy.utils.UserLockManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -99,18 +95,22 @@ public class KnockServiceImpl implements KnockService {
         } else {
             knockVO.setKnockMode(knockVO.getKnockMode().toUpperCase(Locale.ROOT));
         }
-        if (knockVO.getLimitType() != null) {
-            knockVO.setLimitType(knockVO.getLimitType().toUpperCase(Locale.ROOT));
-        }
-        if (knockVO.getKnockCount() == null || knockVO.getKnockCount() <= 0) {
-            knockVO.setKnockCount(1);
-        }
+//        if (knockVO.getLimitType() != null) {
+//            knockVO.setLimitType(knockVO.getLimitType().toUpperCase(Locale.ROOT));
+//        }
+//        if (knockVO.getKnockCount() == null || knockVO.getKnockCount() <= 0) {
+//            knockVO.setKnockCount(1);
+//        }
         if (knockVO.getMeritValue() == null || knockVO.getMeritValue() <= 0) {
             knockVO.setMeritValue(BASE_MERIT_PER_KNOCK);
         }
 
         // 2. 计算功德值收益
         Integer meritGained = meritService.manualKnock(knockVO);
+
+        if (meritGained <= 0) {
+            return null;
+        }
 
         // 3. 记录敲击日志
         log.info("用户 {} 手动敲击，获得功德值：{}, 连击数：{}",
@@ -120,25 +120,25 @@ public class KnockServiceImpl implements KnockService {
         checkAchievementAndTaskProgress(userId, knockVO.getKnockCount(), meritGained);
 
         // 5. 获取更新后的用户统计
-        UserStats userStats = userStatsMapper.selectByUserId(userId);
-        Map<PeriodType, UserPeriodStats> periodStats = userPeriodStatsService.loadCurrentPeriods(userId, new Date());
-        UserPeriodStats dayStats = periodStats.get(PeriodType.DAY);
+        //UserStats userStats = userStatsMapper.selectByUserId(userId);
+        //Map<PeriodType, UserPeriodStats> periodStats = userPeriodStatsService.loadCurrentPeriods(userId, new Date());
+        //UserPeriodStats dayStats = periodStats.get(PeriodType.DAY);
 
         // 6. 构建返回结果
-        Map<String, Object> result = new HashMap<>();
-        result.put("meritGained", meritGained);
-        result.put("totalMerit", userStats.getTotalMerit());
-        result.put("todayMerit", dayStats != null ? dayStats.getMeritGained() : 0L);
-        result.put("totalKnocks", userStats.getTotalKnocks());
-        result.put("todayKnocks", dayStats != null ? dayStats.getKnockCount() : 0L);
-        result.put("comboCount", knockVO.getComboCount() != null ? knockVO.getComboCount() : 0);
-        result.put("maxCombo", userStats.getMaxCombo());
-        result.put("multiplier", knockVO.getMultiplier());
-        result.put("propSnapshot", knockVO.getPropSnapshot());
-        result.put("knockMode", knockVO.getKnockMode());
+//        Map<String, Object> result = new HashMap<>();
+//        result.put("meritGained", meritGained);
+//        result.put("totalMerit", userStats.getTotalMerit());
+//        result.put("todayMerit", dayStats != null ? dayStats.getMeritGained() : 0L);
+//        result.put("totalKnocks", userStats.getTotalKnocks());
+//        result.put("todayKnocks", dayStats != null ? dayStats.getKnockCount() : 0L);
+//        result.put("comboCount", knockVO.getComboCount() != null ? knockVO.getComboCount() : 0);
+//        result.put("maxCombo", userStats.getMaxCombo());
+//        result.put("multiplier", knockVO.getMultiplier());
+//        result.put("propSnapshot", knockVO.getPropSnapshot());
+//        result.put("knockMode", knockVO.getKnockMode());
 
-        knockRealtimeNotifier.notifyManualKnock(userId, result);
-        return result;
+        //knockRealtimeNotifier.notifyManualKnock(userId, result);
+        return null;
     }
 
     @Override
