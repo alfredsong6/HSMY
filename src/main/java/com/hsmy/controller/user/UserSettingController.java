@@ -1,6 +1,7 @@
 package com.hsmy.controller.user;
 
 import com.hsmy.common.Result;
+import com.hsmy.dto.BulletScreenSettingRequest;
 import com.hsmy.entity.UserSetting;
 import com.hsmy.service.UserSettingService;
 import com.hsmy.utils.UserContextUtil;
@@ -175,11 +176,10 @@ public class UserSettingController {
      * @return 更新结果
      */
     @PutMapping("/bullet-screen")
-    public Result<Void> updateBulletScreenSetting(@RequestParam Integer bulletScreen,
-                                                                 HttpServletRequest request) {
+    public Result<Void> updateBulletScreenSetting(@Validated @RequestBody BulletScreenSettingRequest bulletScreenSettingRequest) {
         Long userId = UserContextUtil.requireCurrentUserId();
 
-        userSettingService.updateBulletScreenSetting(userId, bulletScreen);
+        userSettingService.updateBulletScreenSetting(userId, bulletScreenSettingRequest.getBulletScreen());
         return Result.success();
     }
     
