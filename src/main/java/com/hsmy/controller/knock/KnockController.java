@@ -11,7 +11,6 @@ import com.hsmy.vo.KnockVO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -64,7 +63,7 @@ public class KnockController {
      * @param request HTTP请求
      * @return 操作结果
      */
-    @PostMapping("/auto/start")
+    //@PostMapping("/auto/start")
     public Result<Map<String, Object>> startAutoKnock(@Validated @RequestBody AutoKnockStartVO startVO,
                                                       HttpServletRequest request) {
         try {
@@ -88,7 +87,7 @@ public class KnockController {
      * @param request HTTP请求
      * @return 操作结果
      */
-    @PostMapping("/auto/stop")
+    //@PostMapping("/auto/stop")
     public Result<Map<String, Object>> stopAutoKnock(@Validated @RequestBody AutoKnockStopVO stopVO, HttpServletRequest request) {
         try {
             // 获取用户ID
@@ -111,7 +110,7 @@ public class KnockController {
      * @param request HTTP请求
      * @return 操作结果
      */
-    @PostMapping("/auto/heartbeat")
+    //@PostMapping("/auto/heartbeat")
     public Result<Map<String, Object>> autoKnockHeartbeat(@Validated @RequestBody AutoKnockHeartbeatVO heartbeatVO, HttpServletRequest request) {
         try {
             // 获取用户ID
@@ -131,7 +130,7 @@ public class KnockController {
      * 定时检查并自动结算超时的会话
      * 每分钟执行一次，剔除超过1分钟没有心跳的会话
      */
-    @Scheduled(fixedDelay = 60000) // 每1分钟检查一次
+    //@Scheduled(fixedDelay = 60000) // 每1分钟检查一次
     public void checkAndSettleExpiredSessions() {
         knockService.cleanupTimeoutSessions();
     }

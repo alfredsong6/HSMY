@@ -8,6 +8,7 @@ import com.hsmy.entity.meditation.MeditationSession;
 import com.hsmy.entity.meditation.MeditationSubscription;
 import com.hsmy.entity.meditation.MeditationUserPref;
 import com.hsmy.entity.meditation.MeritCoinTransaction;
+import com.hsmy.entity.MeritRecord;
 import com.hsmy.enums.MeditationSessionStatusEnum;
 import com.hsmy.exception.BusinessException;
 import com.hsmy.mapper.UserStatsMapper;
@@ -16,6 +17,8 @@ import com.hsmy.mapper.meditation.MeditationSessionMapper;
 import com.hsmy.mapper.meditation.MeditationSubscriptionMapper;
 import com.hsmy.mapper.meditation.MeditationUserPrefMapper;
 import com.hsmy.mapper.meditation.MeritCoinTransactionMapper;
+import com.hsmy.mapper.MeritRecordMapper;
+import com.hsmy.service.UserPeriodStatsService;
 import com.hsmy.service.MeditationService;
 import com.hsmy.utils.UserLockManager;
 import com.hsmy.vo.meditation.*;
@@ -46,6 +49,8 @@ public class MeditationServiceImpl implements MeditationService {
     private final MeditationSubscriptionMapper meditationSubscriptionMapper;
     private final MeditationUserPrefMapper meditationUserPrefMapper;
     private final MeritCoinTransactionMapper meritCoinTransactionMapper;
+    private final MeritRecordMapper meritRecordMapper;
+    private final UserPeriodStatsService userPeriodStatsService;
     private final UserStatsMapper userStatsMapper;
     private final UserLockManager userLockManager;
 
@@ -254,13 +259,16 @@ public class MeditationServiceImpl implements MeditationService {
         meditationSessionMapper.updateById(session);
 
         MeditationDailyStats todayStats = null;
+        Integer meritGained = null;
         if (finishStatus == MeditationSessionStatusEnum.COMPLETED) {
             todayStats = upsertDailyStats(userId, now, null, null, finishVO.getActualDuration());
+            meritGained = settleMeditationMerit(userId, session, finishVO.getActualDuration(), now);
         }
 
         MeditationSessionFinishResponse response = new MeditationSessionFinishResponse();
         response.setSessionId(session.getSessionId());
         response.setActualDuration(session.getActualDuration());
+        response.setMeritGained(meritGained);
         response.setEndTime(now);
         if (todayStats != null) {
             response.setTodaySessionCount(todayStats.getSessionCount());
@@ -270,6 +278,26 @@ public class MeditationServiceImpl implements MeditationService {
 //        response.setTotalMinutes(secondsToMinutes(meditationSessionMapper.sumTotalDuration(userId)));
         response.setRemainingCoins((int) queryRemainingCoins(userId));
         return response;
+    }
+
+    private int settleMeditationMerit(Long userId, MeditationSession session, Integer actualDuration, Date endTime) {
+        int minutes = secondsToMinutes(actualDuration);
+        if (minutes <= 0) {
+            return 0;
+        }
+        MeritRecord record = new MeritRecord();
+        record.setUserId(userId);
+        record.setMeritGained(minutes);
+        record.setBaseMerit(minutes);
+        record.setSource("meditation");
+        record.setSessionId(session.getSessionId());
+        record.setStatDate(java.sql.Date.valueOf(toLocalDate(endTime)));
+        record.setDescription("冥想完成");
+        meritRecordMapper.insert(record);
+
+        //userPeriodStatsService.recordKnock(userId, 0L, minutes, 0, endTime);
+        userStatsMapper.addMerit(userId, (long) minutes);
+        return minutes;
     }
 
     private MeditationSessionStatusEnum resolveFinishStatus(MeditationSessionFinishVO finishVO) {

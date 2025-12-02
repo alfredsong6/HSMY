@@ -8,6 +8,8 @@ import java.util.Date;
 public class MeditationSessionFinishResponse {
     private String sessionId;
     private Integer actualDuration;
+    /** 冥想获得的功德值 */
+    private Integer meritGained;
     private Integer todaySessionCount;
     private Integer todayTotalMinutes;
     private Integer totalSessionCount;

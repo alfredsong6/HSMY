@@ -33,7 +33,7 @@ public class MeditationController {
         return Result.success(statusVO);
     }
 
-    @PostMapping("/ping")
+    @PostMapping("/session/ping")
     public Result<Boolean> ping(@Valid @RequestBody MeditationSessionPingVO pingVO) {
         Long userId = UserContextUtil.requireCurrentUserId();
         meditationService.pingSession(userId, pingVO);
@@ -61,7 +61,7 @@ public class MeditationController {
         return Result.success("冥想已保存", response);
     }
 
-    @PostMapping("/session/discard")
+    //@PostMapping("/session/discard")
     public Result<Boolean> discardSession(@Valid @RequestBody MeditationSessionDiscardVO discardVO) {
         Long userId = UserContextUtil.requireCurrentUserId();
         meditationService.discardSession(userId, discardVO);
