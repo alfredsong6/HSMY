@@ -59,4 +59,11 @@ public interface UserItemMapper extends BaseMapper<UserItem> {
      * @return 影响行数
      */
     int unequipByUserIdAndType(@Param("userId") Long userId, @Param("itemType") String itemType);
+
+    /**
+     * 将已过期的用户道具标记为过期状态。
+     *
+     * @return 影响行数
+     */
+    int markExpiredItems();
 }

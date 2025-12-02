@@ -104,5 +104,17 @@
         AND i.item_type = #{itemType}
         AND ui.is_deleted = 0
     </update>
+
+    <!-- 标记已过期的道具 -->
+    <update id="markExpiredItems">
+        UPDATE t_user_item
+        SET usage_status = 3,
+            update_time = NOW()
+        WHERE is_deleted = 0
+          AND usage_status != 3
+          AND remaining_uses is null
+          AND expire_time IS NOT NULL
+          AND expire_time < NOW();
+    </update>
     
 </mapper>
