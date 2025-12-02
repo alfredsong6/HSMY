@@ -147,7 +147,7 @@ public class MeditationServiceImpl implements MeditationService {
     }
 
     private MeditationSessionStartResponse startSessionInternal(Long userId, MeditationSessionStartVO startVO) {
-        validatePlanActive(userId);
+        //validatePlanActive(userId);
 
         int withKnock = startVO.getWithKnock() != null && startVO.getWithKnock() == 1 ? 1 : 0;
         Integer knockFrequency = startVO.getKnockFrequency();
