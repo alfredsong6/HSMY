@@ -279,7 +279,22 @@ public class UserItemServiceImpl implements UserItemService {
      * 计算过期时间.
      */
     private Date determineExpireTime(Date purchaseTime, Item item) {
-
+        String duration = item.getDuration();
+        if (duration == null || duration.trim().isEmpty()) {
+            return null;
+        }
+        String normalized = duration.trim().toLowerCase();
+        if (normalized.endsWith("d")) {
+            String numberPart = normalized.substring(0, normalized.length() - 1);
+            try {
+                int days = Integer.parseInt(numberPart);
+                if (days > 0) {
+                    return Date.from(purchaseTime.toInstant().plusSeconds(days * 24L * 3600L));
+                }
+            } catch (NumberFormatException ignored) {
+                return null;
+            }
+        }
         return null;
     }
 }
