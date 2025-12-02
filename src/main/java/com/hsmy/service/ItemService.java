@@ -16,9 +16,10 @@ public interface ItemService {
      * 根据道具类型获取道具列表
      * 
      * @param itemType 道具类型
+     * @param userId 用户ID，用于过滤已拥有的一次性道具
      * @return 道具列表
      */
-    List<Item> getItemsByType(String itemType);
+    List<Item> getItemsByType(Long userId, String itemType);
     
     /**
      * 获取所有上架的道具

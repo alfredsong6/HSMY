@@ -5,6 +5,8 @@ import com.hsmy.entity.PurchaseRecord;
 import com.hsmy.entity.UserItem;
 import com.hsmy.entity.UserStats;
 import com.hsmy.entity.meditation.MeritCoinTransaction;
+import com.hsmy.vo.AutoAbilityStatusVO;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.hsmy.enums.ItemUsageModeEnum;
 import com.hsmy.enums.MeritBizType;
 import com.hsmy.enums.UserItemSourceEnum;
@@ -22,9 +24,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * 用户道具Service实现类
@@ -181,6 +183,71 @@ public class UserItemServiceImpl implements UserItemService {
                 .anyMatch(userItem -> userItem.getItemId().equals(itemId));
     }
 
+    @Override
+    public AutoAbilityStatusVO getAutoAbilityStatus(Long userId, String itemType) {
+        AutoAbilityStatusVO vo = new AutoAbilityStatusVO();
+        List<Item> items = itemService.getItemsByType(null, itemType);
+        if (items == null || items.isEmpty()) {
+            vo.setEnable(false);
+            return vo;
+        }
+        Item baseItem = items.get(0);
+        vo.setItemId(baseItem.getId());
+        vo.setUsageMode(baseItem.getUsageMode());
+
+        List<UserItem> userItems = userItemMapper.selectByUserIdAndType(userId, itemType);
+        UserItem usable = Optional.ofNullable(userItems).orElseGet(java.util.ArrayList::new)
+                .stream()
+                .filter(ui -> ui.getIsDeleted() == null || ui.getIsDeleted() == 0)
+                .filter(ui -> ui.getExpireTime() == null || ui.getExpireTime().after(new Date()))
+                .filter(ui -> ui.getRemainingUses() == null || ui.getRemainingUses() > 0)
+                .findFirst()
+                .orElse(null);
+
+        if (usable != null) {
+            vo.setEnable(true);
+            vo.setUserItemId(usable.getId());
+            vo.setRemainingUses(usable.getRemainingUses());
+            vo.setUsageStatus(usable.getUsageStatus());
+        } else {
+            vo.setEnable(false);
+        }
+        return vo;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void consumeItem(Long userId, Long itemId) {
+        Item item = itemService.getItemById(itemId);
+        if (item == null) {
+            throw new BusinessException("道具不存在");
+        }
+        ItemUsageModeEnum usageMode = ItemUsageModeEnum.from(item.getUsageMode());
+        if (usageMode != ItemUsageModeEnum.CONSUMABLE) {
+            throw new BusinessException("非一次性道具无需消耗");
+        }
+
+        LambdaQueryWrapper<UserItem> query = new LambdaQueryWrapper<>();
+        query.eq(UserItem::getUserId, userId)
+                .eq(UserItem::getItemId, itemId)
+                .eq(UserItem::getIsDeleted, 0)
+                .gt(UserItem::getRemainingUses, 0);
+        UserItem userItem = userItemMapper.selectOne(query);
+        if (userItem == null) {
+            throw new BusinessException("未找到可用的道具记录");
+        }
+
+        int remaining = Optional.ofNullable(userItem.getRemainingUses()).orElse(0);
+        if (remaining <= 0) {
+            throw new BusinessException("道具可用次数不足");
+        }
+        remaining -= 1;
+        userItem.setRemainingUses(remaining);
+        userItem.setUsageStatus(remaining == 0 ? UserItemUsageStatusEnum.USED.getCode() : UserItemUsageStatusEnum.ACTIVE.getCode());
+        userItem.setLastUsedTime(new Date());
+        userItemMapper.updateById(userItem);
+    }
+
     private void recordMeritCoinTransaction(Long userId, Long userItemId, String itemName, int totalPrice, long balanceAfter) {
         MeritCoinTransaction tx = new MeritCoinTransaction();
         tx.setUserId(userId);
@@ -212,21 +279,7 @@ public class UserItemServiceImpl implements UserItemService {
      * 计算过期时间.
      */
     private Date determineExpireTime(Date purchaseTime, Item item) {
-        Integer autoExpireType = item.getAutoExpireType();
-        if (autoExpireType != null && autoExpireType == 2 && item.getLimitTimeEnd() != null) {
-            return item.getLimitTimeEnd();
-        }
-        Integer durationHours = item.getDurationHours();
-        ItemUsageModeEnum usageMode = ItemUsageModeEnum.from(item.getUsageMode());
-        boolean needDuration = (autoExpireType != null && autoExpireType == 1)
-                || usageMode == ItemUsageModeEnum.TIMED_REPEAT
-                || usageMode == ItemUsageModeEnum.CONSUMABLE;
-        if (needDuration && durationHours != null && durationHours > 0) {
-            Calendar calendar = Calendar.getInstance();
-            calendar.setTime(purchaseTime);
-            calendar.add(Calendar.HOUR, durationHours);
-            return calendar.getTime();
-        }
+
         return null;
     }
 }

@@ -101,9 +101,9 @@ public class Item extends BaseEntity {
     private Integer usageMode;
 
     /**
-     * 有效时长（小时），仅限时道具生效
+     * 有效时长h-小时,d-天
      */
-    private Integer durationHours;
+    private String duration;
 
     /**
      * 最大使用次数，-1 表示不限

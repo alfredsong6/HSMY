@@ -1,13 +1,21 @@
 package com.hsmy.service.impl;
 
 import com.hsmy.entity.Item;
+import com.hsmy.entity.UserItem;
 import com.hsmy.mapper.ItemMapper;
+import com.hsmy.mapper.UserItemMapper;
 import com.hsmy.service.ItemService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * 道具Service实现类
@@ -20,10 +28,55 @@ import java.util.List;
 public class ItemServiceImpl implements ItemService {
     
     private final ItemMapper itemMapper;
+    private final UserItemMapper userItemMapper;
     
     @Override
-    public List<Item> getItemsByType(String itemType) {
-        return itemMapper.selectByType(itemType);
+    public List<Item> getItemsByType(Long userId, String itemType) {
+        List<Item> items = itemMapper.selectByType(itemType);
+        if (items == null || items.size() <= 1 || userId == null) {
+            return items;
+        }
+
+        List<UserItem> userItems = userItemMapper.selectByUserIdAndType(userId, itemType);
+        Set<Long> ownedItemIds = Optional.ofNullable(userItems)
+                .orElseGet(ArrayList::new)
+                .stream()
+                .map(UserItem::getItemId)
+                .collect(Collectors.toSet());
+
+        Map<Integer, List<Item>> bySort = new HashMap<>();
+        for (Item item : items) {
+            if (item == null || item.getSortOrder() == null) {
+                continue;
+            }
+            bySort.computeIfAbsent(item.getSortOrder(), k -> new ArrayList<>()).add(item);
+        }
+
+        List<Item> filtered = new ArrayList<>(items);
+        for (Map.Entry<Integer, List<Item>> entry : bySort.entrySet()) {
+            List<Item> sameSortItems = entry.getValue();
+            if (sameSortItems.size() < 2) {
+                continue;
+            }
+            Optional<Item> limitedOnce = sameSortItems.stream()
+                    .filter(i -> i.getMaxUses() != null && i.getMaxUses() == 1)
+                    .findFirst();
+            if (!limitedOnce.isPresent()) {
+                continue;
+            }
+            Item maxOnceItem = limitedOnce.get();
+            boolean owned = ownedItemIds.contains(maxOnceItem.getId());
+            if (owned) {
+                filtered.remove(maxOnceItem);
+            } else {
+                sameSortItems.stream()
+                        .filter(i -> !i.getId().equals(maxOnceItem.getId()))
+                        .findFirst()
+                        .ifPresent(filtered::remove);
+            }
+        }
+
+        return filtered;
     }
     
     @Override

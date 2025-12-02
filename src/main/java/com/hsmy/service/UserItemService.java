@@ -77,10 +77,27 @@ public interface UserItemService {
     
     /**
      * 检查道具是否已装备
-     * 
+     *
      * @param userId 用户ID
      * @param itemId 道具ID
      * @return 是否已装备
      */
     Boolean isItemEquipped(Long userId, Long itemId);
+
+    /**
+     * 消耗一次性/限次道具的使用次数。
+     *
+     * @param userId 用户ID
+     * @param itemId 道具ID
+     */
+    void consumeItem(Long userId, Long itemId);
+
+    /**
+     * 查询自动能力状态（自动敲击/冥想等）。
+     *
+     * @param userId   用户ID
+     * @param itemType 道具类型
+     * @return 能力状态
+     */
+    com.hsmy.vo.AutoAbilityStatusVO getAutoAbilityStatus(Long userId, String itemType);
 }

@@ -43,7 +43,8 @@ public class ShopController {
         List<Item> items;
         
         if (itemType != null) {
-            items = itemService.getItemsByType(itemType);
+            Long userId = UserContextUtil.requireCurrentUserId();
+            items = itemService.getItemsByType(userId, itemType);
         } else if (category != null) {
             items = itemService.getItemsByCategory(category);
         } else {
