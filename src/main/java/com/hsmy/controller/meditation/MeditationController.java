@@ -33,6 +33,20 @@ public class MeditationController {
         return Result.success(statusVO);
     }
 
+    @PostMapping("/ping")
+    public Result<Boolean> ping(@Valid @RequestBody MeditationSessionPingVO pingVO) {
+        Long userId = UserContextUtil.requireCurrentUserId();
+        meditationService.pingSession(userId, pingVO);
+        return Result.success(true);
+    }
+
+    @PostMapping("/session/abnormal/settle")
+    public Result<Integer> settleAbnormalSessions() {
+        Long userId = UserContextUtil.requireCurrentUserId();
+        Integer settled = meditationService.settleAbnormalSessions(userId);
+        return Result.success(settled);
+    }
+
     @PostMapping("/session/start")
     public Result<MeditationSessionStartResponse> startSession(@Valid @RequestBody MeditationSessionStartVO startVO) {
         Long userId = UserContextUtil.requireCurrentUserId();

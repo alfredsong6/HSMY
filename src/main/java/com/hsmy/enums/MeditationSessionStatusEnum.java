@@ -4,7 +4,7 @@ package com.hsmy.enums;
  * Meditation session lifecycle.
  */
 public enum MeditationSessionStatusEnum {
-    START,
+    STARTED,
     INTERRUPTED,
     COMPLETED;
 

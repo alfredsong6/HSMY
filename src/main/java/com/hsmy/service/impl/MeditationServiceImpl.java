@@ -144,15 +144,15 @@ public class MeditationServiceImpl implements MeditationService {
     private MeditationSessionStartResponse startSessionInternal(Long userId, MeditationSessionStartVO startVO) {
         validatePlanActive(userId);
 
-//        int withKnock = startVO.getWithKnock() != null && startVO.getWithKnock() == 1 ? 1 : 0;
-//        Integer knockFrequency = startVO.getKnockFrequency();
-//        if (withKnock == 1) {
-//            if (knockFrequency == null || knockFrequency < 60 || knockFrequency > 100) {
-//                throw new BusinessException("敲击频率需在60-100之间");
-//            }
-//        } else {
-//            knockFrequency = null;
-//        }
+        int withKnock = startVO.getWithKnock() != null && startVO.getWithKnock() == 1 ? 1 : 0;
+        Integer knockFrequency = startVO.getKnockFrequency();
+        if (withKnock == 1) {
+            if (knockFrequency == null || knockFrequency < 60 || knockFrequency > 100) {
+                throw new BusinessException("敲击频率需在60-100之间");
+            }
+        } else {
+            knockFrequency = null;
+        }
 
         MeditationSession session = new MeditationSession();
         session.setSessionId(IdUtil.simpleUUID());
@@ -160,9 +160,10 @@ public class MeditationServiceImpl implements MeditationService {
         session.setPlannedDuration(startVO.getPlannedDuration());
         session.setActualDuration(null);
         session.setStartTime(startVO.getStartTime());
-        session.setStatus(MeditationSessionStatusEnum.START.name());
-        session.setWithKnock(1);
-        session.setKnockFrequency(null);
+        session.setStatus(MeditationSessionStatusEnum.STARTED.name());
+        session.setLastHeartbeatTime(new Date());
+        session.setWithKnock(withKnock);
+        session.setKnockFrequency(knockFrequency);
         session.setSaveFlag(1);
         session.setCoinCost(0);
         session.setCoinRefunded(0);
@@ -189,6 +190,56 @@ public class MeditationServiceImpl implements MeditationService {
         return userLockManager.executeWithUserLock(userId, () -> finishSessionInternal(userId, finishVO));
     }
 
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void pingSession(Long userId, MeditationSessionPingVO pingVO) {
+        userLockManager.executeWithUserLock(userId, () -> {
+            MeditationSession session = findSessionBySessionId(userId, pingVO.getSessionId());
+            if (session.getEndTime() != null) {
+                throw new BusinessException("会话已结束");
+            }
+            session.setStatus(MeditationSessionStatusEnum.STARTED.name());
+            session.setLastHeartbeatTime(new Date());
+            meditationSessionMapper.updateById(session);
+            return null;
+        });
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Integer settleAbnormalSessions(Long userId) {
+        return userLockManager.executeWithUserLock(userId, () -> settleAbnormalSessionsInternal(userId));
+    }
+
+    private Integer settleAbnormalSessionsInternal(Long userId) {
+        Date threshold = new Date(System.currentTimeMillis() - 60_000L);
+        LambdaQueryWrapper<MeditationSession> query = new LambdaQueryWrapper<>();
+        query.eq(MeditationSession::getUserId, userId)
+                .eq(MeditationSession::getIsDeleted, 0)
+                .eq(MeditationSession::getStatus, MeditationSessionStatusEnum.STARTED.name())
+                .lt(MeditationSession::getLastHeartbeatTime, threshold)
+                .isNotNull(MeditationSession::getLastHeartbeatTime);
+        List<MeditationSession> staleSessions = meditationSessionMapper.selectList(query);
+        if (staleSessions.isEmpty()) {
+            return 0;
+        }
+        int settled = 0;
+        for (MeditationSession session : staleSessions) {
+            Date lastHeartbeat = session.getLastHeartbeatTime();
+            Date startTime = session.getStartTime();
+            if (lastHeartbeat == null || startTime == null) {
+                continue;
+            }
+            long seconds = Math.max(1L, (lastHeartbeat.getTime() - startTime.getTime()) / 1000);
+            session.setActualDuration((int) seconds);
+            session.setEndTime(lastHeartbeat);
+            session.setStatus(MeditationSessionStatusEnum.INTERRUPTED.name());
+            meditationSessionMapper.updateById(session);
+            settled++;
+        }
+        return settled;
+    }
+
     private MeditationSessionFinishResponse finishSessionInternal(Long userId, MeditationSessionFinishVO finishVO) {
         MeditationSession session = findSessionBySessionId(userId, finishVO.getSessionId());
         if (session.getEndTime() != null) {
@@ -202,15 +253,19 @@ public class MeditationServiceImpl implements MeditationService {
         session.setStatus(finishStatus.name());
         meditationSessionMapper.updateById(session);
 
-        //updatePreferenceInternal(userId, session.getPlannedDuration(), withKnock, knockFrequency);
-        MeditationDailyStats todayStats = upsertDailyStats(userId, now, null, null, finishVO.getActualDuration());
+        MeditationDailyStats todayStats = null;
+        if (finishStatus == MeditationSessionStatusEnum.COMPLETED) {
+            todayStats = upsertDailyStats(userId, now, null, null, finishVO.getActualDuration());
+        }
 
         MeditationSessionFinishResponse response = new MeditationSessionFinishResponse();
         response.setSessionId(session.getSessionId());
         response.setActualDuration(session.getActualDuration());
         response.setEndTime(now);
-        response.setTodaySessionCount(todayStats.getSessionCount());
-        response.setTodayTotalMinutes(todayStats.getTotalMinutes());
+        if (todayStats != null) {
+            response.setTodaySessionCount(todayStats.getSessionCount());
+            response.setTodayTotalMinutes(todayStats.getTotalMinutes());
+        }
 //        response.setTotalSessionCount(meditationSessionMapper.countTotalSessions(userId));
 //        response.setTotalMinutes(secondsToMinutes(meditationSessionMapper.sumTotalDuration(userId)));
         response.setRemainingCoins((int) queryRemainingCoins(userId));
@@ -220,7 +275,7 @@ public class MeditationServiceImpl implements MeditationService {
     private MeditationSessionStatusEnum resolveFinishStatus(MeditationSessionFinishVO finishVO) {
         try {
             MeditationSessionStatusEnum parsed = MeditationSessionStatusEnum.fromValue(finishVO.getStatus());
-            if (parsed == null || parsed == MeditationSessionStatusEnum.START) {
+            if (parsed == null || parsed == MeditationSessionStatusEnum.STARTED) {
                 return MeditationSessionStatusEnum.COMPLETED;
             }
             return parsed;
