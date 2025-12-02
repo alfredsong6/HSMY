@@ -11,7 +11,7 @@
  Target Server Version : 50720
  File Encoding         : 65001
 
- Date: 26/11/2025 18:33:23
+ Date: 02/12/2025 18:29:48
 */
 
 SET NAMES utf8mb4;
@@ -78,9 +78,10 @@ CREATE TABLE `t_activity`  (
 -- ----------------------------
 -- Records of t_activity
 -- ----------------------------
-INSERT INTO `t_activity` VALUES (890000012345678901, '充值10送得10功德币', 'cash-top-up', '限时赠送5功德币', 'https://static.hsmy.com/banner/recharge-tier-10.jpg', '2024-02-01 00:00:00', '2029-12-31 23:59:59', 1.10, '{\\\"price\\\":10,\\\"give\\\":5,\\\"crash-top-up\\\":15}', 1, 10, 'system', '2025-11-17 17:03:40', 'system', '2025-11-17 17:20:20', 0);
-INSERT INTO `t_activity` VALUES (890000012345678902, '充值20得20功德币', 'cash-top-up', '限时赠送10功德币', 'https://static.hsmy.com/banner/recharge-tier-66.jpg', '2024-02-01 00:00:00', '2029-12-31 23:59:59', 1.09, '{\\\"price\\\":20,\\\"give\\\":10,\\\"crash-top-up\\\":30}', 1, 20, 'system', '2025-11-17 17:03:40', 'system', '2025-11-17 17:20:55', 0);
-INSERT INTO `t_activity` VALUES (890000012345678903, '充值30得30功德币', 'cash-top-up', '限时赠送20功德币', 'https://static.hsmy.com/banner/recharge-tier-100.jpg', '2024-02-01 00:00:00', '2029-12-31 23:59:59', 1.10, '{\\\"price\\\":30,\\\"give\\\":20,\\\"crash-top-up\\\":50}', 1, 30, 'system', '2025-11-17 17:03:40', 'system', '2025-11-17 17:21:23', 0);
+INSERT INTO `t_activity` VALUES (890000012345678901, '充值10送得10功德币', 'cash-top-up', '限时赠送5功德币', 'https://static.hsmy.com/banner/recharge-tier-10.jpg', '2024-02-01 00:00:00', '2029-12-31 23:59:59', 1.10, '{\"amount\":10,\"give\":10,\"gift\":5,\"crash-top-up\":15}', 1, 10, 'system', '2025-11-17 17:03:40', 'system', '2025-11-27 11:15:51', 0);
+INSERT INTO `t_activity` VALUES (890000012345678902, '充值20得20功德币', 'cash-top-up', '限时赠送10功德币', 'https://static.hsmy.com/banner/recharge-tier-66.jpg', '2024-02-01 00:00:00', '2029-12-31 23:59:59', 1.09, '{\"amount\":20,\"give\":20,\"gift\":10,\"crash-top-up\":30}', 1, 20, 'system', '2025-11-17 17:03:40', 'system', '2025-11-27 11:16:51', 0);
+INSERT INTO `t_activity` VALUES (890000012345678903, '充值50得50功德币', 'cash-top-up', '限时赠送20功德币', 'https://static.hsmy.com/banner/recharge-tier-100.jpg', '2024-02-01 00:00:00', '2029-12-31 23:59:59', 1.10, '{\"amount\":50,\"give\":50,\"gift\":20,\"crash-top-up\":70}', 1, 30, 'system', '2025-11-17 17:03:40', 'system', '2025-11-27 11:17:54', 0);
+INSERT INTO `t_activity` VALUES (890000012345678904, '充值100得100功德币', 'cash-top-up', '限时赠送50功德币', 'https://static.hsmy.com/banner/recharge-tier-100.jpg', '2024-02-01 00:00:00', '2029-12-31 23:59:59', 1.10, '{\"amount\":100,\"give\":100,\"gift\":20,\"crash-top-up\":150}', 1, 30, 'system', '2025-11-17 17:03:40', 'system', '2025-11-27 11:18:27', 0);
 
 -- ----------------------------
 -- Table structure for t_auth_identity
@@ -112,7 +113,7 @@ CREATE TABLE `t_auth_identity`  (
 -- Records of t_auth_identity
 -- ----------------------------
 INSERT INTO `t_auth_identity` VALUES (1993526498035781634, 1990331081332756480, 'sms', 'app', NULL, NULL, '17688701711', NULL, '2025-11-26 11:45:29.712', 'system', '2025-11-26 11:45:30', 'system', '2025-11-26 11:45:30', 0);
-INSERT INTO `t_auth_identity` VALUES (1993582100082601986, 1993582099294195712, 'wechat_mini', 'wx4d903ff814121a1d', 'olXF_14ZzG084MeIBRCWhz3WoIQo', NULL, '17688701791', 0x477A536547672F536C2F382F466732534270435849673D3D, '2025-11-26 17:16:01.282', 'system', '2025-11-26 15:26:26', 'system', '2025-11-26 17:16:01', 0);
+INSERT INTO `t_auth_identity` VALUES (1993582100082601986, 1993582099294195712, 'wechat_mini', 'wx4d903ff814121a1d', 'olXF_14ZzG084MeIBRCWhz3WoIQo', NULL, '17688701791', 0x397452633068594D352F6D6249384E4F7730347671673D3D, '2025-11-28 10:12:06.800', 'system', '2025-11-26 15:26:26', 'system', '2025-11-28 10:12:06', 0);
 
 -- ----------------------------
 -- Table structure for t_auth_token
@@ -146,6 +147,8 @@ INSERT INTO `t_auth_token` VALUES (1993584318873612290, 1993582099294195712, '88
 INSERT INTO `t_auth_token` VALUES (1993590284478328833, 1993582099294195712, '4b8111d319f349388534035326abbcc9_1764143937593', '2025-12-03 15:58:57.606', NULL, 'miniapp', NULL, 'system', '2025-11-26 15:58:58', 'system', '2025-11-26 15:58:58', 0);
 INSERT INTO `t_auth_token` VALUES (1993591523660279809, 1993582099294195712, '177afaee38ec49fe9a9c4abef03fe98e_1764144233028', '2025-12-03 16:03:53.037', NULL, 'miniapp', NULL, 'system', '2025-11-26 16:03:53', 'system', '2025-11-26 16:03:53', 0);
 INSERT INTO `t_auth_token` VALUES (1993609678591918081, 1993582099294195712, '496dce2ae8e04524b6a8c98ad3f715d5_1764148561341', '2025-12-03 17:16:01.436', NULL, 'miniapp', NULL, 'system', '2025-11-26 17:16:02', 'system', '2025-11-26 17:16:02', 0);
+INSERT INTO `t_auth_token` VALUES (1993869171397611521, 1993582099294195712, 'bdc653acf9c6447aa00a51ba3095a357_1764210429188', '2025-12-04 10:27:09.405', NULL, 'miniapp', NULL, 'system', '2025-11-27 10:27:09', 'system', '2025-11-27 10:27:09', 0);
+INSERT INTO `t_auth_token` VALUES (1994227773924704257, 1993582099294195712, 'f552b0417044436eb9349ebbe52c5adc_1764295926877', '2025-12-05 10:12:06.911', NULL, 'miniapp', NULL, 'system', '2025-11-28 10:12:07', 'system', '2025-11-28 10:12:07', 0);
 
 -- ----------------------------
 -- Table structure for t_daily_wish_record
@@ -170,7 +173,9 @@ CREATE TABLE `t_daily_wish_record`  (
 -- ----------------------------
 -- Records of t_daily_wish_record
 -- ----------------------------
-INSERT INTO `t_daily_wish_record` VALUES (1990333043658854400, '平安快乐', '王五', '2002-12-12 14:23:12', 1990331081332756480, '2025-11-17 16:15:51', 'system', '2025-11-17 16:15:51', 'system', '2025-11-17 16:15:51', 0);
+INSERT INTO `t_daily_wish_record` VALUES (1993993245444673536, '平安喜乐', '是是是', '2025-11-27 00:00:00', 1993582099294195712, '2025-11-27 18:40:11', 'system', '2025-11-27 18:40:11', 'system', '2025-11-27 18:40:11', 0);
+INSERT INTO `t_daily_wish_record` VALUES (1994225875729649664, '平安喜乐11', '李四', '2025-11-28 02:00:00', 1993582099294195712, '2025-11-28 10:04:34', 'system', '2025-11-28 10:04:34', 'system', '2025-11-28 10:27:31', 0);
+INSERT INTO `t_daily_wish_record` VALUES (1994249664244879360, '平安喜乐11', '李四', '2025-11-28 02:00:00', 1993582099294195712, '2025-11-28 11:39:06', 'system', '2025-11-28 11:39:06', 'system', '2025-11-28 11:39:06', 0);
 
 -- ----------------------------
 -- Table structure for t_dim_time
@@ -203,6 +208,10 @@ INSERT INTO `t_dim_time` VALUES (1993598568186908672, '2025-11-26', '2025-W48', 
 INSERT INTO `t_dim_time` VALUES (1993598568279183360, '2025-11-24', '2025-W48', '2025-11', '2025', '2025-11-24', '2025-11-30', '2025-11-01', '2025-11-30', 4, 0, '2025-11-26 16:31:53', '2025-11-26 16:31:53');
 INSERT INTO `t_dim_time` VALUES (1993598568379846656, '2025-11-01', '2025-W44', '2025-11', '2025', '2025-10-27', '2025-11-02', '2025-11-01', '2025-11-30', 4, 1, '2025-11-26 16:31:53', '2025-11-26 16:31:53');
 INSERT INTO `t_dim_time` VALUES (1993598568421789696, '2025-01-01', '2025-W01', '2025-01', '2025', '2024-12-30', '2025-01-05', '2025-01-01', '2025-01-31', 1, 0, '2025-11-26 16:31:53', '2025-11-26 16:31:53');
+INSERT INTO `t_dim_time` VALUES (1993869174966980608, '2025-11-27', '2025-W48', '2025-11', '2025', '2025-11-24', '2025-11-30', '2025-11-01', '2025-11-30', 4, 0, '2025-11-27 10:27:10', '2025-11-27 10:27:10');
+INSERT INTO `t_dim_time` VALUES (1994225773560598528, '2025-11-28', '2025-W48', '2025-11', '2025', '2025-11-24', '2025-11-30', '2025-11-01', '2025-11-30', 4, 0, '2025-11-28 10:04:10', '2025-11-28 10:04:10');
+INSERT INTO `t_dim_time` VALUES (1995694158379094016, '2025-12-02', '2025-W49', '2025-12', '2025', '2025-12-01', '2025-12-07', '2025-12-01', '2025-12-31', 4, 0, '2025-12-02 11:19:00', '2025-12-02 11:19:00');
+INSERT INTO `t_dim_time` VALUES (1995694333134770176, '2025-12-01', '2025-W49', '2025-12', '2025', '2025-12-01', '2025-12-07', '2025-12-01', '2025-12-31', 4, 0, '2025-12-02 11:19:42', '2025-12-02 11:19:42');
 
 -- ----------------------------
 -- Table structure for t_donation
@@ -337,7 +346,7 @@ CREATE TABLE `t_item`  (
   `sort_order` int(11) NULL DEFAULT 0 COMMENT '排序序号',
   `is_active` tinyint(4) NULL DEFAULT 1 COMMENT '是否上架：0-下架，1-上架',
   `usage_mode` tinyint(4) NOT NULL DEFAULT 0 COMMENT '使用模  式：0-永久，1-限时可重复，2-一次性/限次',
-  `duration_hours` int(11) NULL DEFAULT NULL COMMENT '有效时长（小时），usage_mode=1 时生效',
+  `duration` varchar(11) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '有效时长 h-小时 d-天',
   `max_uses` int(11) NOT NULL DEFAULT -1 COMMENT '最大使用次数，-1 表示不限',
   `stackable` tinyint(4) NOT NULL DEFAULT 0 COMMENT '是否允许同一用户叠加购买',
   `cooldown_seconds` int(11) NOT NULL DEFAULT 0 COMMENT '重复使用冷却时间（秒）',
@@ -356,7 +365,14 @@ CREATE TABLE `t_item`  (
 -- ----------------------------
 -- Records of t_item
 -- ----------------------------
-INSERT INTO `t_item` VALUES (1001, '自动敲击', 'knock', 'classic', 1, 1, '自动敲击', NULL, NULL, 0, NULL, NULL, -1, 1, 0, 1, 2, -1, 1, 0, 0, 0, 'system', '2025-11-19 11:18:52', 'system', '2025-11-19 14:48:54', 0);
+INSERT INTO `t_item` VALUES (1000, '单日体验', 'autoKnock', 'classic', 0, 1, '首次体验', NULL, NULL, 0, NULL, NULL, -1, 2, 1, 1, 1, '1d', -1, 0, 0, 0, 'system', '2025-11-19 11:18:52', 'system', '2025-12-02 18:18:09', 0);
+INSERT INTO `t_item` VALUES (1001, '单日价格', 'autoKnock', 'classic', 1, 1, '单日使用', NULL, NULL, 0, NULL, NULL, -1, 0, 1, 1, 1, '1d', -1, 1, 0, 0, 'system', '2025-11-19 11:18:52', 'system', '2025-12-02 18:00:57', 0);
+INSERT INTO `t_item` VALUES (1002, '月卡优惠', 'autoKnock', 'classic', 15, 15, '日均=0.5福币', NULL, NULL, 0, NULL, NULL, -1, 0, 2, 1, 1, '31d', -1, 1, 0, 0, 'system', '2025-11-19 11:18:52', 'system', '2025-12-02 18:18:13', 0);
+INSERT INTO `t_item` VALUES (1003, '年卡超值', 'autoKnock', 'classic', 99, 99, '日均=0.3福币', NULL, NULL, 1, NULL, NULL, -1, 0, 3, 1, 1, '365d', -1, 1, 0, 0, 'system', '2025-11-19 11:18:52', 'system', '2025-12-02 18:18:16', 0);
+INSERT INTO `t_item` VALUES (2000, '单日体验', 'meditation', 'classic', 0, 1, '首次体验', NULL, NULL, 0, NULL, NULL, -1, 2, 1, 1, 1, '1d', -1, 0, 0, 0, 'system', '2025-11-19 11:18:52', 'system', '2025-12-02 18:18:03', 0);
+INSERT INTO `t_item` VALUES (2001, '单日价格', 'meditation', 'classic', 1, 1, '单日使用', NULL, NULL, 0, NULL, NULL, -1, 0, 1, 1, 1, '1d', -1, 1, 0, 0, 'system', '2025-11-19 11:18:52', 'system', '2025-12-02 18:00:53', 0);
+INSERT INTO `t_item` VALUES (2002, '月卡优惠', 'meditation', 'classic', 15, 15, '日均=0.5福币', NULL, NULL, 0, NULL, NULL, -1, 0, 2, 1, 1, '31d', -1, 1, 0, 0, 'system', '2025-11-19 11:18:52', 'system', '2025-12-02 18:18:19', 0);
+INSERT INTO `t_item` VALUES (2003, '年卡超值', 'meditation', 'classic', 99, 99, '日均=0.3福币', NULL, NULL, 1, NULL, NULL, -1, 0, 3, 1, 1, '365d', -1, 1, 0, 0, 'system', '2025-11-19 11:18:52', 'system', '2025-12-02 18:18:22', 0);
 
 -- ----------------------------
 -- Table structure for t_knock_session
@@ -438,6 +454,8 @@ CREATE TABLE `t_meditation_session`  (
   `actual_duration` int(11) NULL DEFAULT NULL COMMENT '实际冥想时长（秒）',
   `start_time` datetime(0) NOT NULL COMMENT '开始时间',
   `end_time` datetime(0) NULL DEFAULT NULL COMMENT '结束时间',
+  `status` varchar(12) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '会话状态：STARTED/INTERRUPTED/COMPLETED ',
+  `last_heartbeat_time` datetime(0) NOT NULL COMMENT '最后心跳时间',
   `with_knock` tinyint(4) NOT NULL DEFAULT 0 COMMENT '是否伴随敲击：0-否，1-是',
   `knock_frequency` int(11) NULL DEFAULT NULL COMMENT '敲击频率（次/分钟）',
   `mood_code` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '结束时选择的心情枚举',
@@ -462,6 +480,10 @@ CREATE TABLE `t_meditation_session`  (
 -- ----------------------------
 -- Records of t_meditation_session
 -- ----------------------------
+INSERT INTO `t_meditation_session` VALUES (1995699989287862274, 'b8b7ac841e0440d7a6123f01018a08cc', 1993582099294195712, 300, 16, '2025-12-02 11:42:10', '2025-12-02 11:42:27', 'INTERRUPTED', '2025-12-02 11:42:21', 0, NULL, NULL, NULL, NULL, NULL, NULL, 1, 0, 0, 'SETTLED', 'system', '2025-12-02 11:42:10', 'system', '2025-12-02 11:42:10', 0);
+INSERT INTO `t_meditation_session` VALUES (1995700107714035714, 'e14631a416654142b99b01a421650c2b', 1993582099294195712, 300, NULL, '2025-12-02 11:42:39', NULL, 'STARTED', '2025-12-02 11:47:39', 0, NULL, NULL, NULL, NULL, NULL, NULL, 1, 0, 0, 'SETTLED', 'system', '2025-12-02 11:42:39', 'system', '2025-12-02 11:42:39', 0);
+INSERT INTO `t_meditation_session` VALUES (1995798225394630658, '9e2b80d4fc7f4e8caf4c090d932f175b', 1993582099294195712, 300, NULL, '2025-12-02 18:12:31', NULL, 'STARTED', '2025-12-02 18:17:32', 0, NULL, NULL, NULL, NULL, NULL, NULL, 1, 0, 0, 'SETTLED', 'system', '2025-12-02 18:12:32', 'system', '2025-12-02 18:12:32', 0);
+INSERT INTO `t_meditation_session` VALUES (1995800589371473922, 'd6b9608839bd4731a64bbb8f77e3cd6c', 1993582099294195712, 300, NULL, '2025-12-02 18:21:55', NULL, 'STARTED', '2025-12-02 18:26:55', 0, NULL, NULL, NULL, NULL, NULL, NULL, 1, 0, 0, 'SETTLED', 'system', '2025-12-02 18:21:55', 'system', '2025-12-02 18:21:55', 0);
 
 -- ----------------------------
 -- Table structure for t_meditation_subscription
@@ -540,6 +562,12 @@ INSERT INTO `t_merit_coin_transaction` VALUES (1990978296891867137, 199033108133
 INSERT INTO `t_merit_coin_transaction` VALUES (1990980410644922370, 1990331081332756480, 'SCRIPTURE_SUBSCRIBE', 1990980410380681218, -2, 13, '订阅典籍-心经', 'system', '2025-11-19 11:08:15', 'system', '2025-11-19 11:08:15', 0);
 INSERT INTO `t_merit_coin_transaction` VALUES (1990982341660528641, 1990331081332756480, 'SCRIPTURE_PERMANENT', 1990982341446619138, -5, 8, '买断典籍-六字大明咒', 'system', '2025-11-19 11:15:56', 'system', '2025-11-19 11:15:56', 0);
 INSERT INTO `t_merit_coin_transaction` VALUES (1991035943733170177, 1990331081332756480, 'ITEM_PURCHASE', 1991035938884685824, -1, 7, '购买道具-自动敲击', 'system', '2025-11-19 14:48:55', 'system', '2025-11-19 14:48:55', 0);
+INSERT INTO `t_merit_coin_transaction` VALUES (1993937954938134530, 1993582099294195712, 'RECHARGE_PURCHASE', 1993937906212933633, 50, 61, '充值订单WX1993937906212933632到账功德币', 'system', '2025-11-27 15:00:29', 'system', '2025-11-27 15:00:29', 0);
+INSERT INTO `t_merit_coin_transaction` VALUES (1993937955076546561, 1993582099294195712, 'RECHARGE_BONUS', 1993937906212933633, 20, 81, '充值订单WX1993937906212933632赠送功德币', 'system', '2025-11-27 15:00:29', 'system', '2025-11-27 15:00:29', 0);
+INSERT INTO `t_merit_coin_transaction` VALUES (1993940327454580738, 1993582099294195712, 'ITEM_PURCHASE', 1993940326796103680, -1, 80, '购买道具-自动敲击', 'system', '2025-11-27 15:09:54', 'system', '2025-11-27 15:09:54', 0);
+INSERT INTO `t_merit_coin_transaction` VALUES (1995762105378271234, 1993582099294195712, 'ITEM_PURCHASE', 1995762104115793920, 0, 80, '购买道具-自动敲击', 'system', '2025-12-02 15:49:00', 'system', '2025-12-02 15:49:00', 0);
+INSERT INTO `t_merit_coin_transaction` VALUES (1995798090564534273, 1993582099294195712, 'ITEM_PURCHASE', 1995798085917347840, 0, 80, '购买道具-单日体验', 'system', '2025-12-02 18:12:00', 'system', '2025-12-02 18:12:00', 0);
+INSERT INTO `t_merit_coin_transaction` VALUES (1995798190560935937, 1993582099294195712, 'ITEM_PURCHASE', 1995798190523289600, 0, 80, '购买道具-单日体验', 'system', '2025-12-02 18:12:23', 'system', '2025-12-02 18:12:23', 0);
 
 -- ----------------------------
 -- Table structure for t_merit_level
@@ -622,7 +650,28 @@ CREATE TABLE `t_merit_record`  (
 -- ----------------------------
 -- Records of t_merit_record
 -- ----------------------------
-INSERT INTO `t_merit_record` VALUES (1, 1993582099294195712, 20, 1, 'manual', 'MANUAL', 'knock', '1', 0, 1.00, NULL, '2025-11-26', NULL, 'system', '2025-11-26 16:39:41', 'system', '2025-11-26 16:39:48', 0);
+INSERT INTO `t_merit_record` VALUES (1994319559808651264, 1993582099294195712, 1, 1, 'manual', 'MANUAL', 'knock', '1764317810069-l6mup', 0, 1.00, NULL, '2025-11-28', '手动敲击获得功德', 'system', '2025-11-28 16:00:00', 'system', '2025-11-28 16:16:50', 0);
+INSERT INTO `t_merit_record` VALUES (1994319579492519936, 1993582099294195712, 4, 4, 'manual', 'MANUAL', 'knock', '1764317815063-i70l8', 0, 1.00, NULL, '2025-11-28', '手动敲击获得功德', 'system', '2025-11-28 16:00:00', 'system', '2025-11-28 16:16:55', 0);
+INSERT INTO `t_merit_record` VALUES (1994319600535343104, 1993582099294195712, 5, 5, 'manual', 'MANUAL', 'knock', '1764317820065-0krlh', 0, 1.00, NULL, '2025-11-28', '手动敲击获得功德', 'system', '2025-11-28 16:00:00', 'system', '2025-11-28 16:17:00', 0);
+INSERT INTO `t_merit_record` VALUES (1994319621427171328, 1993582099294195712, 6, 6, 'manual', 'MANUAL', 'knock', '1764317825059-jerib', 0, 1.00, NULL, '2025-11-28', '手动敲击获得功德', 'system', '2025-11-28 16:00:00', 'system', '2025-11-28 16:17:05', 0);
+INSERT INTO `t_merit_record` VALUES (1994319831150759936, 1993582099294195712, 1, 1, 'manual', 'MANUAL', 'knock', '1764317875059-2u325', 0, 1.00, NULL, '2025-11-28', '手动敲击获得功德', 'system', '2025-11-28 16:00:00', 'system', '2025-11-28 16:17:55', 0);
+INSERT INTO `t_merit_record` VALUES (1994321876977061888, 1993582099294195712, 3, 3, 'manual', 'MANUAL', 'knock', '1764318362823-cjn5g', 0, 1.00, NULL, '2025-11-28', '手动敲击获得功德', 'system', '2025-11-28 16:00:00', 'system', '2025-11-28 16:26:03', 0);
+INSERT INTO `t_merit_record` VALUES (1994321897931804672, 1993582099294195712, 12, 12, 'manual', 'MANUAL', 'knock', '1764318367821-ok2fx', 0, 1.00, NULL, '2025-11-28', '手动敲击获得功德', 'system', '2025-11-28 16:00:00', 'system', '2025-11-28 16:26:08', 0);
+INSERT INTO `t_merit_record` VALUES (1995694155069788160, 1993582099294195712, 1, 1, 'manual', 'MANUAL', 'knock', '1764645531758-p95tg', 0, 1.00, NULL, '2025-12-02', '手动敲击获得功德', 'system', '2025-12-02 11:00:00', 'system', '2025-12-02 11:18:59', 0);
+INSERT INTO `t_merit_record` VALUES (1995694174254534656, 1993582099294195712, 16, 16, 'manual', 'MANUAL', 'knock', '1764645541767-izl7m', 0, 1.00, NULL, '2025-12-02', '手动敲击获得功德', 'system', '2025-12-02 11:00:00', 'system', '2025-12-02 11:19:04', 0);
+INSERT INTO `t_merit_record` VALUES (1995694185986002944, 1993582099294195712, 3, 3, 'manual', 'MANUAL', 'knock', '1764645546757-gwm6k', 0, 1.00, NULL, '2025-12-02', '手动敲击获得功德', 'system', '2025-12-02 11:00:00', 'system', '2025-12-02 11:19:07', 0);
+INSERT INTO `t_merit_record` VALUES (1995784315383975936, 1993582099294195712, 1, 1, 'manual', 'MANUAL', 'knock', '1764667028660-6moh0', 0, 1.00, NULL, '2025-12-02', '手动敲击获得功德', 'system', '2025-12-02 17:00:00', 'system', '2025-12-02 17:17:15', 0);
+INSERT INTO `t_merit_record` VALUES (1995793859858272256, 1993582099294195712, 1, 1, 'manual', 'MANUAL', 'knock', '1764669310107-y8r8c', 0, 1.00, NULL, '2025-12-02', '手动敲击获得功德', 'system', '2025-12-02 17:00:00', 'system', '2025-12-02 17:55:11', 0);
+INSERT INTO `t_merit_record` VALUES (1995793878581645312, 1993582099294195712, 5, 5, 'manual', 'MANUAL', 'knock', '1764669315113-upbek', 0, 1.00, NULL, '2025-12-02', '手动敲击获得功德', 'system', '2025-12-02 17:00:00', 'system', '2025-12-02 17:55:15', 0);
+INSERT INTO `t_merit_record` VALUES (1995793899414753280, 1993582099294195712, 4, 4, 'manual', 'MANUAL', 'knock', '1764669320118-7yxlr', 0, 1.00, NULL, '2025-12-02', '手动敲击获得功德', 'system', '2025-12-02 17:00:00', 'system', '2025-12-02 17:55:20', 0);
+INSERT INTO `t_merit_record` VALUES (1995793919916511232, 1993582099294195712, 1, 1, 'manual', 'MANUAL', 'knock', '1764669325118-8q7fh', 0, 1.00, NULL, '2025-12-02', '手动敲击获得功德', 'system', '2025-12-02 17:00:00', 'system', '2025-12-02 17:55:25', 0);
+INSERT INTO `t_merit_record` VALUES (1995796059493896192, 1993582099294195712, 2, 2, 'manual', 'MANUAL', 'knock', '1764669835108-wejos', 0, 1.00, NULL, '2025-12-02', '手动敲击获得功德', 'system', '2025-12-02 18:00:00', 'system', '2025-12-02 18:03:55', 0);
+INSERT INTO `t_merit_record` VALUES (1995796079802716160, 1993582099294195712, 6, 6, 'manual', 'MANUAL', 'knock', '1764669840106-qoxs1', 0, 1.00, NULL, '2025-12-02', '手动敲击获得功德', 'system', '2025-12-02 18:00:00', 'system', '2025-12-02 18:04:00', 0);
+INSERT INTO `t_merit_record` VALUES (1995796100648407040, 1993582099294195712, 4, 4, 'manual', 'MANUAL', 'knock', '1764669845106-6k076', 0, 1.00, NULL, '2025-12-02', '手动敲击获得功德', 'system', '2025-12-02 18:00:00', 'system', '2025-12-02 18:04:05', 0);
+INSERT INTO `t_merit_record` VALUES (1995796226511081472, 1993582099294195712, 2, 2, 'manual', 'MANUAL', 'knock', '1764669875106-zxezg', 0, 1.00, NULL, '2025-12-02', '手动敲击获得功德', 'system', '2025-12-02 18:00:00', 'system', '2025-12-02 18:04:35', 0);
+INSERT INTO `t_merit_record` VALUES (1995798111477436416, 1993582099294195712, 6, 6, 'manual', 'MANUAL', 'knock', '1764670324490-d77js', 0, 1.00, NULL, '2025-12-02', '手动敲击获得功德', 'system', '2025-12-02 18:00:00', 'system', '2025-12-02 18:12:05', 0);
+INSERT INTO `t_merit_record` VALUES (1995798132419596288, 1993582099294195712, 2, 2, 'manual', 'MANUAL', 'knock', '1764670329475-l4xlu', 0, 1.00, NULL, '2025-12-02', '手动敲击获得功德', 'system', '2025-12-02 18:00:00', 'system', '2025-12-02 18:12:10', 0);
+INSERT INTO `t_merit_record` VALUES (1995798153370144768, 1993582099294195712, 3, 3, 'manual', 'MANUAL', 'knock', '1764670334475-ho520', 0, 1.00, NULL, '2025-12-02', '手动敲击获得功德', 'system', '2025-12-02 18:00:00', 'system', '2025-12-02 18:12:15', 0);
 
 -- ----------------------------
 -- Table structure for t_operation_log
@@ -687,6 +736,10 @@ CREATE TABLE `t_purchase_record`  (
 -- Records of t_purchase_record
 -- ----------------------------
 INSERT INTO `t_purchase_record` VALUES (1991035941355130880, 1990331081332756480, 1001, 'SHOP17635349347353D49C1A6', 1, 1, 1, '2025-11-19 14:48:55', 1, 'system', '2025-11-19 14:48:55', 'system', '2025-11-19 14:48:55', 0);
+INSERT INTO `t_purchase_record` VALUES (1993940327291031552, 1993582099294195712, 1001, 'SHOP17642273943032CDAF54D', 1, 1, 1, '2025-11-27 15:09:54', 1, 'system', '2025-11-27 15:09:54', 'system', '2025-11-27 15:09:54', 0);
+INSERT INTO `t_purchase_record` VALUES (1995762104753328128, 1993582099294195712, 1000, 'SHOP1764661739897DFE0E4C5', 0, 1, 0, '2025-12-02 15:49:00', 1, 'system', '2025-12-02 15:49:00', 'system', '2025-12-02 15:49:00', 0);
+INSERT INTO `t_purchase_record` VALUES (1995798088073220096, 1993582099294195712, 1000, 'SHOP17646703189896EEA80E0', 0, 1, 0, '2025-12-02 18:11:59', 1, 'system', '2025-12-02 18:11:59', 'system', '2025-12-02 18:11:59', 0);
+INSERT INTO `t_purchase_record` VALUES (1995798190556844032, 1993582099294195712, 2000, 'SHOP17646703434231ACE7BDF', 0, 1, 0, '2025-12-02 18:12:23', 1, 'system', '2025-12-02 18:12:23', 'system', '2025-12-02 18:12:23', 0);
 
 -- ----------------------------
 -- Table structure for t_ranking
@@ -777,7 +830,8 @@ CREATE TABLE `t_recharge_order`  (
 -- ----------------------------
 -- Records of t_recharge_order
 -- ----------------------------
-INSERT INTO `t_recharge_order` VALUES (1990969462173601793, 'WX1990969462173601792', 1990331081332756480, 10.00, 10, 5, 'wechat', 1, '2025-11-19 10:59:49', 'MOCK_WX1990969462173601792', '功德充值', 'user845', '2025-11-19 10:24:45', 'system', '2025-11-19 10:59:50', 0);
+INSERT INTO `t_recharge_order` VALUES (1990969462173601793, 'WX1990969462173601792', 1990331081332756480, 10.00, 10, 5, 'wechat', 1, '2025-11-27 14:54:21', 'MOCK_WX1990969462173601792', '功德充值', 'user845', '2025-11-19 10:24:45', 'system', '2025-11-27 14:54:21', 0);
+INSERT INTO `t_recharge_order` VALUES (1993937906212933633, 'WX1993937906212933632', 1993582099294195712, 50.00, 50, 20, 'wechat', 1, '2025-11-27 15:00:28', 'MOCK_WX1993937906212933632', '充值', '1791350', '2025-11-27 15:00:17', 'system', '2025-11-27 15:00:28', 0);
 
 -- ----------------------------
 -- Table structure for t_scripture
@@ -1040,7 +1094,8 @@ CREATE TABLE `t_user_item`  (
 -- ----------------------------
 -- Records of t_user_item
 -- ----------------------------
-INSERT INTO `t_user_item` VALUES (1991035938884685824, 1990331081332756480, 1001, '2025-11-19 14:48:53', 1, 1, 0, NULL, 1, 1, NULL, 0, NULL, 'system', '2025-11-19 14:48:55', 'system', '2025-11-19 14:48:55', 0);
+INSERT INTO `t_user_item` VALUES (1995798085917347840, 1993582099294195712, 1000, '2025-12-02 18:11:58', 0, NULL, 0, NULL, 1, 1, NULL, 0, '2025-12-03 18:11:58', 'system', '2025-12-02 18:11:59', 'system', '2025-12-02 18:16:54', 0);
+INSERT INTO `t_user_item` VALUES (1995798190523289600, 1993582099294195712, 2000, '2025-12-02 18:12:23', 0, NULL, 0, NULL, 1, 1, NULL, 0, '2025-12-03 18:12:23', 'system', '2025-12-02 18:12:23', 'system', '2025-12-02 18:16:54', 0);
 
 -- ----------------------------
 -- Table structure for t_user_message
@@ -1098,6 +1153,8 @@ CREATE TABLE `t_user_period_stats`  (
 -- ----------------------------
 -- Records of t_user_period_stats
 -- ----------------------------
+INSERT INTO `t_user_period_stats` VALUES (1994319562094546944, 1993582099294195712, 1994225773560598528, 'DAY', 32, 32, 0, 'system', '2025-11-28 16:16:50', 'system', '2025-11-28 16:26:07', 0);
+INSERT INTO `t_user_period_stats` VALUES (1995694159582859264, 1993582099294195712, 1995694158379094016, 'DAY', 57, 57, 0, 'system', '2025-12-02 11:19:00', 'system', '2025-12-02 18:12:14', 0);
 
 -- ----------------------------
 -- Table structure for t_user_relation
@@ -1192,7 +1249,7 @@ CREATE TABLE `t_user_setting`  (
 -- Records of t_user_setting
 -- ----------------------------
 INSERT INTO `t_user_setting` VALUES (1990331082314223616, 1990331081332756480, 1, 80, 1, 1, '09:00:00', 0, 2, NULL, NULL, NULL, 3, 'system', '2025-11-17 16:08:03', 'system', '2025-11-17 16:14:13', 0);
-INSERT INTO `t_user_setting` VALUES (1993582099730403328, 1993582099294195712, 1, 80, 1, 1, '09:00:00', 0, 2, NULL, NULL, NULL, 1, 'system', '2025-11-26 15:26:26', 'system', '2025-11-26 15:26:26', 0);
+INSERT INTO `t_user_setting` VALUES (1993582099730403328, 1993582099294195712, 1, 80, 1, 1, '09:00:00', 0, 2, NULL, NULL, NULL, 2, 'system', '2025-11-26 15:26:26', 'system', '2025-11-28 11:20:37', 0);
 
 -- ----------------------------
 -- Table structure for t_user_stats
@@ -1227,7 +1284,7 @@ CREATE TABLE `t_user_stats`  (
 -- ----------------------------
 INSERT INTO `t_user_stats` VALUES (1971822665643724800, 1971822665190739968, 1000, 1000, 20, 20, 10, 1, 0, NULL, NULL, 'user711', '2025-09-27 14:22:13', 'user711', '2025-09-27 15:39:15', 0);
 INSERT INTO `t_user_stats` VALUES (1990331081404059648, 1990331081332756480, 0, 7, 0, 0, 0, 1, 0, NULL, NULL, 'user845', '2025-11-17 16:08:03', 'user845', '2025-11-19 14:48:52', 0);
-INSERT INTO `t_user_stats` VALUES (1993582099487133696, 1993582099294195712, 89, 11, 89, 11, 11, 2, 0, NULL, NULL, '1791350', '2025-11-26 15:26:26', '1791350', '2025-11-26 16:56:54', 0);
+INSERT INTO `t_user_stats` VALUES (1993582099487133696, 1993582099294195712, 178, 80, 178, 11, 11, 2, 0, '2025-12-02 18:12:14', NULL, '1791350', '2025-11-26 15:26:26', '1791350', '2025-12-02 18:12:23', 0);
 
 -- ----------------------------
 -- Table structure for t_user_task
