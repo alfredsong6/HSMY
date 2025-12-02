@@ -15,10 +15,8 @@ public class MeditationSessionFinishVO {
     @NotNull(message = "实际时长不能为空")
     @Min(value = 1, message = "实际时长必须大于0")
     private Integer actualDuration;
+    /** 会话状态：START/INTERRUPTED/COMPLETED */
+    private String status;
 
-    private Integer withKnock;
-    private Integer knockFrequency;
-
-    private String moodCode;
-    private String insightText;
+    private String endTime;
 }

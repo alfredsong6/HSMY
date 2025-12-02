@@ -29,6 +29,8 @@ public class MeditationSession extends BaseEntity {
     private Date startTime;
     /** 结束时间 */
     private Date endTime;
+    /** 会话状态：START/INTERRUPTED/COMPLETED */
+    private String status;
     /** 是否伴随敲击（0/1） */
     private Integer withKnock;
     /** 敲击频率（次/分钟） */
