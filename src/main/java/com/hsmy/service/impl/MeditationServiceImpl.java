@@ -290,6 +290,8 @@ public class MeditationServiceImpl implements MeditationService {
         record.setMeritGained(minutes);
         record.setBaseMerit(minutes);
         record.setSource("meditation");
+        record.setKnockType("auto");
+        record.setKnockMode("AUTO_TIMED");
         record.setSessionId(session.getSessionId());
         record.setStatDate(java.sql.Date.valueOf(toLocalDate(endTime)));
         record.setDescription("冥想完成");

@@ -1,18 +1,10 @@
 package com.hsmy.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.hsmy.entity.Item;
-import com.hsmy.entity.RechargeOrder;
-import com.hsmy.entity.Scripture;
-import com.hsmy.entity.UserScripturePurchase;
-import com.hsmy.entity.UserItem;
+import com.hsmy.entity.*;
 import com.hsmy.entity.meditation.MeritCoinTransaction;
 import com.hsmy.enums.MeritBizType;
-import com.hsmy.mapper.ItemMapper;
-import com.hsmy.mapper.RechargeOrderMapper;
-import com.hsmy.mapper.ScriptureMapper;
-import com.hsmy.mapper.UserItemMapper;
-import com.hsmy.mapper.UserScripturePurchaseMapper;
+import com.hsmy.mapper.*;
 import com.hsmy.mapper.meditation.MeritCoinTransactionMapper;
 import com.hsmy.service.MeritCoinTransactionService;
 import com.hsmy.vo.MeritCoinTransactionDetailVO;
@@ -21,7 +13,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * 功德币流水查询实现.
@@ -62,7 +53,7 @@ public class MeritCoinTransactionServiceImpl implements MeritCoinTransactionServ
                 wrapper.gt(MeritCoinTransaction::getChangeAmount, 0);
                 break;
             case EXPENSE:
-                wrapper.lt(MeritCoinTransaction::getChangeAmount, 0);
+                wrapper.le(MeritCoinTransaction::getChangeAmount, 0);
                 break;
             default:
                 break;

@@ -33,26 +33,39 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public List<Item> getItemsByType(Long userId, String itemType) {
         List<Item> items = itemMapper.selectByType(itemType);
-        if (items == null || items.size() <= 1 || userId == null) {
+        if (items == null || userId == null) {
             return items;
         }
 
-        List<UserItem> userItems = userItemMapper.selectByUserIdAndType(userId, itemType);
+        List<UserItem> userItems = userItemMapper.selectOwnedByUserId(userId, itemType);
         Set<Long> ownedItemIds = Optional.ofNullable(userItems)
                 .orElseGet(ArrayList::new)
                 .stream()
                 .map(UserItem::getItemId)
                 .collect(Collectors.toSet());
 
+        List<Item> filtered = items.stream()
+                .filter(item -> {
+                    if (item == null) {
+                        return false;
+                    }
+                    boolean limited = item.getIsLimited() != null && item.getIsLimited() == 1;
+                    return !limited || !ownedItemIds.contains(item.getId());
+                })
+                .collect(Collectors.toCollection(ArrayList::new));
+        if (filtered.size() <= 1) {
+            return filtered;
+        }
+
         Map<Integer, List<Item>> bySort = new HashMap<>();
-        for (Item item : items) {
+        for (Item item : filtered) {
             if (item == null || item.getSortOrder() == null) {
                 continue;
             }
             bySort.computeIfAbsent(item.getSortOrder(), k -> new ArrayList<>()).add(item);
         }
 
-        List<Item> filtered = new ArrayList<>(items);
+        List<Item> result = new ArrayList<>(filtered);
         for (Map.Entry<Integer, List<Item>> entry : bySort.entrySet()) {
             List<Item> sameSortItems = entry.getValue();
             if (sameSortItems.size() < 2) {
@@ -67,16 +80,16 @@ public class ItemServiceImpl implements ItemService {
             Item maxOnceItem = limitedOnce.get();
             boolean owned = ownedItemIds.contains(maxOnceItem.getId());
             if (owned) {
-                filtered.remove(maxOnceItem);
+                result.remove(maxOnceItem);
             } else {
                 sameSortItems.stream()
                         .filter(i -> !i.getId().equals(maxOnceItem.getId()))
                         .findFirst()
-                        .ifPresent(filtered::remove);
+                        .ifPresent(result::remove);
             }
         }
 
-        return filtered;
+        return result;
     }
     
     @Override

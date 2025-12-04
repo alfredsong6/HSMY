@@ -56,6 +56,18 @@
         AND (ui.expire_time IS NULL OR ui.expire_time > NOW())
         ORDER BY ui.purchase_time DESC
     </select>
+
+    <select id="selectOwnedByUserId" resultMap="UserItemWithItemMap">
+        SELECT
+        <include refid="Base_Column_List"/>,
+        i.item_name, i.item_type, i.category, i.description, i.preview_url, i.resource_url
+        FROM t_user_item ui
+        LEFT JOIN t_item i ON ui.item_id = i.id
+        WHERE ui.user_id = #{userId}
+        AND ui.is_deleted = 0
+        AND i.item_type = #{itemType}
+        ORDER BY ui.purchase_time DESC
+    </select>
     
     <!-- 根据用户ID和道具类型查询道具 -->
     <select id="selectByUserIdAndType" resultMap="UserItemWithItemMap">
@@ -82,6 +94,22 @@
         AND ui.is_equipped = 1
         AND ui.is_deleted = 0
         AND (ui.expire_time IS NULL OR ui.expire_time > NOW())
+    </select>
+    
+    <!-- 根据用户ID查询已过期的道具 -->
+    <select id="selectExpiredByUserId" resultMap="UserItemWithItemMap">
+        SELECT
+        <include refid="Base_Column_List"/>,
+        i.item_name, i.item_type, i.category, i.description, i.preview_url, i.resource_url
+        FROM t_user_item ui
+        LEFT JOIN t_item i ON ui.item_id = i.id
+        WHERE ui.user_id = #{userId}
+        AND ui.is_deleted = 0
+        AND (
+            ui.usage_status = 3
+            OR (ui.expire_time IS NOT NULL AND ui.expire_time &lt;= NOW())
+        )
+        ORDER BY ui.expire_time DESC
     </select>
     
     <!-- 更新道具装备状态 -->
@@ -112,9 +140,9 @@
             update_time = NOW()
         WHERE is_deleted = 0
           AND usage_status != 3
-          AND remaining_uses is null
+          AND remaining_uses IS NULL
           AND expire_time IS NOT NULL
-          AND expire_time < NOW();
+          AND expire_time &lt; NOW();
     </update>
     
 </mapper>

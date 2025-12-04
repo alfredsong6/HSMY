@@ -42,6 +42,23 @@ public interface UserItemMapper extends BaseMapper<UserItem> {
     List<UserItem> selectEquippedByUserId(@Param("userId") Long userId);
     
     /**
+     * 根据用户ID查询已过期的道具
+     *
+     * @param userId 用户ID
+     * @return 已过期道具列表
+     */
+    List<UserItem> selectExpiredByUserId(@Param("userId") Long userId);
+
+    /**
+     * 根据用户ID和道具ID查询道具
+     *
+     * @param userId 用户ID
+     * @param itemId 道具ID
+     * @return 用户道具
+     */
+    List<UserItem> selectOwnedByUserId(@Param("userId") Long userId, @Param("itemType") String itemType);
+    
+    /**
      * 更新道具装备状态
      * 
      * @param userId 用户ID
