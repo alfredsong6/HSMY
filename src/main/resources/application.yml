@@ -6,6 +6,7 @@ server:
 spring:
   application:
     name: hsmy
+
   profiles:
     active: @profiles.active@
   datasource:

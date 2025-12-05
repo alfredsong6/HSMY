@@ -56,5 +56,5 @@ wechatpay:
 
 wechat:
   mini:
-    app-id: wx4d903ff814121a1d
-    secret: b5953682eeb259ba81af0c42d17a8b0e
+    app-id: wx50e2472b35427201
+    secret: f9b057d34140a08f3aff1b28053a62ac
