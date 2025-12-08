@@ -222,19 +222,37 @@ public class MeditationServiceImpl implements MeditationService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void updateShare(Long userId, MeditationSessionShareVO shareVO) {
-        userLockManager.executeWithUserLock(userId, () -> {
+    public Integer updateShare(Long userId, MeditationSessionShareVO shareVO) {
+        return userLockManager.executeWithUserLock(userId, () -> {
             MeditationSession session = findSessionBySessionId(userId, shareVO.getSessionId());
             if (!MeditationSessionStatusEnum.COMPLETED.name().equals(session.getStatus())) {
                 throw new BusinessException("会话未完成，无法分享");
             }
             int shareFlag = shareVO.getShareFlag() != null && shareVO.getShareFlag() == 1 ? 1 : 0;
-            //String shareTarget = shareFlag == 1 ? normalizeShareTarget(shareVO.getShareTarget()) : null;
+            if (shareFlag == 0) {
+                session.setShareFlag(0);
+                //session.setShareTarget(null);
+                meditationSessionMapper.updateById(session);
+                return 0;
+            }
+            boolean alreadyShared = session.getShareFlag() != null && session.getShareFlag() == 1;
+            String shareTarget = normalizeShareTarget(shareVO.getShareTarget());
 
-            session.setShareFlag(shareFlag);
+            Date start = toDate(LocalDate.now().atStartOfDay());
+            Date end = toDate(LocalDate.now().atTime(LocalTime.MAX));
+            int sharedToday = Optional.ofNullable(meditationSessionMapper.countSharesByUserAndDate(userId, start, end)).orElse(0);
+            boolean rewardEligible = !alreadyShared && sharedToday < 3;
+            int reward = 0;
+
+            session.setShareFlag(1);
             //session.setShareTarget(shareTarget);
             meditationSessionMapper.updateById(session);
-            return null;
+
+            if (rewardEligible) {
+                userStatsMapper.addMerit(userId, 30L);
+                reward = 30;
+            }
+            return reward;
         });
     }
 

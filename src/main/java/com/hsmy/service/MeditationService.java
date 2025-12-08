@@ -16,7 +16,10 @@ public interface MeditationService {
 
     void addReflection(Long userId, MeditationSessionReflectionVO reflectionVO);
 
-    void updateShare(Long userId, MeditationSessionShareVO shareVO);
+    /**
+     * 更新分享状态并返回本次奖励的功德值（未奖励返回0）
+     */
+    Integer updateShare(Long userId, MeditationSessionShareVO shareVO);
 
     void pingSession(Long userId, MeditationSessionPingVO pingVO);
 

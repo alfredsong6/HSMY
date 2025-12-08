@@ -49,4 +49,13 @@
         ORDER BY stat_date
     </select>
 
+    <select id="countSharesByUserAndDate" resultType="java.lang.Integer">
+        SELECT IFNULL(COUNT(1), 0)
+        FROM t_meditation_session
+        WHERE user_id = #{userId}
+          AND share_flag = 1
+          AND update_time BETWEEN #{start} AND #{end}
+          AND is_deleted = 0
+    </select>
+
 </mapper>

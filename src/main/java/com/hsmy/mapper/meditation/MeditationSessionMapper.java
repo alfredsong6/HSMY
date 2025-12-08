@@ -27,4 +27,8 @@ public interface MeditationSessionMapper extends BaseMapper<MeditationSession> {
     List<MeditationMonthStatDTO> selectMonthStats(@Param("userId") Long userId,
                                                   @Param("start") Date monthStart,
                                                   @Param("end") Date monthEnd);
+
+    Integer countSharesByUserAndDate(@Param("userId") Long userId,
+                                     @Param("start") Date start,
+                                     @Param("end") Date end);
 }

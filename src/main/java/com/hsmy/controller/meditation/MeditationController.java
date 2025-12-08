@@ -69,10 +69,10 @@ public class MeditationController {
     }
 
     @PostMapping("/session/share")
-    public Result<Boolean> updateShare(@Valid @RequestBody MeditationSessionShareVO shareVO) {
+    public Result<Integer> updateShare(@Valid @RequestBody MeditationSessionShareVO shareVO) {
         Long userId = UserContextUtil.requireCurrentUserId();
-        meditationService.updateShare(userId, shareVO);
-        return Result.success(true);
+        Integer reward = meditationService.updateShare(userId, shareVO);
+        return Result.success(reward);
     }
 
     //@PostMapping("/session/discard")

@@ -111,6 +111,8 @@ public class UserVO implements Serializable {
      */
     private Boolean dailyWishCompleted;
 
+    private String lastestDailyWish;
+
     /**
      * Token（登录成功后返回）
      */
