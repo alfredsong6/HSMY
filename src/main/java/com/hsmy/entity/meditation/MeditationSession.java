@@ -41,6 +41,8 @@ public class MeditationSession extends BaseEntity {
     private String moodCode;
     /** 冥想领悟 */
     private String insightText;
+    /** 是否分享：0-否，1-是 */
+    private Integer shareFlag;
     /** 自动生成昵称 */
     private String nicknameGenerated;
     /** 自动生成功德标签 */

@@ -169,6 +169,8 @@ public class MeditationServiceImpl implements MeditationService {
         session.setLastHeartbeatTime(new Date());
         session.setWithKnock(withKnock);
         session.setKnockFrequency(knockFrequency);
+        session.setShareFlag(0);
+        //session.setShareTarget(null);
         session.setSaveFlag(1);
         session.setCoinCost(0);
         session.setCoinRefunded(0);
@@ -193,6 +195,47 @@ public class MeditationServiceImpl implements MeditationService {
     @Transactional(rollbackFor = Exception.class)
     public MeditationSessionFinishResponse finishSession(Long userId, MeditationSessionFinishVO finishVO) {
         return userLockManager.executeWithUserLock(userId, () -> finishSessionInternal(userId, finishVO));
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void addReflection(Long userId, MeditationSessionReflectionVO reflectionVO) {
+        userLockManager.executeWithUserLock(userId, () -> {
+            MeditationSession session = findSessionBySessionId(userId, reflectionVO.getSessionId());
+            if (!MeditationSessionStatusEnum.COMPLETED.name().equals(session.getStatus())) {
+                throw new BusinessException("会话未完成，无法添加感悟");
+            }
+            String mood = StringUtils.hasText(reflectionVO.getMoodCode()) ? reflectionVO.getMoodCode().trim() : null;
+            String insight = StringUtils.hasText(reflectionVO.getInsightText()) ? reflectionVO.getInsightText().trim() : null;
+            if (!StringUtils.hasText(mood) && !StringUtils.hasText(insight)) {
+                throw new BusinessException("心情或感悟至少填写一项");
+            }
+
+            session.setMoodCode(mood);
+            session.setInsightText(insight);
+            meditationSessionMapper.updateById(session);
+
+            updateDailyReflection(userId, session.getEndTime() != null ? session.getEndTime() : new Date(), mood, insight);
+            return null;
+        });
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void updateShare(Long userId, MeditationSessionShareVO shareVO) {
+        userLockManager.executeWithUserLock(userId, () -> {
+            MeditationSession session = findSessionBySessionId(userId, shareVO.getSessionId());
+            if (!MeditationSessionStatusEnum.COMPLETED.name().equals(session.getStatus())) {
+                throw new BusinessException("会话未完成，无法分享");
+            }
+            int shareFlag = shareVO.getShareFlag() != null && shareVO.getShareFlag() == 1 ? 1 : 0;
+            //String shareTarget = shareFlag == 1 ? normalizeShareTarget(shareVO.getShareTarget()) : null;
+
+            session.setShareFlag(shareFlag);
+            //session.setShareTarget(shareTarget);
+            meditationSessionMapper.updateById(session);
+            return null;
+        });
     }
 
     @Override
@@ -430,6 +473,39 @@ public class MeditationServiceImpl implements MeditationService {
             throw new BusinessException("会话不存在");
         }
         return session;
+    }
+
+    private String normalizeShareTarget(String shareTarget) {
+        if (!StringUtils.hasText(shareTarget)) {
+            throw new BusinessException("分享渠道不能为空");
+        }
+        String normalized = shareTarget.trim().toUpperCase(Locale.ROOT);
+        if (!"FRIEND".equals(normalized) && !"MOMENTS".equals(normalized)) {
+            throw new BusinessException("分享渠道非法");
+        }
+        return normalized;
+    }
+
+    private void updateDailyReflection(Long userId, Date endTime, String mood, String insight) {
+        if (!StringUtils.hasText(mood) && !StringUtils.hasText(insight)) {
+            return;
+        }
+        Date statDate = java.sql.Date.valueOf(toLocalDate(endTime));
+        MeditationDailyStats stats = meditationDailyStatsMapper.selectByUserAndDate(userId, statDate);
+        if (stats == null) {
+            stats = new MeditationDailyStats();
+            stats.setUserId(userId);
+            stats.setStatDate(statDate);
+            stats.setSessionCount(0);
+            stats.setTotalMinutes(0);
+            stats.setLastMood(mood);
+            stats.setLastInsight(insight);
+            meditationDailyStatsMapper.insert(stats);
+        } else {
+            stats.setLastMood(mood);
+            stats.setLastInsight(insight);
+            meditationDailyStatsMapper.updateById(stats);
+        }
     }
 
     private MeditationDailyStats upsertDailyStats(Long userId, Date now, String mood, String insight, Integer actualDurationSeconds) {

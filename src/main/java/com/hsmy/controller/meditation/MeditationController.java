@@ -61,6 +61,20 @@ public class MeditationController {
         return Result.success("冥想已保存", response);
     }
 
+    @PostMapping("/session/reflection")
+    public Result<Boolean> addReflection(@Valid @RequestBody MeditationSessionReflectionVO reflectionVO) {
+        Long userId = UserContextUtil.requireCurrentUserId();
+        meditationService.addReflection(userId, reflectionVO);
+        return Result.success(true);
+    }
+
+    @PostMapping("/session/share")
+    public Result<Boolean> updateShare(@Valid @RequestBody MeditationSessionShareVO shareVO) {
+        Long userId = UserContextUtil.requireCurrentUserId();
+        meditationService.updateShare(userId, shareVO);
+        return Result.success(true);
+    }
+
     //@PostMapping("/session/discard")
     public Result<Boolean> discardSession(@Valid @RequestBody MeditationSessionDiscardVO discardVO) {
         Long userId = UserContextUtil.requireCurrentUserId();

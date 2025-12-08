@@ -14,6 +14,10 @@ public interface MeditationService {
 
     MeditationSessionFinishResponse finishSession(Long userId, MeditationSessionFinishVO finishVO);
 
+    void addReflection(Long userId, MeditationSessionReflectionVO reflectionVO);
+
+    void updateShare(Long userId, MeditationSessionShareVO shareVO);
+
     void pingSession(Long userId, MeditationSessionPingVO pingVO);
 
     Integer settleAbnormalSessions(Long userId);
