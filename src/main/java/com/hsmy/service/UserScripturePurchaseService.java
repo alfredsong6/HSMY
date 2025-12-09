@@ -103,13 +103,14 @@ public interface UserScripturePurchaseService {
      * @param sectionId 分段ID
      * @param lastPosition 分段内位置
      * @param sectionProgress 分段进度
-     * @param totalProgress 整本进度
+     * @param totalProgress 整本进度（可为null表示不更新整本）
      * @param spendSeconds 阅读耗时（秒，可选）
+     * @param completed 是否完成分段
      * @return 是否成功
      */
     Boolean updateSectionProgress(Long userId, Long scriptureId, Long sectionId,
                                   Integer lastPosition, Double sectionProgress,
-                                  Double totalProgress, Integer spendSeconds);
+                                  Double totalProgress, Integer spendSeconds, boolean completed);
 
     /**
      * 获取即将过期的购买记录

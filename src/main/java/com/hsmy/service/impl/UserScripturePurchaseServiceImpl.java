@@ -194,7 +194,7 @@ public class UserScripturePurchaseServiceImpl implements UserScripturePurchaseSe
     @Transactional(rollbackFor = Exception.class)
     public Boolean updateSectionProgress(Long userId, Long scriptureId, Long sectionId,
                                          Integer lastPosition, Double sectionProgress,
-                                         Double totalProgress, Integer spendSeconds) {
+                                         Double totalProgress, Integer spendSeconds, boolean completed) {
         UserScripturePurchase purchase = userScripturePurchaseMapper.selectByUserAndScripture(userId, scriptureId);
         if (purchase == null) {
             return false;
@@ -204,12 +204,12 @@ public class UserScripturePurchaseServiceImpl implements UserScripturePurchaseSe
             return false;
         }
 
-        boolean completed = sectionProgress != null && sectionProgress >= 100D;
-        userScriptureProgressService.saveSectionProgress(userId, scriptureId, sectionId, sectionProgress, lastPosition, spendSeconds, completed);
+        boolean sectionDone = completed || (sectionProgress != null && sectionProgress >= 100D);
+        userScriptureProgressService.saveSectionProgress(userId, scriptureId, sectionId, sectionProgress, lastPosition, spendSeconds, sectionDone);
         Integer completedSections = userScriptureProgressService.countCompletedSections(userId, scriptureId);
         int completedCount = completedSections == null ? 0 : completedSections;
         Date now = new Date();
-        Double safeTotalProgress = totalProgress == null ? 0D : totalProgress;
+        Double safeTotalProgress = totalProgress == null ? purchase.getReadingProgress().doubleValue() : totalProgress;
         int result = userScripturePurchaseMapper.updateSectionSnapshot(
                 purchase.getId(),
                 safeTotalProgress,

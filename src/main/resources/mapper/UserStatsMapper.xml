@@ -64,7 +64,7 @@
         SET merit_coins = merit_coins - #{coins},
             update_time = NOW()
         WHERE user_id = #{userId}
-        AND merit_coins >= #{coins}
+        AND merit_coins &gt; #{coins}
         AND is_deleted = 0
     </update>
     

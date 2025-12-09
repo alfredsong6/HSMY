@@ -20,7 +20,7 @@ public class ScriptureVO implements Serializable {
     /**
      * 典籍ID
      */
-    private Long id;
+    private String id;
 
     /**
      * 典籍名称
@@ -113,6 +113,11 @@ public class ScriptureVO implements Serializable {
     private Integer previewSectionCount;
 
     /**
+     * 是否支持试读
+     */
+    private Boolean canPreview;
+
+    /**
      * 分类标签，用逗号分隔
      */
     private String categoryTags;
@@ -148,4 +153,15 @@ public class ScriptureVO implements Serializable {
      * 用户购买是否有效（未过期）（查询时动态填充）
      */
     private Boolean isPurchaseValid;
+
+    /**
+     * 用户购买到期时间（查询时动态填充）
+     */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    private Date expireTime;
+
+    /**
+     * 用户购买类型（lease/permanent/...）
+     */
+    private String purchaseType;
 }

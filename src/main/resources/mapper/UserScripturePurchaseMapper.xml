@@ -76,8 +76,8 @@
         WHERE is_expired = 0
         AND status = 1
         AND expire_time IS NOT NULL
-        AND expire_time > NOW()
-        AND expire_time < DATE_ADD(NOW(), INTERVAL #{days} DAY)
+        AND expire_time &gt; NOW()
+        AND expire_time &lt; DATE_ADD(NOW(), INTERVAL #{days} DAY)
         AND is_deleted = 0
         ORDER BY expire_time ASC
     </select>
@@ -131,7 +131,7 @@
             update_time = NOW()
         WHERE is_expired = 0
         AND status = 1
-        AND expire_time < NOW()
+        AND expire_time &gt; NOW()
         AND is_deleted = 0
     </update>
 

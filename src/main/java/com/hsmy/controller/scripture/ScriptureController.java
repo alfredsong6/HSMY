@@ -1,20 +1,19 @@
 package com.hsmy.controller.scripture;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.hsmy.annotation.ApiVersion;
 import com.hsmy.common.Result;
 import com.hsmy.constant.ApiVersionConstant;
 import com.hsmy.entity.Scripture;
 import com.hsmy.entity.ScriptureSection;
-import com.hsmy.service.ScriptureService;
+import com.hsmy.entity.UserScripturePurchase;
 import com.hsmy.service.ScriptureSectionService;
+import com.hsmy.service.ScriptureService;
 import com.hsmy.service.UserScripturePurchaseService;
 import com.hsmy.utils.UserContextUtil;
 import com.hsmy.vo.ScriptureQueryVO;
-import com.hsmy.vo.ScriptureVO;
 import com.hsmy.vo.ScriptureSectionVO;
+import com.hsmy.vo.ScriptureSectionsResponseVO;
+import com.hsmy.vo.ScriptureVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.util.StringUtils;
@@ -79,19 +78,27 @@ public class ScriptureController {
             List<ScriptureVO> scriptureVOs = scriptures.stream().map(scripture -> {
                 ScriptureVO vo = new ScriptureVO();
                 BeanUtils.copyProperties(scripture, vo);
+                vo.setId(scripture.getId().toString());
+                vo.setCanPreview(scripture.getPreviewSectionCount() != null && scripture.getPreviewSectionCount() > 0);
 
                 // 填充用户购买信息（如果用户已登录）
-                try {
-                    Long userId = UserContextUtil.getCurrentUserId();
-                    if (userId != null) {
-                        vo.setIsPurchased(userScripturePurchaseService.hasUserPurchased(userId, scripture.getId()));
-                        vo.setIsPurchaseValid(userScripturePurchaseService.isUserPurchaseValid(userId, scripture.getId()));
+            try {
+                Long userId = UserContextUtil.getCurrentUserId();
+                if (userId != null) {
+                    UserScripturePurchase purchase = userScripturePurchaseService.getUserPurchaseDetail(userId, scripture.getId());
+                    boolean purchased = purchase != null;
+                    vo.setIsPurchased(purchased);
+                    vo.setIsPurchaseValid(purchased && userScripturePurchaseService.isUserPurchaseValid(userId, scripture.getId()));
+                    if (purchase != null) {
+                        vo.setExpireTime(purchase.getExpireTime());
+                        vo.setPurchaseType(purchase.getPurchaseType());
                     }
-                } catch (Exception e) {
-                    // 用户未登录，忽略
-                    vo.setIsPurchased(false);
-                    vo.setIsPurchaseValid(false);
                 }
+            } catch (Exception e) {
+                // 用户未登录，忽略
+                vo.setIsPurchased(false);
+                vo.setIsPurchaseValid(false);
+            }
 
                 return vo;
             }).collect(Collectors.toList());
@@ -119,13 +126,21 @@ public class ScriptureController {
 
             ScriptureVO vo = new ScriptureVO();
             BeanUtils.copyProperties(scripture, vo);
+            vo.setId(scriptureId.toString());
+            vo.setCanPreview(scripture.getPreviewSectionCount() != null && scripture.getPreviewSectionCount() > 0);
 
             // 填充用户购买信息（如果用户已登录）
             try {
                 Long userId = UserContextUtil.getCurrentUserId();
                 if (userId != null) {
-                    vo.setIsPurchased(userScripturePurchaseService.hasUserPurchased(userId, scriptureId));
-                    vo.setIsPurchaseValid(userScripturePurchaseService.isUserPurchaseValid(userId, scriptureId));
+                    UserScripturePurchase purchase = userScripturePurchaseService.getUserPurchaseDetail(userId, scriptureId);
+                    boolean purchased = purchase != null;
+                    vo.setIsPurchased(purchased);
+                    vo.setIsPurchaseValid(purchased && userScripturePurchaseService.isUserPurchaseValid(userId, scriptureId));
+                    if (purchase != null) {
+                        vo.setExpireTime(purchase.getExpireTime());
+                        vo.setPurchaseType(purchase.getPurchaseType());
+                    }
                 }
             } catch (Exception e) {
                 // 用户未登录，忽略
@@ -152,6 +167,7 @@ public class ScriptureController {
             List<ScriptureVO> scriptureVOs = scriptures.stream().map(scripture -> {
                 ScriptureVO vo = new ScriptureVO();
                 BeanUtils.copyProperties(scripture, vo);
+                vo.setCanPreview(scripture.getPreviewSectionCount() != null && scripture.getPreviewSectionCount() > 0);
                 return vo;
             }).collect(Collectors.toList());
 
@@ -175,6 +191,7 @@ public class ScriptureController {
             List<ScriptureVO> scriptureVOs = scriptures.stream().map(scripture -> {
                 ScriptureVO vo = new ScriptureVO();
                 BeanUtils.copyProperties(scripture, vo);
+                vo.setCanPreview(scripture.getPreviewSectionCount() != null && scripture.getPreviewSectionCount() > 0);
                 return vo;
             }).collect(Collectors.toList());
 
@@ -202,6 +219,7 @@ public class ScriptureController {
             List<ScriptureVO> scriptureVOs = scriptures.stream().map(scripture -> {
                 ScriptureVO vo = new ScriptureVO();
                 BeanUtils.copyProperties(scripture, vo);
+                vo.setCanPreview(scripture.getPreviewSectionCount() != null && scripture.getPreviewSectionCount() > 0);
                 return vo;
             }).collect(Collectors.toList());
 
@@ -217,8 +235,8 @@ public class ScriptureController {
      * @param scriptureId 典籍ID
      * @return 分段列表
      */
-    @GetMapping("/{scriptureId}/sections")
-    public Result<List<ScriptureSectionVO>> getScriptureSections(@PathVariable Long scriptureId) {
+    @GetMapping("/{scriptureId}/sections/catalog")
+    public Result<ScriptureSectionsResponseVO> getScriptureSections(@PathVariable Long scriptureId) {
         try {
             Scripture scripture = scriptureService.getScriptureById(scriptureId);
             if (scripture == null) {
@@ -228,6 +246,7 @@ public class ScriptureController {
             List<ScriptureSectionVO> sectionVOS = sections.stream().map(section -> {
                 ScriptureSectionVO vo = new ScriptureSectionVO();
                 vo.setId(section.getId());
+                vo.setSectionId(section.getId());
                 vo.setSectionNo(section.getSectionNo());
                 vo.setTitle(section.getTitle());
                 vo.setWordCount(section.getWordCount());
@@ -235,37 +254,40 @@ public class ScriptureController {
                 vo.setIsFree(section.getIsFree());
                 return vo;
             }).collect(Collectors.toList());
-            return Result.success(sectionVOS);
+            ScriptureSectionsResponseVO resp = new ScriptureSectionsResponseVO();
+            resp.setScriptureId(scriptureId);
+            resp.setSections(sectionVOS);
+            return Result.success(resp);
         } catch (Exception e) {
             return Result.error("获取分段列表失败：" + e.getMessage());
         }
     }
 
-    /**
-     * 记录阅读行为（增加阅读次数）
-     *
-     * @param scriptureId 典籍ID
-     * @param request HTTP请求
-     * @return 操作结果
-     */
-    @PostMapping("/{scriptureId}/read")
-    public Result<Void> recordReading(@PathVariable Long scriptureId, HttpServletRequest request) {
-        try {
-            Long userId = UserContextUtil.requireCurrentUserId();
-
-            // 检查用户是否有权限阅读该典籍
-            if (!userScripturePurchaseService.isUserPurchaseValid(userId, scriptureId)) {
-                return Result.error("您尚未购买该典籍或购买已过期");
-            }
-
-            Boolean success = userScripturePurchaseService.recordUserReading(userId, scriptureId);
-            if (success) {
-                return Result.success();
-            } else {
-                return Result.error("记录阅读失败");
-            }
-        } catch (Exception e) {
-            return Result.error("记录阅读失败：" + e.getMessage());
-        }
-    }
+//    /**
+//     * 记录阅读行为（增加阅读次数）
+//     *
+//     * @param scriptureId 典籍ID
+//     * @param request HTTP请求
+//     * @return 操作结果
+//     */
+//    @PostMapping("/{scriptureId}/read")
+//    public Result<Void> recordReading(@PathVariable Long scriptureId, HttpServletRequest request) {
+//        try {
+//            Long userId = UserContextUtil.requireCurrentUserId();
+//
+//            // 检查用户是否有权限阅读该典籍
+//            if (!userScripturePurchaseService.isUserPurchaseValid(userId, scriptureId)) {
+//                return Result.error("您尚未购买该典籍或购买已过期");
+//            }
+//
+//            Boolean success = userScripturePurchaseService.recordUserReading(userId, scriptureId);
+//            if (success) {
+//                return Result.success();
+//            } else {
+//                return Result.error("记录阅读失败");
+//            }
+//        } catch (Exception e) {
+//            return Result.error("记录阅读失败：" + e.getMessage());
+//        }
+//    }
 }
