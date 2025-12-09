@@ -7,10 +7,15 @@ import com.hsmy.dto.PurchaseScriptureRequest;
 import com.hsmy.dto.PurchaseScripturePermanentRequest;
 import com.hsmy.dto.UpdateLastReadingPositionRequest;
 import com.hsmy.dto.UpdateReadingProgressRequest;
+import com.hsmy.dto.UpdateSectionProgressRequest;
 import com.hsmy.entity.Scripture;
+import com.hsmy.entity.ScriptureSection;
 import com.hsmy.entity.UserScripturePurchase;
+import com.hsmy.entity.UserScriptureProgress;
 import com.hsmy.service.ScriptureService;
+import com.hsmy.service.ScriptureSectionService;
 import com.hsmy.service.UserScripturePurchaseService;
+import com.hsmy.service.UserScriptureProgressService;
 import com.hsmy.utils.UserContextUtil;
 import com.hsmy.vo.ScriptureReadingVO;
 import com.hsmy.vo.UserPurchaseStatsVO;
@@ -21,6 +26,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -40,6 +46,8 @@ public class UserScriptureController {
 
     private final UserScripturePurchaseService userScripturePurchaseService;
     private final ScriptureService scriptureService;
+    private final ScriptureSectionService scriptureSectionService;
+    private final UserScriptureProgressService userScriptureProgressService;
 
     /**
      * 购买典籍
@@ -144,24 +152,23 @@ public class UserScriptureController {
                     vo.setCoverUrl(scripture.getCoverUrl());
                 }
 
+                boolean isPermanent = "permanent".equalsIgnoreCase(purchase.getPurchaseType()) || purchase.getExpireTime() == null;
+                vo.setIsPermanent(isPermanent);
+
                 // 计算剩余天数
-                if (purchase.getExpireTime() != null && purchase.getIsExpired() == 0) {
+                if (purchase.getStatus() != null && purchase.getStatus() != 1) {
+                    vo.setRemainingDays(0L);
+                    vo.setIsExpiringSoon(false);
+                } else if (!isPermanent && purchase.getExpireTime() != null) {
                     long remainingDays = ChronoUnit.DAYS.between(
                             LocalDate.now(),
                             purchase.getExpireTime().toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalDate()
                     );
                     vo.setRemainingDays(remainingDays);
                     vo.setIsExpiringSoon(remainingDays <= 7 && remainingDays > 0);
-                    vo.setIsPermanent(false);
-                } else if (purchase.getExpireTime() == null && purchase.getIsExpired() == 0) {
-                    // 买断模式
-                    vo.setRemainingDays(-1L); // -1表示永久
-                    vo.setIsExpiringSoon(false);
-                    vo.setIsPermanent(true);
                 } else {
-                    vo.setRemainingDays(0L);
+                    vo.setRemainingDays(-1L);
                     vo.setIsExpiringSoon(false);
-                    vo.setIsPermanent(false);
                 }
 
                 return vo;
@@ -205,6 +212,11 @@ public class UserScriptureController {
                     );
                     vo.setRemainingDays(remainingDays);
                     vo.setIsExpiringSoon(remainingDays <= 7 && remainingDays > 0);
+                    vo.setIsPermanent(false);
+                } else {
+                    vo.setRemainingDays(-1L);
+                    vo.setIsExpiringSoon(false);
+                    vo.setIsPermanent(true);
                 }
 
                 return vo;
@@ -244,6 +256,42 @@ public class UserScriptureController {
             }
         } catch (Exception e) {
             return Result.error("更新阅读进度失败：" + e.getMessage());
+        }
+    }
+
+    /**
+     * 更新分段阅读进度
+     *
+     * @param request 更新请求
+     * @param httpRequest HTTP请求
+     * @return 更新结果
+     */
+    @PutMapping("/section/progress")
+    public Result<Void> updateSectionProgress(@RequestBody @Valid UpdateSectionProgressRequest request,
+                                              HttpServletRequest httpRequest) {
+        try {
+            Long userId = UserContextUtil.requireCurrentUserId();
+
+            if (!userScripturePurchaseService.isUserPurchaseValid(userId, request.getScriptureId())) {
+                return Result.error("您尚未购买该典籍或购买已过期");
+            }
+
+            Boolean success = userScripturePurchaseService.updateSectionProgress(
+                    userId,
+                    request.getScriptureId(),
+                    request.getSectionId(),
+                    request.getLastPosition(),
+                    request.getSectionProgress(),
+                    request.getTotalProgress(),
+                    request.getSpendSeconds());
+
+            if (success) {
+                return Result.success();
+            } else {
+                return Result.error("更新分段进度失败");
+            }
+        } catch (Exception e) {
+            return Result.error("更新分段进度失败：" + e.getMessage());
         }
     }
 
@@ -307,14 +355,23 @@ public class UserScriptureController {
                 vo.setCoverUrl(scripture.getCoverUrl());
             }
 
+            boolean isPermanent = "permanent".equalsIgnoreCase(purchase.getPurchaseType()) || purchase.getExpireTime() == null;
+            vo.setIsPermanent(isPermanent);
+
             // 计算剩余天数
-            if (purchase.getExpireTime() != null && purchase.getIsExpired() == 0) {
+            if (purchase.getStatus() != null && purchase.getStatus() != 1) {
+                vo.setRemainingDays(0L);
+                vo.setIsExpiringSoon(false);
+            } else if (!isPermanent && purchase.getExpireTime() != null && purchase.getIsExpired() == 0) {
                 long remainingDays = ChronoUnit.DAYS.between(
                         LocalDate.now(),
                         purchase.getExpireTime().toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalDate()
                 );
                 vo.setRemainingDays(remainingDays);
                 vo.setIsExpiringSoon(remainingDays <= 7 && remainingDays > 0);
+            } else {
+                vo.setRemainingDays(-1L);
+                vo.setIsExpiringSoon(false);
             }
 
             return Result.success(vo);
@@ -422,31 +479,52 @@ public class UserScriptureController {
                 return Result.error("购买记录不存在");
             }
 
+            // 定位当前分段
+            ScriptureSection section = null;
+            if (purchase.getLastSectionId() != null) {
+                section = scriptureSectionService.getById(purchase.getLastSectionId());
+            }
+            if (section == null) {
+                section = scriptureSectionService.getFirstSection(scriptureId);
+            }
+            if (section == null) {
+                return Result.error("典籍尚未配置分段内容");
+            }
+
+            UserScriptureProgress progress = userScriptureProgressService.getByUserAndSection(userId, section.getId());
+            Integer lastPosition = progress != null && progress.getLastPosition() != null ? progress.getLastPosition() : 0;
+
             // 构建阅读VO
             ScriptureReadingVO readingVO = new ScriptureReadingVO();
-
-            // 复制典籍基本信息
             readingVO.setScriptureId(scripture.getId());
             readingVO.setScriptureName(scripture.getScriptureName());
             readingVO.setScriptureType(scripture.getScriptureType());
             readingVO.setAuthor(scripture.getAuthor());
             readingVO.setDescription(scripture.getDescription());
-            readingVO.setContent(scripture.getContent());
             readingVO.setCoverUrl(scripture.getCoverUrl());
-            readingVO.setAudioUrl(scripture.getAudioUrl());
+            readingVO.setAudioUrl(section.getAudioUrl());
             readingVO.setWordCount(scripture.getWordCount());
             readingVO.setCategoryTags(scripture.getCategoryTags());
 
-            // 复制用户阅读信息
+            readingVO.setSectionId(section.getId());
+            readingVO.setSectionNo(section.getSectionNo());
+            readingVO.setSectionTitle(section.getTitle());
+            readingVO.setSectionWordCount(section.getWordCount());
+            readingVO.setContent(section.getContent());
+
             readingVO.setReadingProgress(purchase.getReadingProgress());
-            readingVO.setLastReadingPosition(purchase.getLastReadingPosition());
+            readingVO.setSectionProgress(progress != null && progress.getReadingProgress() != null ? progress.getReadingProgress() : BigDecimal.ZERO);
+            readingVO.setLastReadingPosition(lastPosition);
+            readingVO.setCurrentPosition(lastPosition);
             readingVO.setReadCount(purchase.getReadCount());
             readingVO.setLastReadTime(purchase.getLastReadTime());
             readingVO.setExpireTime(purchase.getExpireTime());
             readingVO.setMeritCoinsPaid(purchase.getMeritCoinsPaid());
             readingVO.setPurchaseMonths(purchase.getPurchaseMonths());
 
-            // 计算剩余天数
+            // 计算剩余天数与是否买断
+            boolean isPermanent = "permanent".equalsIgnoreCase(purchase.getPurchaseType()) || purchase.getExpireTime() == null;
+            readingVO.setIsPermanent(isPermanent);
             if (purchase.getExpireTime() != null) {
                 long remainingDays = ChronoUnit.DAYS.between(
                         LocalDate.now(),
@@ -454,18 +532,13 @@ public class UserScriptureController {
                 );
                 readingVO.setRemainingDays(Math.max(0, remainingDays));
                 readingVO.setIsExpiringSoon(remainingDays <= 7 && remainingDays > 0);
+            } else {
+                readingVO.setRemainingDays(-1L);
+                readingVO.setIsExpiringSoon(false);
             }
 
-            // 设置阅读位置（使用最后阅读位置，而不是根据阅读进度计算）
-            Integer lastPosition = purchase.getLastReadingPosition();
-            if (lastPosition == null) {
-                lastPosition = 0; // 如果没有记录，从头开始
-            }
-            readingVO.setCurrentPosition(lastPosition);
-
-            // 寻找建议的开始位置（从最后阅读位置寻找段落或句子边界）
-            if (scripture.getContent() != null) {
-                int suggestedStart = findSuggestedStartPosition(scripture.getContent(), lastPosition);
+            if (section.getContent() != null) {
+                int suggestedStart = findSuggestedStartPosition(section.getContent(), lastPosition);
                 readingVO.setSuggestedStartPosition(suggestedStart);
             }
 

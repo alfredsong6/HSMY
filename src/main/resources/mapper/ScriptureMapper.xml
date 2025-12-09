@@ -13,12 +13,16 @@
         <result column="audio_url" property="audioUrl"/>
         <result column="is_hot" property="isHot"/>
         <result column="price" property="price"/>
+        <result column="permanent_price" property="permanentPrice"/>
         <result column="price_unit" property="priceUnit"/>
         <result column="duration_months" property="durationMonths"/>
         <result column="read_count" property="readCount"/>
         <result column="purchase_count" property="purchaseCount"/>
         <result column="difficulty_level" property="difficultyLevel"/>
         <result column="word_count" property="wordCount"/>
+        <result column="total_word_count" property="totalWordCount"/>
+        <result column="section_count" property="sectionCount"/>
+        <result column="preview_section_count" property="previewSectionCount"/>
         <result column="category_tags" property="categoryTags"/>
         <result column="status" property="status"/>
         <result column="sort_order" property="sortOrder"/>
@@ -31,8 +35,9 @@
 
     <sql id="Base_Column_List">
         id, scripture_name, scripture_type, author, description, content,
-        cover_url, audio_url, is_hot, price, price_unit, duration_months,
-        read_count, purchase_count, difficulty_level, word_count,
+        cover_url, audio_url, is_hot, price, permanent_price, price_unit, duration_months,
+        read_count, purchase_count, difficulty_level, word_count, total_word_count,
+        section_count, preview_section_count,
         category_tags, status, sort_order, create_by, create_time,
         update_by, update_time, is_deleted
     </sql>

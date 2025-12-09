@@ -34,6 +34,11 @@ public class UserScripturePurchaseVO implements Serializable {
     private Long scriptureId;
 
     /**
+     * 购买类型
+     */
+    private String purchaseType;
+
+    /**
      * 典籍名称
      */
     private String scriptureName;
@@ -71,6 +76,11 @@ public class UserScripturePurchaseVO implements Serializable {
     private Date expireTime;
 
     /**
+     * 状态：1-有效 2-过期 3-退款/失效
+     */
+    private Integer status;
+
+    /**
      * 是否过期：0-未过期，1-已过期
      */
     private Integer isExpired;
@@ -90,6 +100,16 @@ public class UserScripturePurchaseVO implements Serializable {
      * 阅读进度百分比
      */
     private BigDecimal readingProgress;
+
+    /**
+     * 最后阅读的分段ID
+     */
+    private Long lastSectionId;
+
+    /**
+     * 已完成分段数
+     */
+    private Integer completedSections;
 
     /**
      * 剩余天数

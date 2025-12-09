@@ -49,6 +49,26 @@ public class ScriptureReadingVO implements Serializable {
     private String content;
 
     /**
+     * 分段ID
+     */
+    private Long sectionId;
+
+    /**
+     * 分段序号
+     */
+    private Integer sectionNo;
+
+    /**
+     * 分段标题
+     */
+    private String sectionTitle;
+
+    /**
+     * 分段字数
+     */
+    private Integer sectionWordCount;
+
+    /**
      * 封面图片URL
      */
     private String coverUrl;
@@ -72,6 +92,11 @@ public class ScriptureReadingVO implements Serializable {
      * 用户当前阅读进度百分比
      */
     private BigDecimal readingProgress;
+
+    /**
+     * 当前分段进度百分比
+     */
+    private BigDecimal sectionProgress;
 
     /**
      * 最后阅读位置（字符位置）

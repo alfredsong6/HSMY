@@ -12,12 +12,11 @@ import com.hsmy.mapper.UserScripturePurchaseMapper;
 import com.hsmy.mapper.UserStatsMapper;
 import com.hsmy.mapper.meditation.MeritCoinTransactionMapper;
 import com.hsmy.service.UserScripturePurchaseService;
-import com.hsmy.utils.DateUtil;
+import com.hsmy.service.UserScriptureProgressService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -36,6 +35,7 @@ public class UserScripturePurchaseServiceImpl implements UserScripturePurchaseSe
     private final ScriptureMapper scriptureMapper;
     private final UserStatsMapper userStatsMapper;
     private final MeritCoinTransactionMapper meritCoinTransactionMapper;
+    private final UserScriptureProgressService userScriptureProgressService;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -61,13 +61,18 @@ public class UserScripturePurchaseServiceImpl implements UserScripturePurchaseSe
         UserScripturePurchase purchase = new UserScripturePurchase();
         purchase.setUserId(userId);
         purchase.setScriptureId(scriptureId);
+        purchase.setPurchaseType("lease");
         purchase.setMeritCoinsPaid(totalAmount);
         purchase.setPurchaseMonths(purchaseMonths);
         purchase.setPurchaseTime(now);
+        purchase.setActivatedTime(now);
         purchase.setExpireTime(calculateExpireTime(now, purchaseMonths));
+        purchase.setStatus(1);
         purchase.setIsExpired(0);
         purchase.setReadCount(0);
         purchase.setLastReadingPosition(0);
+        purchase.setLastSectionId(null);
+        purchase.setCompletedSections(0);
         applyReadingSnapshot(existingPurchase, purchase);
 
         int result = userScripturePurchaseMapper.insert(purchase);
@@ -102,13 +107,18 @@ public class UserScripturePurchaseServiceImpl implements UserScripturePurchaseSe
         UserScripturePurchase purchase = new UserScripturePurchase();
         purchase.setUserId(userId);
         purchase.setScriptureId(scriptureId);
+        purchase.setPurchaseType("permanent");
         purchase.setMeritCoinsPaid(permanentPrice);
         purchase.setPurchaseMonths(0);
         purchase.setPurchaseTime(new Date());
-        purchase.setExpireTime(DateUtil.localDateToDate(LocalDate.of(2099,12,31)));
+        purchase.setActivatedTime(new Date());
+        purchase.setExpireTime(null);
+        purchase.setStatus(1);
         purchase.setIsExpired(0);
         purchase.setReadCount(0);
         purchase.setLastReadingPosition(0);
+        purchase.setLastSectionId(null);
+        purchase.setCompletedSections(0);
         applyReadingSnapshot(existingPurchase, purchase);
 
         int result = userScripturePurchaseMapper.insert(purchase);
@@ -141,7 +151,12 @@ public class UserScripturePurchaseServiceImpl implements UserScripturePurchaseSe
     @Override
     public Boolean isUserPurchaseValid(Long userId, Long scriptureId) {
         UserScripturePurchase purchase = userScripturePurchaseMapper.selectByUserAndScripture(userId, scriptureId);
-        if (purchase == null || purchase.getIsExpired() == 1) {
+        refreshExpiredFlag(purchase);
+        if (purchase == null) {
+            return false;
+        }
+
+        if ((purchase.getStatus() != null && purchase.getStatus() != 1) || (purchase.getIsExpired() != null && purchase.getIsExpired() == 1)) {
             return false;
         }
 
@@ -177,9 +192,42 @@ public class UserScripturePurchaseServiceImpl implements UserScripturePurchaseSe
 
     @Override
     @Transactional(rollbackFor = Exception.class)
+    public Boolean updateSectionProgress(Long userId, Long scriptureId, Long sectionId,
+                                         Integer lastPosition, Double sectionProgress,
+                                         Double totalProgress, Integer spendSeconds) {
+        UserScripturePurchase purchase = userScripturePurchaseMapper.selectByUserAndScripture(userId, scriptureId);
+        if (purchase == null) {
+            return false;
+        }
+        refreshExpiredFlag(purchase);
+        if (!isPurchaseActive(purchase)) {
+            return false;
+        }
+
+        boolean completed = sectionProgress != null && sectionProgress >= 100D;
+        userScriptureProgressService.saveSectionProgress(userId, scriptureId, sectionId, sectionProgress, lastPosition, spendSeconds, completed);
+        Integer completedSections = userScriptureProgressService.countCompletedSections(userId, scriptureId);
+        int completedCount = completedSections == null ? 0 : completedSections;
+        Date now = new Date();
+        Double safeTotalProgress = totalProgress == null ? 0D : totalProgress;
+        int result = userScripturePurchaseMapper.updateSectionSnapshot(
+                purchase.getId(),
+                safeTotalProgress,
+                lastPosition,
+                sectionId,
+                completedCount,
+                now,
+                1,
+                0);
+        return result > 0;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
     public Boolean recordUserReading(Long userId, Long scriptureId) {
         UserScripturePurchase purchase = userScripturePurchaseMapper.selectByUserAndScripture(userId, scriptureId);
-        if (purchase == null || purchase.getIsExpired() == 1) {
+        refreshExpiredFlag(purchase);
+        if (!isPurchaseActive(purchase)) {
             return false;
         }
 
@@ -242,6 +290,7 @@ public class UserScripturePurchaseServiceImpl implements UserScripturePurchaseSe
 
         purchase.setExpireTime(newExpireTime);
         purchase.setIsExpired(0);
+        purchase.setStatus(1);
         purchase.setMeritCoinsPaid((purchase.getMeritCoinsPaid() == null ? 0 : purchase.getMeritCoinsPaid()) + totalAmount);
         purchase.setPurchaseMonths((purchase.getPurchaseMonths() == null ? 0 : purchase.getPurchaseMonths()) + extendMonths);
 
@@ -273,6 +322,7 @@ public class UserScripturePurchaseServiceImpl implements UserScripturePurchaseSe
         if (purchase.getExpireTime() != null && purchase.getExpireTime().before(new Date())
                 && (purchase.getIsExpired() == null || purchase.getIsExpired() == 0)) {
             purchase.setIsExpired(1);
+            purchase.setStatus(2);
             userScripturePurchaseMapper.updateById(purchase);
         }
     }
@@ -281,7 +331,8 @@ public class UserScripturePurchaseServiceImpl implements UserScripturePurchaseSe
         if (purchase == null) {
             return false;
         }
-        if (purchase.getIsExpired() != null && purchase.getIsExpired() == 1) {
+        if ((purchase.getStatus() != null && purchase.getStatus() != 1)
+                || (purchase.getIsExpired() != null && purchase.getIsExpired() == 1)) {
             return false;
         }
         if (purchase.getExpireTime() == null) {

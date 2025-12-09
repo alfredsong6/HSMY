@@ -96,6 +96,22 @@ public interface UserScripturePurchaseService {
     Boolean recordUserReading(Long userId, Long scriptureId);
 
     /**
+     * 更新分段阅读进度并同步整本快照
+     *
+     * @param userId 用户ID
+     * @param scriptureId 典籍ID
+     * @param sectionId 分段ID
+     * @param lastPosition 分段内位置
+     * @param sectionProgress 分段进度
+     * @param totalProgress 整本进度
+     * @param spendSeconds 阅读耗时（秒，可选）
+     * @return 是否成功
+     */
+    Boolean updateSectionProgress(Long userId, Long scriptureId, Long sectionId,
+                                  Integer lastPosition, Double sectionProgress,
+                                  Double totalProgress, Integer spendSeconds);
+
+    /**
      * 获取即将过期的购买记录
      *
      * @param days 天数

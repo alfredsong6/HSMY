@@ -32,6 +32,11 @@ public class UserScripturePurchase extends BaseEntity {
     private Long scriptureId;
 
     /**
+     * 购买类型：lease-租赁、permanent-买断、free-赠送、trial-试读
+     */
+    private String purchaseType;
+
+    /**
      * 支付福币数量
      */
     private Integer meritCoinsPaid;
@@ -47,9 +52,19 @@ public class UserScripturePurchase extends BaseEntity {
     private Date purchaseTime;
 
     /**
+     * 生效时间
+     */
+    private Date activatedTime;
+
+    /**
      * 过期时间
      */
     private Date expireTime;
+
+    /**
+     * 状态：1-有效 2-过期 3-退款/失效
+     */
+    private Integer status;
 
     /**
      * 是否过期：0-未过期，1-已过期
@@ -75,4 +90,14 @@ public class UserScripturePurchase extends BaseEntity {
      * 最后阅读位置（字符位置）
      */
     private Integer lastReadingPosition;
+
+    /**
+     * 最后阅读的分段ID
+     */
+    private Long lastSectionId;
+
+    /**
+     * 已完成分段数
+     */
+    private Integer completedSections;
 }

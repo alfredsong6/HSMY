@@ -7,11 +7,14 @@ import com.hsmy.annotation.ApiVersion;
 import com.hsmy.common.Result;
 import com.hsmy.constant.ApiVersionConstant;
 import com.hsmy.entity.Scripture;
+import com.hsmy.entity.ScriptureSection;
 import com.hsmy.service.ScriptureService;
+import com.hsmy.service.ScriptureSectionService;
 import com.hsmy.service.UserScripturePurchaseService;
 import com.hsmy.utils.UserContextUtil;
 import com.hsmy.vo.ScriptureQueryVO;
 import com.hsmy.vo.ScriptureVO;
+import com.hsmy.vo.ScriptureSectionVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.util.StringUtils;
@@ -34,6 +37,7 @@ import java.util.stream.Collectors;
 public class ScriptureController {
 
     private final ScriptureService scriptureService;
+    private final ScriptureSectionService scriptureSectionService;
     private final UserScripturePurchaseService userScripturePurchaseService;
 
     /**
@@ -204,6 +208,36 @@ public class ScriptureController {
             return Result.success(scriptureVOs);
         } catch (Exception e) {
             return Result.error("搜索典籍失败：" + e.getMessage());
+        }
+    }
+
+    /**
+     * 获取典籍分段列表
+     *
+     * @param scriptureId 典籍ID
+     * @return 分段列表
+     */
+    @GetMapping("/{scriptureId}/sections")
+    public Result<List<ScriptureSectionVO>> getScriptureSections(@PathVariable Long scriptureId) {
+        try {
+            Scripture scripture = scriptureService.getScriptureById(scriptureId);
+            if (scripture == null) {
+                return Result.error("典籍不存在");
+            }
+            List<ScriptureSection> sections = scriptureSectionService.listByScriptureId(scriptureId);
+            List<ScriptureSectionVO> sectionVOS = sections.stream().map(section -> {
+                ScriptureSectionVO vo = new ScriptureSectionVO();
+                vo.setId(section.getId());
+                vo.setSectionNo(section.getSectionNo());
+                vo.setTitle(section.getTitle());
+                vo.setWordCount(section.getWordCount());
+                vo.setDurationSeconds(section.getDurationSeconds());
+                vo.setIsFree(section.getIsFree());
+                return vo;
+            }).collect(Collectors.toList());
+            return Result.success(sectionVOS);
+        } catch (Exception e) {
+            return Result.error("获取分段列表失败：" + e.getMessage());
         }
     }
 

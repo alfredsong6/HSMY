@@ -5,8 +5,6 @@ import com.hsmy.common.BaseEntity;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-import java.math.BigDecimal;
-
 /**
  * 典籍实体类
  *
@@ -99,6 +97,21 @@ public class Scripture extends BaseEntity {
      * 字数
      */
     private Integer wordCount;
+
+    /**
+     * 整本总字数（分段汇总）
+     */
+    private Integer totalWordCount;
+
+    /**
+     * 分段/卷总数
+     */
+    private Integer sectionCount;
+
+    /**
+     * 试读分段数
+     */
+    private Integer previewSectionCount;
 
     /**
      * 分类标签，用逗号分隔

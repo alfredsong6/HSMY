@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hsmy.mapper.UserScriptureProgressMapper">
+
+    <resultMap id="BaseResultMap" type="com.hsmy.entity.UserScriptureProgress">
+        <id column="id" property="id"/>
+        <result column="user_id" property="userId"/>
+        <result column="scripture_id" property="scriptureId"/>
+        <result column="section_id" property="sectionId"/>
+        <result column="reading_progress" property="readingProgress"/>
+        <result column="last_position" property="lastPosition"/>
+        <result column="last_read_time" property="lastReadTime"/>
+        <result column="spend_seconds" property="spendSeconds"/>
+        <result column="is_completed" property="isCompleted"/>
+        <result column="create_by" property="createBy"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_by" property="updateBy"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="is_deleted" property="isDeleted"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, user_id, scripture_id, section_id, reading_progress, last_position,
+        last_read_time, spend_seconds, is_completed, create_by, create_time,
+        update_by, update_time, is_deleted
+    </sql>
+
+    <select id="selectByUserAndSection" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM t_user_scripture_progress
+        WHERE user_id = #{userId}
+          AND section_id = #{sectionId}
+          AND is_deleted = 0
+        LIMIT 1
+    </select>
+
+    <select id="selectLatestByUserAndScripture" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM t_user_scripture_progress
+        WHERE user_id = #{userId}
+          AND scripture_id = #{scriptureId}
+          AND is_deleted = 0
+        ORDER BY last_read_time DESC, update_time DESC
+        LIMIT 1
+    </select>
+
+    <select id="countCompletedByScripture" resultType="java.lang.Integer">
+        SELECT COUNT(1)
+        FROM t_user_scripture_progress
+        WHERE user_id = #{userId}
+          AND scripture_id = #{scriptureId}
+          AND is_completed = 1
+          AND is_deleted = 0
+    </select>
+
+</mapper>

@@ -71,6 +71,28 @@ public interface UserScripturePurchaseMapper extends BaseMapper<UserScripturePur
     int updateLastReadingPosition(@Param("id") Long id, @Param("lastReadingPosition") Integer lastReadingPosition, @Param("lastReadTime") Date lastReadTime);
 
     /**
+     * 更新分段阅读快照
+     *
+     * @param id                 购买记录ID
+     * @param readingProgress    整本进度
+     * @param lastReadingPosition 分段内最后阅读位置
+     * @param lastSectionId      最后阅读分段
+     * @param completedSections  已完成分段数
+     * @param lastReadTime       最后阅读时间
+     * @param status             状态
+     * @param isExpired          是否过期
+     * @return 影响行数
+     */
+    int updateSectionSnapshot(@Param("id") Long id,
+                              @Param("readingProgress") Double readingProgress,
+                              @Param("lastReadingPosition") Integer lastReadingPosition,
+                              @Param("lastSectionId") Long lastSectionId,
+                              @Param("completedSections") Integer completedSections,
+                              @Param("lastReadTime") Date lastReadTime,
+                              @Param("status") Integer status,
+                              @Param("isExpired") Integer isExpired);
+
+    /**
      * 增加阅读次数
      *
      * @param id 购买记录ID
