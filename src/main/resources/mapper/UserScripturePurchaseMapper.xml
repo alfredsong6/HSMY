@@ -55,6 +55,18 @@
         LIMIT 1
     </select>
 
+    <select id="selectValidPurchaseByUserAndScripture" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM t_user_scripture_purchase
+        WHERE user_id = #{userId}
+        AND scripture_id = #{scriptureId}
+          AND purchase_type != 'trial'
+        AND is_deleted = 0
+        ORDER BY purchase_time DESC
+        LIMIT 1
+    </select>
+
     <!-- 查询用户有效的典籍购买记录 -->
     <select id="selectValidPurchasesByUserId" resultMap="BaseResultMap">
         SELECT

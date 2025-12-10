@@ -113,6 +113,15 @@ public interface UserScripturePurchaseService {
                                   Double totalProgress, Integer spendSeconds, boolean completed);
 
     /**
+     * 确保存在试看购买记录（purchase_type = trial），若不存在则创建
+     *
+     * @param userId 用户ID
+     * @param scriptureId 典籍ID
+     * @return 对应的购买记录
+     */
+    UserScripturePurchase ensureTrialPurchase(Long userId, Long scriptureId);
+
+    /**
      * 获取即将过期的购买记录
      *
      * @param days 天数

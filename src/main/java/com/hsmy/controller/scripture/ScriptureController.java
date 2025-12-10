@@ -86,9 +86,16 @@ public class ScriptureController {
                 Long userId = UserContextUtil.getCurrentUserId();
                 if (userId != null) {
                     UserScripturePurchase purchase = userScripturePurchaseService.getUserPurchaseDetail(userId, scripture.getId());
-                    boolean purchased = purchase != null;
-                    vo.setIsPurchased(purchased);
-                    vo.setIsPurchaseValid(purchased && userScripturePurchaseService.isUserPurchaseValid(userId, scripture.getId()));
+                    if (purchase == null) {
+                        vo.setIsPurchased(false);
+                    }else if (purchase.getPurchaseType().equals("trial")) {
+                        vo.setIsPurchased(false);
+                    } else if (purchase.getPurchaseType().equals("lease") && purchase.getIsExpired() == 1) {
+                        vo.setIsPurchased(false);
+                    } else {
+                        vo.setIsPurchased(true);
+                    }
+                    //vo.setIsPurchaseValid(purchased && userScripturePurchaseService.isUserPurchaseValid(userId, scripture.getId()));
                     if (purchase != null) {
                         vo.setExpireTime(purchase.getExpireTime());
                         vo.setPurchaseType(purchase.getPurchaseType());
@@ -245,8 +252,8 @@ public class ScriptureController {
             List<ScriptureSection> sections = scriptureSectionService.listByScriptureId(scriptureId);
             List<ScriptureSectionVO> sectionVOS = sections.stream().map(section -> {
                 ScriptureSectionVO vo = new ScriptureSectionVO();
-                vo.setId(section.getId());
-                vo.setSectionId(section.getId());
+                vo.setId(section.getId().toString());
+                vo.setSectionId(section.getId().toString());
                 vo.setSectionNo(section.getSectionNo());
                 vo.setTitle(section.getTitle());
                 vo.setWordCount(section.getWordCount());

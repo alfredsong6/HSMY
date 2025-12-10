@@ -31,7 +31,7 @@ public class SectionContentResponseVO implements Serializable {
     @Data
     public static class SectionInfo implements Serializable {
         private static final long serialVersionUID = 1L;
-        private Long id;
+        private String id;
         private Integer sectionNo;
         private String title;
         private String content;

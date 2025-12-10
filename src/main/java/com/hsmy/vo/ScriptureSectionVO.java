@@ -15,12 +15,12 @@ public class ScriptureSectionVO implements Serializable {
     /**
      * 分段ID
      */
-    private Long id;
+    private String id;
 
     /**
      * 分段ID（用于前端一致字段名）
      */
-    private Long sectionId;
+    private String sectionId;
 
     private Integer sectionNo;
 

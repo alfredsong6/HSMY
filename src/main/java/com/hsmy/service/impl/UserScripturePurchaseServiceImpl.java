@@ -11,12 +11,13 @@ import com.hsmy.mapper.ScriptureMapper;
 import com.hsmy.mapper.UserScripturePurchaseMapper;
 import com.hsmy.mapper.UserStatsMapper;
 import com.hsmy.mapper.meditation.MeritCoinTransactionMapper;
-import com.hsmy.service.UserScripturePurchaseService;
 import com.hsmy.service.UserScriptureProgressService;
+import com.hsmy.service.UserScripturePurchaseService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -144,13 +145,13 @@ public class UserScripturePurchaseServiceImpl implements UserScripturePurchaseSe
 
     @Override
     public Boolean hasUserPurchased(Long userId, Long scriptureId) {
-        UserScripturePurchase purchase = userScripturePurchaseMapper.selectByUserAndScripture(userId, scriptureId);
+        UserScripturePurchase purchase = userScripturePurchaseMapper.selectValidPurchaseByUserAndScripture(userId, scriptureId);
         return purchase != null;
     }
 
     @Override
     public Boolean isUserPurchaseValid(Long userId, Long scriptureId) {
-        UserScripturePurchase purchase = userScripturePurchaseMapper.selectByUserAndScripture(userId, scriptureId);
+        UserScripturePurchase purchase = userScripturePurchaseMapper.selectValidPurchaseByUserAndScripture(userId, scriptureId);
         refreshExpiredFlag(purchase);
         if (purchase == null) {
             return false;
@@ -209,7 +210,9 @@ public class UserScripturePurchaseServiceImpl implements UserScripturePurchaseSe
         Integer completedSections = userScriptureProgressService.countCompletedSections(userId, scriptureId);
         int completedCount = completedSections == null ? 0 : completedSections;
         Date now = new Date();
-        Double safeTotalProgress = totalProgress == null ? purchase.getReadingProgress().doubleValue() : totalProgress;
+        Double safeTotalProgress = totalProgress == null
+                ? (purchase.getReadingProgress() == null ? 0D : purchase.getReadingProgress().doubleValue())
+                : totalProgress;
         int result = userScripturePurchaseMapper.updateSectionSnapshot(
                 purchase.getId(),
                 safeTotalProgress,
@@ -256,6 +259,38 @@ public class UserScripturePurchaseServiceImpl implements UserScripturePurchaseSe
     @Override
     public Integer countScripturePurchasers(Long scriptureId) {
         return userScripturePurchaseMapper.countUsersByScriptureId(scriptureId);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public UserScripturePurchase ensureTrialPurchase(Long userId, Long scriptureId) {
+        UserScripturePurchase existing = userScripturePurchaseMapper.selectByUserAndScripture(userId, scriptureId);
+        if (existing != null) {
+            return existing;
+        }
+        Scripture scripture = scriptureMapper.selectById(scriptureId);
+        ensureScriptureAvailable(scripture);
+
+        UserScripturePurchase trial = new UserScripturePurchase();
+        Date now = new Date();
+        trial.setUserId(userId);
+        trial.setScriptureId(scriptureId);
+        trial.setPurchaseType("trial");
+        trial.setMeritCoinsPaid(0);
+        trial.setPurchaseMonths(0);
+        trial.setPurchaseTime(now);
+        trial.setActivatedTime(now);
+        trial.setExpireTime(null);
+        trial.setStatus(1);
+        trial.setIsExpired(0);
+        trial.setReadCount(0);
+        trial.setLastReadingPosition(0);
+        trial.setLastSectionId(null);
+        trial.setCompletedSections(0);
+        trial.setReadingProgress(BigDecimal.ZERO);
+        trial.setIsDeleted(0);
+        userScripturePurchaseMapper.insert(trial);
+        return trial;
     }
 
     @Override

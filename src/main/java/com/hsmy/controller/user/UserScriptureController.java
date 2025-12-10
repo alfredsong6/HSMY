@@ -432,11 +432,11 @@ public class UserScriptureController {
      * @return 有效状态
      */
     @GetMapping("/check-valid/{scriptureId}")
-    public Result<Boolean> checkPurchaseValid(@PathVariable Long scriptureId,
+    public Result<Boolean> checkPurchaseValid(@PathVariable String scriptureId,
                                             HttpServletRequest httpRequest) {
         try {
             Long userId = UserContextUtil.requireCurrentUserId();
-            Boolean isValid = userScripturePurchaseService.isUserPurchaseValid(userId, scriptureId);
+            Boolean isValid = userScripturePurchaseService.isUserPurchaseValid(userId, Long.valueOf(scriptureId));
             return Result.success(isValid);
         } catch (Exception e) {
             return Result.error("检查购买有效性失败：" + e.getMessage());
@@ -450,21 +450,21 @@ public class UserScriptureController {
      * @return 最新阅读进度
      */
     @GetMapping("/{scriptureId}/latest-progress")
-    public Result<LatestScriptureProgressVO> getLatestProgress(@PathVariable Long scriptureId) {
+    public Result<LatestScriptureProgressVO> getLatestProgress(@PathVariable String scriptureId) {
         try {
             Long userId = UserContextUtil.requireCurrentUserId();
 
-            Scripture scripture = scriptureService.getScriptureById(scriptureId);
+            Scripture scripture = scriptureService.getScriptureById(Long.valueOf(scriptureId));
             if (scripture == null) {
                 return Result.error("典籍不存在");
             }
 
-            UserScripturePurchase purchase = userScripturePurchaseService.getUserPurchaseDetail(userId, scriptureId);
+            UserScripturePurchase purchase = userScripturePurchaseService.getUserPurchaseDetail(userId, Long.valueOf(scriptureId));
             if (purchase == null) {
                 return Result.error("您尚未购买该典籍");
             }
 
-            userScripturePurchaseService.isUserPurchaseValid(userId, scriptureId); // refresh status if needed
+            userScripturePurchaseService.isUserPurchaseValid(userId, Long.valueOf(scriptureId)); // refresh status if needed
 
             // 确定当前分段
             ScriptureSection section = null;
@@ -472,13 +472,13 @@ public class UserScriptureController {
                 section = scriptureSectionService.getById(purchase.getLastSectionId());
             }
             if (section == null) {
-                UserScriptureProgress latest = userScriptureProgressService.getLatestByUserAndScripture(userId, scriptureId);
+                UserScriptureProgress latest = userScriptureProgressService.getLatestByUserAndScripture(userId, Long.valueOf(scriptureId));
                 if (latest != null && latest.getSectionId() != null) {
                     section = scriptureSectionService.getById(latest.getSectionId());
                 }
             }
             if (section == null) {
-                section = scriptureSectionService.getFirstSection(scriptureId);
+                section = scriptureSectionService.getFirstSection(Long.valueOf(scriptureId));
             }
             if (section == null) {
                 return Result.error("典籍尚未配置分段内容");
@@ -499,7 +499,7 @@ public class UserScriptureController {
             vo.setStatus(purchase.getStatus());
 
             LatestScriptureProgressVO.Section sec = new LatestScriptureProgressVO.Section();
-            sec.setSectionId(section.getId());
+            sec.setSectionId(section.getId().toString());
             sec.setSectionNo(section.getSectionNo());
             sec.setTitle(section.getTitle());
             vo.setCurrentSection(sec);
@@ -511,6 +511,56 @@ public class UserScriptureController {
     }
 
     /**
+     * 开始阅读：若无记录则创建 trial，并返回阅读状态
+     */
+    @PostMapping("/start/{scriptureId}")
+    public Result<StartReadingStatusVO> startReading(@PathVariable String scriptureId) {
+        try {
+            Long userId = UserContextUtil.requireCurrentUserId();
+
+            Scripture scripture = scriptureService.getScriptureById(Long.valueOf(scriptureId));
+            if (scripture == null) {
+                return Result.error("典籍不存在");
+            }
+
+            UserScripturePurchase purchase = userScripturePurchaseService.getUserPurchaseDetail(userId, Long.valueOf(scriptureId));
+            if (purchase == null) {
+                purchase = userScripturePurchaseService.ensureTrialPurchase(userId, Long.valueOf(scriptureId));
+            }
+
+            boolean valid = userScripturePurchaseService.isUserPurchaseValid(userId, Long.valueOf(scriptureId));
+            Integer totalSections = scripture.getSectionCount();
+            Integer completedSections = purchase.getCompletedSections();
+            int previewCount = scripture.getPreviewSectionCount() == null ? 0 : scripture.getPreviewSectionCount();
+            int done = completedSections == null ? 0 : completedSections;
+
+            String status;
+            Boolean readFlag;
+            if ("trial".equalsIgnoreCase(purchase.getPurchaseType())) {
+                status = done < previewCount ? "trial_exceeded" : "trial_not_exceeded";
+                readFlag = done < previewCount;
+            } else if (valid) {
+                status = "valid";
+                readFlag = true;
+            } else {
+                status = "expired";
+                readFlag = false;
+            }
+
+            StartReadingStatusVO vo = new StartReadingStatusVO();
+            vo.setStatus(status);
+            vo.setReadFlag(readFlag);
+            vo.setPurchaseType(purchase.getPurchaseType());
+            vo.setExpireTime(purchase.getExpireTime());
+            vo.setCompletedSections(completedSections);
+            vo.setTotalSections(totalSections);
+            return Result.success(vo);
+        } catch (Exception e) {
+            return Result.error("开始阅读失败：" + e.getMessage());
+        }
+    }
+
+    /**
      * 获取某卷内容和当前卷进度
      *
      * @param scriptureId 典籍ID
@@ -518,27 +568,28 @@ public class UserScriptureController {
      * @return 卷内容与进度
      */
     @GetMapping("/{scriptureId}/sections/{sectionId}")
-    public Result<SectionContentResponseVO> getSectionContent(@PathVariable Long scriptureId,
-                                                              @PathVariable Long sectionId) {
+    public Result<SectionContentResponseVO> getSectionContent(@PathVariable String scriptureId,
+                                                              @PathVariable String sectionId) {
         try {
             Long userId = UserContextUtil.requireCurrentUserId();
 
-            Scripture scripture = scriptureService.getScriptureById(scriptureId);
+            Scripture scripture = scriptureService.getScriptureById(Long.valueOf(scriptureId));
             if (scripture == null) {
                 return Result.error("典籍不存在");
             }
 
-            // 权限校验
-            if (!userScripturePurchaseService.isUserPurchaseValid(userId, scriptureId)) {
-                return Result.error("您尚未购买该典籍或购买已过期");
-            }
-
-            ScriptureSection section = scriptureSectionService.getById(sectionId);
-            if (section == null || !scriptureId.equals(section.getScriptureId())) {
+            ScriptureSection section = scriptureSectionService.getById(Long.valueOf(sectionId));
+            if (section == null || !scripture.getId().equals(section.getScriptureId())) {
                 return Result.error("分段不存在或不属于该典籍");
             }
 
-            UserScriptureProgress progress = userScriptureProgressService.getByUserAndSection(userId, sectionId);
+            boolean purchaseValid = userScripturePurchaseService.isUserPurchaseValid(userId, Long.valueOf(scriptureId));
+            boolean preview = isPreviewSection(scripture, section);
+            if (!purchaseValid && !preview) {
+                return Result.error("您尚未购买该典籍或购买已过期");
+            }
+
+            UserScriptureProgress progress = userScriptureProgressService.getByUserAndSection(userId, Long.valueOf(sectionId));
 
             SectionContentResponseVO vo = new SectionContentResponseVO();
 
@@ -549,7 +600,7 @@ public class UserScriptureController {
             vo.setScripture(sInfo);
 
             SectionContentResponseVO.SectionInfo secInfo = new SectionContentResponseVO.SectionInfo();
-            secInfo.setId(section.getId());
+            secInfo.setId(section.getId().toString());
             secInfo.setSectionNo(section.getSectionNo());
             secInfo.setTitle(section.getTitle());
             secInfo.setContent(section.getContent());
@@ -574,32 +625,35 @@ public class UserScriptureController {
      * 保存当前卷阅读进度（Upsert 分段进度并汇总整本）
      */
     @PostMapping("/{scriptureId}/sections/{sectionId}/progress")
-    public Result<Void> saveSectionProgress(@PathVariable Long scriptureId,
-                                            @PathVariable Long sectionId,
+    public Result<Void> saveSectionProgress(@PathVariable String scriptureId,
+                                            @PathVariable String sectionId,
                                             @RequestBody @Valid SaveSectionProgressRequest request) {
         try {
             // 校验 userId 是否为当前登录用户
             Long currentUserId = UserContextUtil.requireCurrentUserId();
 
-            Scripture scripture = scriptureService.getScriptureById(scriptureId);
+            Scripture scripture = scriptureService.getScriptureById(Long.valueOf(scriptureId));
             if (scripture == null) {
                 return Result.error("典籍不存在");
             }
 
-            if (!userScripturePurchaseService.isUserPurchaseValid(currentUserId, scriptureId)) {
-                return Result.error("您尚未购买该典籍或购买已过期");
+            //UserScripturePurchase purchase = userScripturePurchaseService.getUserPurchaseDetail(currentUserId, Long.valueOf(scriptureId));
+            ScriptureSection section = scriptureSectionService.getById(Long.valueOf(sectionId));
+            if (section == null || !scripture.getId().equals(section.getScriptureId())) {
+                return Result.error("分段不存在或不属于该典籍");
             }
 
-            ScriptureSection section = scriptureSectionService.getById(sectionId);
-            if (section == null || !scriptureId.equals(section.getScriptureId())) {
-                return Result.error("分段不存在或不属于该典籍");
+            boolean preview = isPreviewSection(scripture, section);
+            boolean purchaseValid = userScripturePurchaseService.isUserPurchaseValid(currentUserId, Long.valueOf(scriptureId));
+            if (!purchaseValid && !preview) {
+                return Result.error("您尚未购买该典籍或购买已过期");
             }
 
             // 分段进度 upsert + 整本进度汇总
             userScripturePurchaseService.updateSectionProgress(
                     currentUserId,
-                    scriptureId,
-                    sectionId,
+                    Long.valueOf(scriptureId),
+                    Long.valueOf(sectionId),
                     request.getLastPosition(),
                     request.getSectionReadingProgress(),
                     null,
@@ -608,7 +662,7 @@ public class UserScriptureController {
             );
 
             // 按规格再汇总整本进度 (用 completedSections/sectionCount)
-            Integer completedSections = userScriptureProgressService.countCompletedSections(currentUserId, scriptureId);
+            Integer completedSections = userScriptureProgressService.countCompletedSections(currentUserId, Long.valueOf(scriptureId));
             int totalSections = scripture.getSectionCount() == null ? 0 : scripture.getSectionCount();
             double totalProgress = (totalSections > 0 && completedSections != null)
                     ? Math.min(100.0, (completedSections * 100.0) / totalSections)
@@ -616,8 +670,8 @@ public class UserScriptureController {
 
             userScripturePurchaseService.updateSectionProgress(
                     currentUserId,
-                    scriptureId,
-                    sectionId,
+                    Long.valueOf(scriptureId),
+                    Long.valueOf(sectionId),
                     request.getLastPosition(),
                     request.getSectionReadingProgress(),
                     totalProgress,
@@ -771,6 +825,17 @@ public class UserScriptureController {
 
         // 如果找不到合适的边界，返回当前位置向前50个字符
         return Math.max(0, currentPosition - 50);
+    }
+
+    private boolean isPreviewSection(Scripture scripture, ScriptureSection section) {
+        if (section == null) {
+            return false;
+        }
+        if (section.getIsFree() != null && section.getIsFree() == 1) {
+            return true;
+        }
+        Integer previewCount = scripture != null ? scripture.getPreviewSectionCount() : null;
+        return previewCount != null && previewCount > 0 && section.getSectionNo() != null && section.getSectionNo() <= previewCount;
     }
 
     /**

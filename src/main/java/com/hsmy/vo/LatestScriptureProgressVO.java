@@ -15,7 +15,7 @@ public class LatestScriptureProgressVO implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    private Long scriptureId;
+    private String scriptureId;
 
     private String scriptureName;
 
@@ -42,7 +42,7 @@ public class LatestScriptureProgressVO implements Serializable {
     @Data
     public static class Section implements Serializable {
         private static final long serialVersionUID = 1L;
-        private Long sectionId;
+        private String sectionId;
         private Integer sectionNo;
         private String title;
     }

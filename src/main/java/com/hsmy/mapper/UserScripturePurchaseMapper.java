@@ -35,6 +35,15 @@ public interface UserScripturePurchaseMapper extends BaseMapper<UserScripturePur
     UserScripturePurchase selectByUserAndScripture(@Param("userId") Long userId, @Param("scriptureId") Long scriptureId);
 
     /**
+     * 根据用户ID和典籍ID查询购买记录
+     *
+     * @param userId      用户ID
+     * @param scriptureId 典籍ID
+     * @return 购买记录
+     */
+    UserScripturePurchase selectValidPurchaseByUserAndScripture(@Param("userId") Long userId, @Param("scriptureId") Long scriptureId);
+
+    /**
      * 查询用户有效的典籍购买记录
      *
      * @param userId 用户ID
