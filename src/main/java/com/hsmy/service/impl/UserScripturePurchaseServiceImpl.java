@@ -173,7 +173,10 @@ public class UserScripturePurchaseServiceImpl implements UserScripturePurchaseSe
     @Override
     public Boolean hasUserPurchased(Long userId, Long scriptureId) {
         UserScripturePurchase purchase = userScripturePurchaseMapper.selectValidPurchaseByUserAndScripture(userId, scriptureId);
-        return purchase != null;
+        if (purchase == null) {
+            return false;
+        }
+        return purchase.getStatus().equals(1) && purchase.getExpireTime() == null;
     }
 
     @Override

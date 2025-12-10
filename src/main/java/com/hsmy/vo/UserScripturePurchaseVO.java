@@ -54,6 +54,81 @@ public class UserScripturePurchaseVO implements Serializable {
     private String coverUrl;
 
     /**
+     * 典籍音频URL（可选）
+     */
+    private String audioUrl;
+
+    /**
+     * 典籍简介
+     */
+    private String description;
+
+    /**
+     * 是否热门
+     */
+    private Integer isHot;
+
+    /**
+     * 购买价格
+     */
+    private Integer price;
+
+    /**
+     * 买断价格
+     */
+    private Integer permanentPrice;
+
+    /**
+     * 计价单位
+     */
+    private String priceUnit;
+
+    /**
+     * 购买时长（月）
+     */
+    private Integer durationMonths;
+
+    /**
+     * 难度等级
+     */
+    private Integer difficultyLevel;
+
+    /**
+     * 总字数（分段汇总）
+     */
+    private Integer totalWordCount;
+
+    /**
+     * 字数（旧字段兼容）
+     */
+    private Integer wordCount;
+
+    /**
+     * 分段总数
+     */
+    private Integer sectionCount;
+
+    /**
+     * 试读分段数
+     */
+    private Integer previewSectionCount;
+
+    /**
+     * 是否可试读
+     */
+    private Boolean canPreview;
+
+    /**
+     * 分类标签
+     */
+    private String categoryTags;
+
+    /**
+     * 排序序号
+     */
+    private Integer sortOrder;
+
+    /**
      * 支付福币数量
      */
     private Integer meritCoinsPaid;
@@ -79,6 +154,11 @@ public class UserScripturePurchaseVO implements Serializable {
      * 状态：1-有效 2-过期 3-退款/失效
      */
     private Integer status;
+
+    /**
+     * 是否已购买（列表语义：有记录即true）
+     */
+    private Boolean isPurchased;
 
     /**
      * 是否过期：0-未过期，1-已过期

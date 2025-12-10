@@ -115,7 +115,7 @@ public class UserScriptureController {
      * @param httpRequest HTTP请求
      * @return 购买记录列表
      */
-    //@GetMapping("/purchases")
+    @GetMapping("/purchase/list")
     public Result<List<UserScripturePurchaseVO>> getUserPurchases(HttpServletRequest httpRequest) {
         try {
             Long userId = UserContextUtil.requireCurrentUserId();
@@ -126,11 +126,34 @@ public class UserScriptureController {
                 BeanUtils.copyProperties(purchase, vo);
 
                 // 获取典籍信息
-                Scripture scripture = scriptureService.getScriptureById(purchase.getScriptureId());
-                if (scripture != null) {
-                    vo.setScriptureName(scripture.getScriptureName());
-                    vo.setScriptureType(scripture.getScriptureType());
-                    vo.setCoverUrl(scripture.getCoverUrl());
+            Scripture scripture = scriptureService.getScriptureById(purchase.getScriptureId());
+            if (scripture != null) {
+                vo.setScriptureName(scripture.getScriptureName());
+                vo.setScriptureType(scripture.getScriptureType());
+                vo.setCoverUrl(scripture.getCoverUrl());
+                vo.setAudioUrl(scripture.getAudioUrl());
+                vo.setDescription(scripture.getDescription());
+                vo.setIsHot(scripture.getIsHot());
+                vo.setPrice(scripture.getPrice());
+                vo.setPermanentPrice(scripture.getPermanentPrice());
+                vo.setPriceUnit(scripture.getPriceUnit());
+                vo.setDurationMonths(scripture.getDurationMonths());
+                vo.setDifficultyLevel(scripture.getDifficultyLevel());
+                vo.setTotalWordCount(scripture.getTotalWordCount());
+                vo.setWordCount(scripture.getWordCount());
+                vo.setSectionCount(scripture.getSectionCount());
+                vo.setPreviewSectionCount(scripture.getPreviewSectionCount());
+                vo.setCanPreview(scripture.getPreviewSectionCount() != null && scripture.getPreviewSectionCount() > 0);
+                vo.setCategoryTags(scripture.getCategoryTags());
+                vo.setStatus(scripture.getStatus());
+                vo.setSortOrder(scripture.getSortOrder());
+                }
+                if (purchase.getPurchaseType().equals("trial")) {
+                    vo.setIsPurchased(false);
+                } else if (purchase.getPurchaseType().equals("lease") && purchase.getIsExpired() == 1) {
+                    vo.setIsPurchased(false);
+                } else {
+                    vo.setIsPurchased(true);
                 }
 
                 boolean isPermanent = "permanent".equalsIgnoreCase(purchase.getPurchaseType()) || purchase.getExpireTime() == null;
@@ -183,6 +206,22 @@ public class UserScriptureController {
                     vo.setScriptureName(scripture.getScriptureName());
                     vo.setScriptureType(scripture.getScriptureType());
                     vo.setCoverUrl(scripture.getCoverUrl());
+                    vo.setAudioUrl(scripture.getAudioUrl());
+                    vo.setDescription(scripture.getDescription());
+                    vo.setIsHot(scripture.getIsHot());
+                    vo.setPrice(scripture.getPrice());
+                    vo.setPermanentPrice(scripture.getPermanentPrice());
+                    vo.setPriceUnit(scripture.getPriceUnit());
+                    vo.setDurationMonths(scripture.getDurationMonths());
+                    vo.setDifficultyLevel(scripture.getDifficultyLevel());
+                    vo.setTotalWordCount(scripture.getTotalWordCount());
+                    vo.setWordCount(scripture.getWordCount());
+                    vo.setSectionCount(scripture.getSectionCount());
+                    vo.setPreviewSectionCount(scripture.getPreviewSectionCount());
+                    vo.setCanPreview(scripture.getPreviewSectionCount() != null && scripture.getPreviewSectionCount() > 0);
+                    vo.setCategoryTags(scripture.getCategoryTags());
+                    vo.setStatus(scripture.getStatus());
+                    vo.setSortOrder(scripture.getSortOrder());
                 }
 
                 // 计算剩余天数
@@ -334,7 +373,24 @@ public class UserScriptureController {
                 vo.setScriptureName(scripture.getScriptureName());
                 vo.setScriptureType(scripture.getScriptureType());
                 vo.setCoverUrl(scripture.getCoverUrl());
+                vo.setAudioUrl(scripture.getAudioUrl());
+                vo.setDescription(scripture.getDescription());
+                vo.setIsHot(scripture.getIsHot());
+                vo.setPrice(scripture.getPrice());
+                vo.setPermanentPrice(scripture.getPermanentPrice());
+                vo.setPriceUnit(scripture.getPriceUnit());
+                vo.setDurationMonths(scripture.getDurationMonths());
+                vo.setDifficultyLevel(scripture.getDifficultyLevel());
+                vo.setTotalWordCount(scripture.getTotalWordCount());
+                vo.setWordCount(scripture.getWordCount());
+                vo.setSectionCount(scripture.getSectionCount());
+                vo.setPreviewSectionCount(scripture.getPreviewSectionCount());
+                vo.setCanPreview(scripture.getPreviewSectionCount() != null && scripture.getPreviewSectionCount() > 0);
+                vo.setCategoryTags(scripture.getCategoryTags());
+                vo.setStatus(scripture.getStatus());
+                vo.setSortOrder(scripture.getSortOrder());
             }
+            vo.setIsPurchased(true);
 
             boolean isPermanent = "permanent".equalsIgnoreCase(purchase.getPurchaseType()) || purchase.getExpireTime() == null;
             vo.setIsPermanent(isPermanent);
