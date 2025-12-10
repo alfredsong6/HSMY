@@ -122,6 +122,15 @@ public interface UserScripturePurchaseService {
     UserScripturePurchase ensureTrialPurchase(Long userId, Long scriptureId);
 
     /**
+     * 确保存在免费（价格为0）永久购买记录
+     *
+     * @param userId 用户ID
+     * @param scripture 典籍对象（需含价格和状态）
+     * @return 对应的购买记录
+     */
+    UserScripturePurchase ensureFreePermanentPurchase(Long userId, com.hsmy.entity.Scripture scripture);
+
+    /**
      * 获取即将过期的购买记录
      *
      * @param days 天数

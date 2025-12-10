@@ -2,6 +2,7 @@ package com.hsmy.service.impl;
 
 
 import com.hsmy.entity.Scripture;
+import com.hsmy.entity.ScriptureSection;
 import com.hsmy.entity.UserScripturePurchase;
 import com.hsmy.entity.UserStats;
 import com.hsmy.entity.meditation.MeritCoinTransaction;
@@ -11,6 +12,7 @@ import com.hsmy.mapper.ScriptureMapper;
 import com.hsmy.mapper.UserScripturePurchaseMapper;
 import com.hsmy.mapper.UserStatsMapper;
 import com.hsmy.mapper.meditation.MeritCoinTransactionMapper;
+import com.hsmy.service.ScriptureSectionService;
 import com.hsmy.service.UserScriptureProgressService;
 import com.hsmy.service.UserScripturePurchaseService;
 import lombok.RequiredArgsConstructor;
@@ -37,13 +39,14 @@ public class UserScripturePurchaseServiceImpl implements UserScripturePurchaseSe
     private final UserStatsMapper userStatsMapper;
     private final MeritCoinTransactionMapper meritCoinTransactionMapper;
     private final UserScriptureProgressService userScriptureProgressService;
+    private final ScriptureSectionService scriptureSectionService;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Boolean purchaseScripture(Long userId, Long scriptureId, Integer purchaseMonths) {
-        if (purchaseMonths == null || purchaseMonths <= 0) {
-            throw new BusinessException("购买月数必须大于0");
-        }
+//        if (purchaseMonths == null || purchaseMonths <= 0) {
+//            throw new BusinessException("购买月数必须大于0");
+//        }
         Scripture scripture = scriptureMapper.selectById(scriptureId);
         ensureScriptureAvailable(scripture);
         Integer pricePerMonth = scripture.getPrice();
@@ -105,30 +108,54 @@ public class UserScripturePurchaseServiceImpl implements UserScripturePurchaseSe
 
         long balanceAfter = deductMeritCoins(userId, permanentPrice);
 
-        UserScripturePurchase purchase = new UserScripturePurchase();
-        purchase.setUserId(userId);
-        purchase.setScriptureId(scriptureId);
-        purchase.setPurchaseType("permanent");
-        purchase.setMeritCoinsPaid(permanentPrice);
-        purchase.setPurchaseMonths(0);
-        purchase.setPurchaseTime(new Date());
-        purchase.setActivatedTime(new Date());
-        purchase.setExpireTime(null);
-        purchase.setStatus(1);
-        purchase.setIsExpired(0);
-        purchase.setReadCount(0);
-        purchase.setLastReadingPosition(0);
-        purchase.setLastSectionId(null);
-        purchase.setCompletedSections(0);
-        applyReadingSnapshot(existingPurchase, purchase);
+        Date now = new Date();
+        if (existingPurchase == null) {
+            UserScripturePurchase purchase = new UserScripturePurchase();
+            purchase.setUserId(userId);
+            purchase.setScriptureId(scriptureId);
+            purchase.setPurchaseType("permanent");
+            purchase.setMeritCoinsPaid(permanentPrice);
+            purchase.setPurchaseMonths(0);
+            purchase.setPurchaseTime(now);
+            purchase.setActivatedTime(now);
+            purchase.setExpireTime(null);
+            purchase.setStatus(1);
+            purchase.setIsExpired(0);
+            purchase.setReadCount(0);
+            purchase.setLastReadingPosition(0);
+            purchase.setLastSectionId(null);
+            purchase.setCompletedSections(0);
+            applyReadingSnapshot(existingPurchase, purchase);
 
-        int result = userScripturePurchaseMapper.insert(purchase);
-        if (result <= 0) {
-            throw new BusinessException("保存买断记录失败，请稍后再试");
+            int result = userScripturePurchaseMapper.insert(purchase);
+            if (result <= 0) {
+                throw new BusinessException("保存买断记录失败，请稍后再试");
+            }
+
+            // 初始化首段进度为0，便于后续整体进度计算
+            ScriptureSection firstSection = scriptureSectionService.getFirstSection(scriptureId);
+            if (firstSection != null) {
+                userScriptureProgressService.saveSectionProgress(userId, scriptureId, firstSection.getId(), 0D, 0, 0, false);
+            }
+        } else {
+            // 已有 trial/lease 记录，升级为永久，保留已有阅读进度等数据
+            existingPurchase.setPurchaseType("permanent");
+            existingPurchase.setMeritCoinsPaid((existingPurchase.getMeritCoinsPaid() == null ? 0 : existingPurchase.getMeritCoinsPaid()) + permanentPrice);
+            existingPurchase.setPurchaseMonths(0);
+            existingPurchase.setPurchaseTime(now);
+            existingPurchase.setActivatedTime(now);
+            existingPurchase.setExpireTime(null);
+            existingPurchase.setStatus(1);
+            existingPurchase.setIsExpired(0);
+            // 保留 readCount/lastSectionId/completedSections/readingProgress/lastReadingPosition 等
+            int result = userScripturePurchaseMapper.updateById(existingPurchase);
+            if (result <= 0) {
+                throw new BusinessException("保存买断记录失败，请稍后再试");
+            }
         }
 
         scriptureMapper.increasePurchaseCount(scriptureId);
-        recordMeritCoinTransaction(userId, purchase.getId(), MeritBizType.SCRIPTURE_PERMANENT,
+        recordMeritCoinTransaction(userId, scriptureId, MeritBizType.SCRIPTURE_PERMANENT,
                 String.format("买断典籍-%s", scripture.getScriptureName()), permanentPrice, balanceAfter);
         return true;
     }
@@ -291,6 +318,39 @@ public class UserScripturePurchaseServiceImpl implements UserScripturePurchaseSe
         trial.setIsDeleted(0);
         userScripturePurchaseMapper.insert(trial);
         return trial;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public UserScripturePurchase ensureFreePermanentPurchase(Long userId, Scripture scripture) {
+        UserScripturePurchase existing = userScripturePurchaseMapper.selectByUserAndScripture(userId, scripture.getId());
+        if (existing != null && "permanent".equalsIgnoreCase(existing.getPurchaseType())) {
+            return existing;
+        }
+        ensureScriptureAvailable(scripture);
+        if (scripture.getPrice() == null || scripture.getPrice() != 0) {
+            throw new BusinessException("该典籍并非免费，无法创建免费购买记录");
+        }
+        Date now = new Date();
+        UserScripturePurchase free = new UserScripturePurchase();
+        free.setUserId(userId);
+        free.setScriptureId(scripture.getId());
+        free.setPurchaseType("permanent");
+        free.setMeritCoinsPaid(0);
+        free.setPurchaseMonths(0);
+        free.setPurchaseTime(now);
+        free.setActivatedTime(now);
+        free.setExpireTime(null);
+        free.setStatus(1);
+        free.setIsExpired(0);
+        free.setReadCount(0);
+        free.setLastReadingPosition(0);
+        free.setLastSectionId(existing != null ? existing.getLastSectionId() : null);
+        free.setCompletedSections(existing != null ? existing.getCompletedSections() : 0);
+        free.setReadingProgress(existing != null && existing.getReadingProgress() != null ? existing.getReadingProgress() : BigDecimal.ZERO);
+        free.setIsDeleted(0);
+        userScripturePurchaseMapper.insert(free);
+        return free;
     }
 
     @Override

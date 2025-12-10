@@ -50,7 +50,7 @@ public class UserScriptureController {
      * @param httpRequest HTTP请求
      * @return 购买结果
      */
-    @PostMapping("/purchase")
+    //@PostMapping("/purchase")
     public Result<Void> purchaseScripture(@RequestBody @Valid PurchaseScriptureRequest request,
                                         HttpServletRequest httpRequest) {
         try {
@@ -63,7 +63,7 @@ public class UserScriptureController {
 
             // 执行购买
             Boolean success = userScripturePurchaseService.purchaseScripture(
-                    userId, request.getScriptureId(), request.getPurchaseMonths());
+                    userId, request.getScriptureId(), null);
 
             if (success) {
                 return Result.success();
@@ -101,19 +101,6 @@ public class UserScriptureController {
                 } else {
                     return Result.error("买断失败，请检查您的福币余额、该典籍是否支持买断或您是否已购买");
                 }
-            } else if ("monthly".equals(request.getPurchaseType())) {
-                // 月度订阅模式
-                if (request.getPurchaseMonths() == null) {
-                    return Result.error("订阅模式必须指定购买月数");
-                }
-
-                Boolean success = userScripturePurchaseService.purchaseScripture(
-                        userId, request.getScriptureId(), request.getPurchaseMonths());
-                if (success) {
-                    return Result.success();
-                } else {
-                    return Result.error("购买失败，请检查您的福币余额或该典籍是否已购买");
-                }
             } else {
                 return Result.error("不支持的购买类型");
             }
@@ -128,7 +115,7 @@ public class UserScriptureController {
      * @param httpRequest HTTP请求
      * @return 购买记录列表
      */
-    @GetMapping("/purchases")
+    //@GetMapping("/purchases")
     public Result<List<UserScripturePurchaseVO>> getUserPurchases(HttpServletRequest httpRequest) {
         try {
             Long userId = UserContextUtil.requireCurrentUserId();
@@ -229,7 +216,7 @@ public class UserScriptureController {
      * @param httpRequest HTTP请求
      * @return 更新结果
      */
-    @PutMapping("/reading-progress")
+    //@PutMapping("/reading-progress")
     public Result<Void> updateReadingProgress(@RequestBody @Valid UpdateReadingProgressRequest request,
                                             HttpServletRequest httpRequest) {
         try {
@@ -296,7 +283,7 @@ public class UserScriptureController {
      * @param httpRequest HTTP请求
      * @return 更新结果
      */
-    @PutMapping("/last-reading-position")
+    //@PutMapping("/last-reading-position")
     public Result<Void> updateLastReadingPosition(@RequestBody @Valid UpdateLastReadingPositionRequest request,
                                                 HttpServletRequest httpRequest) {
         try {
@@ -382,7 +369,7 @@ public class UserScriptureController {
      * @param httpRequest HTTP请求
      * @return 续费结果
      */
-    @PostMapping("/renew/{scriptureId}")
+    //@PostMapping("/renew/{scriptureId}")
     public Result<Void> renewScripture(@PathVariable Long scriptureId,
                                      @RequestParam Integer extendMonths,
                                      HttpServletRequest httpRequest) {
@@ -525,7 +512,14 @@ public class UserScriptureController {
 
             UserScripturePurchase purchase = userScripturePurchaseService.getUserPurchaseDetail(userId, Long.valueOf(scriptureId));
             if (purchase == null) {
-                purchase = userScripturePurchaseService.ensureTrialPurchase(userId, Long.valueOf(scriptureId));
+                if (scripture.getPrice() != null && scripture.getPrice() == 0) {
+                    purchase = userScripturePurchaseService.ensureFreePermanentPurchase(userId, scripture);
+                } else {
+                    purchase = userScripturePurchaseService.ensureTrialPurchase(userId, Long.valueOf(scriptureId));
+                }
+            } else if (!"permanent".equalsIgnoreCase(purchase.getPurchaseType())
+                    && scripture.getPrice() != null && scripture.getPrice() == 0) {
+                purchase = userScripturePurchaseService.ensureFreePermanentPurchase(userId, scripture);
             }
 
             boolean valid = userScripturePurchaseService.isUserPurchaseValid(userId, Long.valueOf(scriptureId));
@@ -535,21 +529,16 @@ public class UserScriptureController {
             int done = completedSections == null ? 0 : completedSections;
 
             String status;
-            Boolean readFlag;
             if ("trial".equalsIgnoreCase(purchase.getPurchaseType())) {
                 status = done < previewCount ? "trial_exceeded" : "trial_not_exceeded";
-                readFlag = done < previewCount;
             } else if (valid) {
                 status = "valid";
-                readFlag = true;
             } else {
                 status = "expired";
-                readFlag = false;
             }
 
             StartReadingStatusVO vo = new StartReadingStatusVO();
             vo.setStatus(status);
-            vo.setReadFlag(readFlag);
             vo.setPurchaseType(purchase.getPurchaseType());
             vo.setExpireTime(purchase.getExpireTime());
             vo.setCompletedSections(completedSections);

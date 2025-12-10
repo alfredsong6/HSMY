@@ -2,10 +2,9 @@ package com.hsmy.dto;
 
 import lombok.Data;
 
-import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
+import java.math.BigDecimal;
 
 /**
  * 买断典籍购买请求DTO
@@ -30,10 +29,6 @@ public class PurchaseScripturePermanentRequest implements Serializable {
     @NotNull(message = "购买类型不能为空")
     private String purchaseType;
 
-    /**
-     * 购买月数（仅订阅模式需要）
-     */
-    @Min(value = 1, message = "购买月数最少为1月")
-    @Max(value = 12, message = "购买月数最多为12月")
-    private Integer purchaseMonths;
+    private BigDecimal amount;
+
 }
