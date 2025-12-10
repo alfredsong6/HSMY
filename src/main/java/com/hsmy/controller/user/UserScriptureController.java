@@ -448,10 +448,11 @@ public class UserScriptureController {
 
             UserScripturePurchase purchase = userScripturePurchaseService.getUserPurchaseDetail(userId, Long.valueOf(scriptureId));
             if (purchase == null) {
-                return Result.error("您尚未购买该典籍");
+                //return Result.error("您尚未购买该典籍");
+                return Result.success(null);
             }
 
-            userScripturePurchaseService.isUserPurchaseValid(userId, Long.valueOf(scriptureId)); // refresh status if needed
+            //userScripturePurchaseService.isUserPurchaseValid(userId, Long.valueOf(scriptureId)); // refresh status if needed
 
             // 确定当前分段
             ScriptureSection section = null;
@@ -529,16 +530,21 @@ public class UserScriptureController {
             int done = completedSections == null ? 0 : completedSections;
 
             String status;
+            Boolean readFlag;
             if ("trial".equalsIgnoreCase(purchase.getPurchaseType())) {
                 status = done < previewCount ? "trial_exceeded" : "trial_not_exceeded";
+                readFlag = done < previewCount;
             } else if (valid) {
                 status = "valid";
+                readFlag = true;
             } else {
                 status = "expired";
+                readFlag = false;
             }
 
             StartReadingStatusVO vo = new StartReadingStatusVO();
             vo.setStatus(status);
+            vo.setReadFlag(readFlag);
             vo.setPurchaseType(purchase.getPurchaseType());
             vo.setExpireTime(purchase.getExpireTime());
             vo.setCompletedSections(completedSections);
