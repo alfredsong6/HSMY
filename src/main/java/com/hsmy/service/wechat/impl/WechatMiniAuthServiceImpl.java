@@ -107,7 +107,8 @@ public class WechatMiniAuthServiceImpl implements WechatMiniAuthService {
         return properties.getAppId();
     }
 
-    private String getAccessToken() {
+    @Override
+    public String getAccessToken() {
         String cached = stringRedisTemplate.opsForValue().get(ACCESS_TOKEN_CACHE_KEY);
         if (StringUtils.hasText(cached)) {
             return cached;

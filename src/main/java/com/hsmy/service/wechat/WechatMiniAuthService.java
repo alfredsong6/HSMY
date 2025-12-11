@@ -22,4 +22,9 @@ public interface WechatMiniAuthService {
      * 默认 appId.
      */
     String getDefaultAppId();
+
+    /**
+     * 获取小程序全局 access_token（内部含缓存）。
+     */
+    String getAccessToken();
 }
