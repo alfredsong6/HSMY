@@ -23,6 +23,7 @@ import javax.validation.Valid;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+import java.util.Map;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -246,6 +247,49 @@ public class UserScriptureController {
             return Result.success(purchaseVOs);
         } catch (Exception e) {
             return Result.error("获取有效购买记录失败：" + e.getMessage());
+        }
+    }
+
+    /**
+     * 获取用户可使用的典籍列表（免费或已付费有效）
+     *
+     * @return 可用典籍列表
+     */
+    @GetMapping("/available")
+    public Result<List<ScriptureVO>> getAvailableScriptures() {
+        try {
+            Long userId = UserContextUtil.requireCurrentUserId();
+            List<Scripture> scriptures = scriptureService.getUsableScriptures(userId);
+            List<UserScripturePurchase> validPurchases = userScripturePurchaseService.getValidPurchasesByUserId(userId);
+            Map<Long, UserScripturePurchase> purchaseMap = validPurchases.stream()
+                    .collect(Collectors.toMap(UserScripturePurchase::getScriptureId, purchase -> purchase, (a, b) -> a));
+
+            List<ScriptureVO> scriptureVOs = scriptures.stream().map(scripture -> {
+                ScriptureVO vo = new ScriptureVO();
+                BeanUtils.copyProperties(scripture, vo);
+                vo.setId(scripture.getId().toString());
+                vo.setCanPreview(scripture.getPreviewSectionCount() != null && scripture.getPreviewSectionCount() > 0);
+
+                UserScripturePurchase purchase = purchaseMap.get(scripture.getId());
+                if (purchase != null) {
+                    vo.setIsPurchased(true);
+                    vo.setIsPurchaseValid(true);
+                    vo.setExpireTime(purchase.getExpireTime());
+                    vo.setPurchaseType(purchase.getPurchaseType());
+                } else {
+                    boolean free = scripture.getPermanentPrice() != null && scripture.getPermanentPrice() == 0;
+                    vo.setIsPurchased(free);
+                    vo.setIsPurchaseValid(free);
+                    if (free) {
+                        vo.setPurchaseType("free");
+                    }
+                }
+                return vo;
+            }).collect(Collectors.toList());
+
+            return Result.success(scriptureVOs);
+        } catch (Exception e) {
+            return Result.error("获取可用典籍失败：" + e.getMessage());
         }
     }
 

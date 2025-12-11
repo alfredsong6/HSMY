@@ -35,7 +35,10 @@ public interface UserSettingMapper extends BaseMapper<UserSetting> {
      *
      * @param userId 用户ID
      * @param bulletScreen 弹幕设置
+     * @param scriptureId 典籍ID
      * @return 影响行数
      */
-    int updateBulletScreen(@Param("userId") Long userId, @Param("bulletScreen") Integer bulletScreen);
+    int updateBulletScreen(@Param("userId") Long userId,
+                           @Param("bulletScreen") Integer bulletScreen,
+                           @Param("scriptureId") Long scriptureId);
 }

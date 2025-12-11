@@ -15,4 +15,9 @@ public class BulletScreenSettingRequest {
      */
     @NotNull(message = "弹幕设置不能为空")
     private Integer bulletScreen;
+
+    /**
+     * 弹幕经书ID（bullet_screen=3时必填）
+     */
+    private Long scriptureId;
 }

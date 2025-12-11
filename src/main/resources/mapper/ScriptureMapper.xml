@@ -120,6 +120,29 @@
         ORDER BY sort_order ASC, create_time DESC
     </select>
 
+    <!-- 查询用户可用的典籍：免费或已付费有效 -->
+    <select id="selectUsableByUser" resultMap="BaseResultMap">
+        SELECT DISTINCT
+            s.id, scripture_name, scripture_type, author, description, total_word_count,section_count,usp.status
+        FROM t_scripture s
+        LEFT JOIN t_user_scripture_purchase usp
+            ON s.id = usp.scripture_id
+            AND usp.user_id = #{userId}
+            AND usp.is_deleted = 0
+        WHERE s.status = 1
+        AND s.is_deleted = 0
+        AND (
+            s.permanent_price = 0
+            OR (
+                s.permanent_price > 0
+                AND usp.status = 1
+                AND (usp.is_expired IS NULL OR usp.is_expired = 0)
+                AND (usp.expire_time IS NULL OR usp.expire_time > NOW())
+            )
+        )
+        ORDER BY s.sort_order ASC, s.create_time DESC
+    </select>
+
     <!-- 更新典籍购买次数 -->
     <update id="increasePurchaseCount">
         UPDATE t_scripture

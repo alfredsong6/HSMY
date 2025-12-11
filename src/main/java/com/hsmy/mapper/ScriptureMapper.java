@@ -86,4 +86,12 @@ public interface ScriptureMapper extends BaseMapper<Scripture> {
      * @return 典籍列表
      */
     List<Scripture> selectByTag(@Param("tag") String tag);
+
+    /**
+     * 查询用户可用的典籍：免费或已付费有效
+     *
+     * @param userId 用户ID
+     * @return 可用典籍列表
+     */
+    List<Scripture> selectUsableByUser(@Param("userId") Long userId);
 }

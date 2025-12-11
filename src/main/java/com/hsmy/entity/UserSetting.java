@@ -79,4 +79,9 @@ public class UserSetting extends BaseEntity {
      * 弹幕设置（1-愿力 2-愿望 3-经书）
      */
     private Integer bulletScreen;
+
+    /**
+     * 弹幕经书ID（bullet_screen=3时设置）
+     */
+    private Long scriptureId;
 }

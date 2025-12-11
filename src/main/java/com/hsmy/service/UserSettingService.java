@@ -68,7 +68,8 @@ public interface UserSettingService {
      *
      * @param userId 用户ID
      * @param bulletScreen 弹幕设置
+     * @param scriptureId 典籍ID（bullet_screen=3时必填）
      * @return 是否成功
      */
-    Boolean updateBulletScreenSetting(Long userId, Integer bulletScreen);
+    Boolean updateBulletScreenSetting(Long userId, Integer bulletScreen, Long scriptureId);
 }

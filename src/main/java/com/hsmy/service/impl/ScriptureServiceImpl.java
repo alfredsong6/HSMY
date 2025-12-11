@@ -62,6 +62,11 @@ public class ScriptureServiceImpl implements ScriptureService {
     }
 
     @Override
+    public List<Scripture> getUsableScriptures(Long userId) {
+        return scriptureMapper.selectUsableByUser(userId);
+    }
+
+    @Override
     @Transactional
     public Boolean increaseReadCount(Long scriptureId) {
         int result = scriptureMapper.increaseReadCount(scriptureId);

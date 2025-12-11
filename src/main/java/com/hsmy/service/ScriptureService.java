@@ -76,6 +76,14 @@ public interface ScriptureService {
     List<Scripture> getScripturesByTag(String tag);
 
     /**
+     * 获取用户可用的典籍列表（免费或已付费有效）
+     *
+     * @param userId 用户ID
+     * @return 典籍列表
+     */
+    List<Scripture> getUsableScriptures(Long userId);
+
+    /**
      * 增加典籍阅读次数
      *
      * @param scriptureId 典籍ID

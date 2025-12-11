@@ -3,8 +3,11 @@ package com.hsmy.controller.user;
 import com.hsmy.common.Result;
 import com.hsmy.dto.BulletScreenSettingRequest;
 import com.hsmy.entity.UserSetting;
+import com.hsmy.entity.Scripture;
 import com.hsmy.service.UserSettingService;
+import com.hsmy.service.ScriptureService;
 import com.hsmy.utils.UserContextUtil;
+import com.hsmy.vo.UserSettingVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -25,6 +28,7 @@ import java.util.Map;
 public class UserSettingController {
     
     private final UserSettingService userSettingService;
+    private final ScriptureService scriptureService;
     
     /**
      * 获取用户设置
@@ -33,7 +37,7 @@ public class UserSettingController {
      * @return 用户设置信息
      */
     @GetMapping
-    public Result<UserSetting> getUserSettings(HttpServletRequest request) {
+    public Result<UserSettingVO> getUserSettings(HttpServletRequest request) {
         try {
             Long userId = UserContextUtil.requireCurrentUserId();
             
@@ -43,8 +47,20 @@ public class UserSettingController {
                 userSettingService.initUserDefaultSetting(userId);
                 userSetting = userSettingService.getUserSettingByUserId(userId);
             }
-            
-            return Result.success(userSetting);
+
+            UserSettingVO vo = new UserSettingVO();
+            org.springframework.beans.BeanUtils.copyProperties(userSetting, vo);
+            if (userSetting.getScriptureId() != null) {
+                vo.setScriptureId(userSetting.getScriptureId().toString());
+            }
+            if (userSetting.getScriptureId() != null) {
+                Scripture scripture = scriptureService.getScriptureById(userSetting.getScriptureId());
+                if (scripture != null) {
+                    vo.setScriptureName(scripture.getScriptureName());
+                }
+            }
+
+            return Result.success(vo);
         } catch (Exception e) {
             return Result.error(e.getMessage());
         }
@@ -179,7 +195,16 @@ public class UserSettingController {
     public Result<Void> updateBulletScreenSetting(@Validated @RequestBody BulletScreenSettingRequest bulletScreenSettingRequest) {
         Long userId = UserContextUtil.requireCurrentUserId();
 
-        userSettingService.updateBulletScreenSetting(userId, bulletScreenSettingRequest.getBulletScreen());
+        if (bulletScreenSettingRequest.getBulletScreen() != null
+                && bulletScreenSettingRequest.getBulletScreen() == 3
+                && bulletScreenSettingRequest.getScriptureId() == null) {
+            return Result.error("经书弹幕时需提供经书ID");
+        }
+
+        userSettingService.updateBulletScreenSetting(
+                userId,
+                bulletScreenSettingRequest.getBulletScreen(),
+                bulletScreenSettingRequest.getScriptureId());
         return Result.success();
     }
     

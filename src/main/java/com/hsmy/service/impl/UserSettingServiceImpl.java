@@ -95,7 +95,11 @@ public class UserSettingServiceImpl implements UserSettingService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Boolean updateBulletScreenSetting(Long userId, Integer bulletScreen) {
-        return userSettingMapper.updateBulletScreen(userId, bulletScreen) > 0;
+    public Boolean updateBulletScreenSetting(Long userId, Integer bulletScreen, Long scriptureId) {
+        if (bulletScreen != null && bulletScreen == 3 && scriptureId == null) {
+            throw new RuntimeException("选择经书弹幕时需提供经书ID");
+        }
+        Long scriptureIdToSave = (bulletScreen != null && bulletScreen == 3) ? scriptureId : null;
+        return userSettingMapper.updateBulletScreen(userId, bulletScreen, scriptureIdToSave) > 0;
     }
 }

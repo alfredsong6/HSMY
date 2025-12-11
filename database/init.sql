@@ -82,6 +82,7 @@ CREATE TABLE IF NOT EXISTS `t_user_setting` (
     `theme_id` BIGINT DEFAULT NULL COMMENT '当前主题ID',
     `skin_id` BIGINT DEFAULT NULL COMMENT '当前皮肤ID',
     `sound_id` BIGINT DEFAULT NULL COMMENT '当前音效ID',
+    `scripture_id` BIGINT DEFAULT NULL COMMENT '弹幕经书ID(bullet_screen=3时使用)',
     `create_by` VARCHAR(50) DEFAULT 'system' COMMENT '创建人',
     `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `update_by` VARCHAR(50) DEFAULT 'system' COMMENT '更新人',
