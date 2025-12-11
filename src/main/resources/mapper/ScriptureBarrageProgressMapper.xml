@@ -1,0 +1,37 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hsmy.mapper.ScriptureBarrageProgressMapper">
+
+    <resultMap id="BaseResultMap" type="com.hsmy.entity.ScriptureBarrageProgress">
+        <id column="id" property="id"/>
+        <result column="user_id" property="userId"/>
+        <result column="scripture_id" property="scriptureId"/>
+        <result column="last_offset" property="lastOffset"/>
+        <result column="last_section_id" property="lastSectionId"/>
+        <result column="section_offset" property="sectionOffset"/>
+        <result column="last_fetch_limit" property="lastFetchLimit"/>
+        <result column="last_fetch_time" property="lastFetchTime"/>
+        <result column="is_daily_reset" property="isDailyReset"/>
+        <result column="create_by" property="createBy"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_by" property="updateBy"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="is_deleted" property="isDeleted"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, user_id, scripture_id, last_offset, last_section_id,
+        section_offset, last_fetch_limit, last_fetch_time, is_daily_reset,
+        create_by, create_time, update_by, update_time, is_deleted
+    </sql>
+
+    <select id="selectByUserAndScripture" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM t_scripture_barrage_progress
+        WHERE user_id = #{userId}
+          AND scripture_id = #{scriptureId}
+          AND is_deleted = 0
+        LIMIT 1
+    </select>
+
+</mapper>

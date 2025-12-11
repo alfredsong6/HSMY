@@ -4,15 +4,19 @@ import com.hsmy.annotation.ApiVersion;
 import com.hsmy.common.Result;
 import com.hsmy.constant.ApiVersionConstant;
 import com.hsmy.entity.Scripture;
+import com.hsmy.entity.ScriptureBarrageProgress;
 import com.hsmy.entity.ScriptureSection;
 import com.hsmy.entity.UserScripturePurchase;
+import com.hsmy.service.ScriptureBarrageProgressService;
 import com.hsmy.service.ScriptureSectionService;
 import com.hsmy.service.ScriptureService;
 import com.hsmy.service.UserScripturePurchaseService;
+import com.hsmy.utils.TextSanitizerUtil;
 import com.hsmy.utils.UserContextUtil;
 import com.hsmy.vo.ScriptureQueryVO;
 import com.hsmy.vo.ScriptureSectionVO;
 import com.hsmy.vo.ScriptureSectionsResponseVO;
+import com.hsmy.vo.ScriptureTextStreamVO;
 import com.hsmy.vo.ScriptureVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
@@ -20,6 +24,8 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -38,6 +44,7 @@ public class ScriptureController {
     private final ScriptureService scriptureService;
     private final ScriptureSectionService scriptureSectionService;
     private final UserScripturePurchaseService userScripturePurchaseService;
+    private final ScriptureBarrageProgressService scriptureBarrageProgressService;
 
     /**
      * 获取典籍列表
@@ -267,6 +274,102 @@ public class ScriptureController {
             return Result.success(resp);
         } catch (Exception e) {
             return Result.error("获取分段列表失败：" + e.getMessage());
+        }
+    }
+
+    /**
+     * 按全局偏移获取纯文本流，用于跨卷连续阅读。
+     *
+     * @param scriptureId 典籍ID
+     * @param offset      全局字符偏移（默认0）
+     * @param limit       获取的字符数量（默认200，上限2000）
+     * @param dailyReset  是否每日重置进度（可选）
+     * @return 文本块、下一偏移量及是否结束
+     */
+    @GetMapping("/{scriptureId}/text-stream")
+    public Result<ScriptureTextStreamVO> streamText(@PathVariable Long scriptureId,
+                                                    @RequestParam(value = "offset", defaultValue = "0") Integer offset,
+                                                    @RequestParam(value = "limit", defaultValue = "200") Integer limit,
+                                                    @RequestParam(value = "dailyReset", required = false) Boolean dailyReset) {
+        try {
+            Scripture scripture = scriptureService.getScriptureById(scriptureId);
+            if (scripture == null) {
+                return Result.error("典籍不存在");
+            }
+            List<ScriptureSection> sections = scriptureSectionService.listByScriptureId(scriptureId);
+            if (sections == null || sections.isEmpty()) {
+                return Result.error("典籍尚未配置分段内容");
+            }
+
+            int safeOffset = offset == null || offset < 0 ? 0 : offset;
+            int safeLimit = limit == null || limit <= 0 ? 200 : Math.min(limit, 2000);
+
+            Long userId = UserContextUtil.getCurrentUserId();
+            if (userId != null) {
+                ScriptureBarrageProgress progress = scriptureBarrageProgressService.getByUserAndScripture(userId, scriptureId);
+                if (progress != null && progress.getIsDailyReset() != null && progress.getIsDailyReset() == 1 && progress.getLastFetchTime() != null) {
+                    LocalDate lastDate = progress.getLastFetchTime().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+                    // 开启每日重置时，隔日重新从0开始
+                    if (lastDate.isBefore(LocalDate.now())) {
+                        safeOffset = 0;
+                    }
+                }
+            }
+
+            int totalLength = 0;
+            int consumed = 0;
+            StringBuilder builder = new StringBuilder();
+            Long lastSectionId = null;
+            int sectionOffset = 0;
+
+            for (ScriptureSection section : sections) {
+                String plain = TextSanitizerUtil.toPlainText(section.getContent());
+                int len = plain.length();
+                int sectionStart = totalLength;
+
+                if (safeOffset < totalLength + len && consumed < safeLimit) {
+                    int startInSection = Math.max(0, safeOffset - totalLength);
+                    int take = Math.min(safeLimit - consumed, len - startInSection);
+                    if (take > 0) {
+                        builder.append(plain, startInSection, startInSection + take);
+                        consumed += take;
+                    }
+                }
+
+                int endGlobal = safeOffset + consumed;
+                // 记录当前chunk落在的分段及分段内偏移，便于下次继续
+                if (endGlobal > sectionStart && endGlobal <= sectionStart + len) {
+                    lastSectionId = section.getId();
+                    sectionOffset = endGlobal - sectionStart;
+                }
+
+                totalLength += len;
+            }
+
+            int nextOffset = Math.min(totalLength, safeOffset + consumed);
+            boolean isEnd = nextOffset >= totalLength;
+
+            ScriptureTextStreamVO vo = new ScriptureTextStreamVO();
+            vo.setContent(builder.toString());
+            vo.setNextOffset(nextOffset);
+            vo.setIsEnd(isEnd);
+
+            if (userId != null) {
+                // 持久化弹幕阅读游标
+                scriptureBarrageProgressService.saveProgress(
+                        userId,
+                        scriptureId,
+                        lastSectionId,
+                        sectionOffset,
+                        nextOffset,
+                        safeLimit,
+                        dailyReset
+                );
+            }
+
+            return Result.success(vo);
+        } catch (Exception e) {
+            return Result.error("获取文本流失败：" + e.getMessage());
         }
     }
 

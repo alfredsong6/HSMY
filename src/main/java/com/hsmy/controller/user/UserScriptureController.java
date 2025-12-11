@@ -128,6 +128,7 @@ public class UserScriptureController {
                 // 获取典籍信息
             Scripture scripture = scriptureService.getScriptureById(purchase.getScriptureId());
             if (scripture != null) {
+                vo.setScriptureId(scripture.getId().toString());
                 vo.setScriptureName(scripture.getScriptureName());
                 vo.setScriptureType(scripture.getScriptureType());
                 vo.setCoverUrl(scripture.getCoverUrl());

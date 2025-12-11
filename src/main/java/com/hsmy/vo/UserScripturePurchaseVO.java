@@ -31,7 +31,7 @@ public class UserScripturePurchaseVO implements Serializable {
     /**
      * 典籍ID
      */
-    private Long scriptureId;
+    private String scriptureId;
 
     /**
      * 购买类型
