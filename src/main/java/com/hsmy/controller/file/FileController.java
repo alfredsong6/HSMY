@@ -61,7 +61,7 @@ public class FileController {
     /**
      * 上传通用文件
      */
-    @PostMapping("/upload/{folder}")
+    //@PostMapping("/upload/{folder}")
     public Result<FileUploadResult> uploadFile(@RequestParam("file") MultipartFile file,
                                              @PathVariable String folder) {
         try {
@@ -115,7 +115,7 @@ public class FileController {
     /**
      * 本地文件下载（仅本地存储模式有效）
      */
-    @GetMapping("/uploads/**")
+    @GetMapping("/uploads")
     public ResponseEntity<Resource> downloadFile(HttpServletRequest request) {
         try {
             String requestPath = request.getRequestURI();

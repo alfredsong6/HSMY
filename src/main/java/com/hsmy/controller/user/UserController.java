@@ -5,6 +5,7 @@ import com.hsmy.annotation.ApiVersion;
 import com.hsmy.common.Result;
 import com.hsmy.constant.ApiVersionConstant;
 import com.hsmy.dto.LoginResponse;
+import com.hsmy.dto.UpdateNicknameRequest;
 import com.hsmy.entity.User;
 import com.hsmy.service.SessionService;
 import com.hsmy.service.UserService;
@@ -94,6 +95,23 @@ public class UserController {
             return Result.error("用户不存在");
         }
         return Result.success(userVO);
+    }
+
+    /**
+     * 修改当前用户昵称.
+     */
+    @PostMapping("/nickname")
+    public Result<Boolean> updateNickname(@Validated @RequestBody UpdateNicknameRequest request) {
+        Long userId = UserContextUtil.getCurrentUserId();
+        if (userId == null) {
+            return Result.error("用户未登录");
+        }
+        try {
+            Boolean success = userService.updateNickname(userId, request.getNickname());
+            return success ? Result.success("昵称更新成功", true) : Result.error("昵称更新失败");
+        } catch (Exception e) {
+            return Result.error(e.getMessage());
+        }
     }
     
     /**

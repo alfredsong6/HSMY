@@ -181,6 +181,15 @@ public interface UserService {
      * @return 是否成功
      */
     Boolean updateAvatar(Long userId, String avatarUrl);
+
+    /**
+     * 更新用户昵称.
+     *
+     * @param userId   用户ID
+     * @param nickname 新昵称
+     * @return 是否成功
+     */
+    Boolean updateNickname(Long userId, String nickname);
     
     /**
      * 初始化密码（仅当用户密码为空时允许）

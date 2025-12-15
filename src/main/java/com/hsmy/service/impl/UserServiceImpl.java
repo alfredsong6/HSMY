@@ -399,6 +399,21 @@ public class UserServiceImpl implements UserService {
         
         return userMapper.updateById(user) > 0;
     }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Boolean updateNickname(Long userId, String nickname) {
+        if (StrUtil.isBlank(nickname)) {
+            throw new BusinessException("昵称不能为空");
+        }
+        User user = userMapper.selectById(userId);
+        if (user == null) {
+            throw new BusinessException("用户不存在");
+        }
+        user.setNickname(nickname.trim());
+        user.setUpdateTime(new Date());
+        return userMapper.updateById(user) > 0;
+    }
     
     /**
      * 生成默认用户名

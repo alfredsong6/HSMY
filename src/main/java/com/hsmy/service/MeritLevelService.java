@@ -1,6 +1,8 @@
 package com.hsmy.service;
 
 import com.hsmy.entity.MeritLevel;
+import com.hsmy.vo.MeritLevelProgressVO;
+import com.hsmy.vo.MeritLevelStatusVO;
 
 import java.util.List;
 
@@ -60,4 +62,20 @@ public interface MeritLevelService {
      * @return 升级所需功德值，如果已是最高等级返回-1
      */
     Long getRequiredMeritForNextLevel(Integer currentLevel, Long currentMerit);
+
+    /**
+     * Get the current merit level for a user based on user stats.
+     *
+     * @param userId user identifier
+     * @return current merit level with status information
+     */
+    MeritLevelStatusVO getUserCurrentLevel(Long userId);
+
+    /**
+     * Get all merit levels with completion status for the given user.
+     *
+     * @param userId user identifier
+     * @return merit level progress summary
+     */
+    MeritLevelProgressVO getUserLevelProgress(Long userId);
 }
