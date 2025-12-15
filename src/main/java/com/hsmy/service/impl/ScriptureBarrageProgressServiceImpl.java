@@ -69,4 +69,13 @@ public class ScriptureBarrageProgressServiceImpl implements ScriptureBarrageProg
         }
         return progress;
     }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public ScriptureBarrageProgress resetProgress(Long userId,
+                                                  Long scriptureId,
+                                                  Long firstSectionId,
+                                                  Boolean dailyReset) {
+        return saveProgress(userId, scriptureId, firstSectionId, 0, 0, 0, dailyReset);
+    }
 }

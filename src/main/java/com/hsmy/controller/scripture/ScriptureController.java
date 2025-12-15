@@ -13,11 +13,7 @@ import com.hsmy.service.ScriptureService;
 import com.hsmy.service.UserScripturePurchaseService;
 import com.hsmy.utils.TextSanitizerUtil;
 import com.hsmy.utils.UserContextUtil;
-import com.hsmy.vo.ScriptureQueryVO;
-import com.hsmy.vo.ScriptureSectionVO;
-import com.hsmy.vo.ScriptureSectionsResponseVO;
-import com.hsmy.vo.ScriptureTextStreamVO;
-import com.hsmy.vo.ScriptureVO;
+import com.hsmy.vo.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.util.StringUtils;
@@ -26,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -316,43 +313,71 @@ public class ScriptureController {
                 }
             }
 
+            List<String> plainSections = new ArrayList<>(sections.size());
+            List<Integer> sectionStarts = new ArrayList<>(sections.size());
             int totalLength = 0;
-            int consumed = 0;
-            StringBuilder builder = new StringBuilder();
-            Long lastSectionId = null;
-            int sectionOffset = 0;
-
             for (ScriptureSection section : sections) {
+                sectionStarts.add(totalLength);
                 String plain = TextSanitizerUtil.toPlainText(section.getContent());
-                int len = plain.length();
-                int sectionStart = totalLength;
-
-                if (safeOffset < totalLength + len && consumed < safeLimit) {
-                    int startInSection = Math.max(0, safeOffset - totalLength);
-                    int take = Math.min(safeLimit - consumed, len - startInSection);
-                    if (take > 0) {
-                        builder.append(plain, startInSection, startInSection + take);
-                        consumed += take;
-                    }
-                }
-
-                int endGlobal = safeOffset + consumed;
-                // 记录当前chunk落在的分段及分段内偏移，便于下次继续
-                if (endGlobal > sectionStart && endGlobal <= sectionStart + len) {
-                    lastSectionId = section.getId();
-                    sectionOffset = endGlobal - sectionStart;
-                }
-
-                totalLength += len;
+                plainSections.add(plain);
+                totalLength += plain.length();
             }
 
+            // 偏移不越界，保证最后一页仍有内容（空串也非null）
+            safeOffset = Math.max(0, Math.min(safeOffset, totalLength));
+
+            StringBuilder builder = new StringBuilder();
+            int remaining = safeLimit;
+            for (int i = 0; i < sections.size() && remaining > 0; i++) {
+                int sectionStart = sectionStarts.get(i);
+                int len = plainSections.get(i).length();
+                if (safeOffset >= sectionStart + len) {
+                    continue;
+                }
+                int startInSection = Math.max(0, safeOffset - sectionStart);
+                int take = Math.min(remaining, len - startInSection);
+                if (take > 0) {
+                    builder.append(plainSections.get(i), startInSection, startInSection + take);
+                    remaining -= take;
+                }
+            }
+
+            int consumed = safeLimit - remaining;
             int nextOffset = Math.min(totalLength, safeOffset + consumed);
             boolean isEnd = nextOffset >= totalLength;
 
+            Long lastSectionId = null;
+            int sectionOffset = 0;
+            String endFlag = null;
+            if (!sections.isEmpty()) {
+                int sectionIndex = -1;
+                for (int i = 0; i < sectionStarts.size(); i++) {
+                    int start = sectionStarts.get(i);
+                    int end = start + plainSections.get(i).length();
+                    if (nextOffset >= start && nextOffset <= end) {
+                        sectionIndex = i;
+                        break;
+                    }
+                }
+                if (sectionIndex == -1) {
+                    sectionIndex = sections.size() - 1;
+                }
+                lastSectionId = sections.get(sectionIndex).getId();
+                sectionOffset = Math.max(0, nextOffset - sectionStarts.get(sectionIndex));
+
+                if (isEnd) {
+                    endFlag = "BOOK_END";
+                } else if (nextOffset == sectionStarts.get(sectionIndex) + plainSections.get(sectionIndex).length()) {
+                    endFlag = "SECTION_END";
+                }
+            }
+
             ScriptureTextStreamVO vo = new ScriptureTextStreamVO();
-            vo.setContent(builder.toString());
+            vo.setContent(builder.length() == 0 ? "" : builder.toString());
             vo.setNextOffset(nextOffset);
             vo.setIsEnd(isEnd);
+            vo.setEndFlag(endFlag);
+            vo.setNeedRestart(isEnd);
 
             if (userId != null) {
                 // 持久化弹幕阅读游标
@@ -370,6 +395,35 @@ public class ScriptureController {
             return Result.success(vo);
         } catch (Exception e) {
             return Result.error("获取文本流失败：" + e.getMessage());
+        }
+    }
+
+    /**
+     * 重置连续文本流的阅读进度到开头
+     *
+     * @param scriptureId 典籍ID
+     * @param dailyReset  是否每日重置进度（可选，若传入则覆盖原设置）
+     * @return 操作结果
+     */
+    @PostMapping("/{scriptureId}/text-stream/reset")
+    public Result<Void> resetTextStream(@PathVariable Long scriptureId,
+                                        @RequestParam(value = "dailyReset", required = false) Boolean dailyReset) {
+        try {
+            Long userId = UserContextUtil.requireCurrentUserId();
+
+            Scripture scripture = scriptureService.getScriptureById(scriptureId);
+            if (scripture == null) {
+                return Result.error("典籍不存在");
+            }
+            ScriptureSection firstSection = scriptureSectionService.getFirstSection(scriptureId);
+            if (firstSection == null) {
+                return Result.error("典籍尚未配置分段内容");
+            }
+
+            scriptureBarrageProgressService.resetProgress(userId, scriptureId, firstSection.getId(), dailyReset);
+            return Result.success();
+        } catch (Exception e) {
+            return Result.error("重置阅读进度失败：" + e.getMessage());
         }
     }
 

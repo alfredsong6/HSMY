@@ -19,4 +19,12 @@ public interface ScriptureBarrageProgressService {
                                           Integer lastOffset,
                                           Integer lastFetchLimit,
                                           Boolean dailyReset);
+
+    /**
+     * 重置阅读/弹幕进度到开头
+     */
+    ScriptureBarrageProgress resetProgress(Long userId,
+                                           Long scriptureId,
+                                           Long firstSectionId,
+                                           Boolean dailyReset);
 }
