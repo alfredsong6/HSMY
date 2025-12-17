@@ -12,6 +12,7 @@ import com.hsmy.service.UserService;
 import com.hsmy.utils.UserContextUtil;
 import com.hsmy.vo.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -266,17 +267,39 @@ public class UserController {
         Boolean exists = userService.checkEmailExists(email);
         return Result.success(exists);
     }
-//
-//    /**
-//     * 用户登出
-//     *
-//     * @return 结果
-//     */
-//    @PostMapping("/logout")
-//    public Result<Void> logout() {
-//        // TODO: 清除Token等登出逻辑
-//        return Result.success("登出成功", null);
-//    }
+
+    /**
+     * 用户退出
+     *
+     * @return 结果
+     */
+    @PostMapping("/logout")
+    public Result<Void> logout(HttpServletRequest request) {
+        String authorization = request.getHeader("Authorization");
+        String sessionId = null;
+
+        if (StringUtils.hasText(authorization)) {
+            if (authorization.startsWith("Bearer ")) {
+                sessionId = authorization.substring(7);
+            } else {
+                sessionId = authorization;
+            }
+        }
+
+        if (!StringUtils.hasText(sessionId)) {
+            sessionId = request.getHeader("X-Session-Id");
+        }
+
+        if (!StringUtils.hasText(sessionId)) {
+            sessionId = request.getParameter("sessionId");
+        }
+
+        if (StringUtils.hasText(sessionId)) {
+            sessionService.removeSession(sessionId);
+        }
+
+        return Result.success("退出成功", null);
+    }
     
     /**
      * 初始化密码
