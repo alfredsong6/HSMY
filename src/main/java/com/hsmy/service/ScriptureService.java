@@ -1,6 +1,8 @@
 package com.hsmy.service;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.hsmy.entity.Scripture;
+import com.hsmy.vo.ScriptureQueryVO;
 
 import java.util.List;
 
@@ -66,6 +68,14 @@ public interface ScriptureService {
      * @return 典籍列表
      */
     List<Scripture> searchScriptures(String keyword);
+
+    /**
+     * 分页查询典籍列表
+     *
+     * @param queryVO 查询条件
+     * @return 分页结果
+     */
+    Page<Scripture> pageScriptures(ScriptureQueryVO queryVO);
 
     /**
      * 根据标签获取典籍列表

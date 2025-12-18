@@ -52,6 +52,10 @@ public class ScriptureController {
      */
     @GetMapping("/list")
     public Result<List<ScriptureVO>> getScriptureList(ScriptureQueryVO queryVO, HttpServletRequest request) {
+        if (StringUtils.hasText(queryVO.getScriptureType()) && queryVO.getScriptureType().equals("hot")) {
+            queryVO.setScriptureType(null);
+            queryVO.setIsHot(1);
+        }
         try {
             List<Scripture> scriptures;
 

@@ -1,8 +1,11 @@
 package com.hsmy.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.hsmy.entity.Scripture;
 import com.hsmy.mapper.ScriptureMapper;
 import com.hsmy.service.ScriptureService;
+import com.hsmy.vo.ScriptureQueryVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -54,6 +57,81 @@ public class ScriptureServiceImpl implements ScriptureService {
     @Override
     public List<Scripture> searchScriptures(String keyword) {
         return scriptureMapper.searchByKeyword(keyword);
+    }
+
+    @Override
+    public Page<Scripture> pageScriptures(ScriptureQueryVO queryVO) {
+        long pageNum = queryVO != null && queryVO.getPageNum() != null && queryVO.getPageNum() > 0 ? queryVO.getPageNum() : 1;
+        long pageSize = queryVO != null && queryVO.getPageSize() != null && queryVO.getPageSize() > 0 ? queryVO.getPageSize() : 10;
+        pageSize = Math.min(100, pageSize);
+
+        LambdaQueryWrapper<Scripture> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(Scripture::getStatus, 1)
+                .eq(Scripture::getIsDeleted, 0);
+
+        if (queryVO != null) {
+            if (org.springframework.util.StringUtils.hasText(queryVO.getKeyword())) {
+                String keyword = queryVO.getKeyword().trim();
+                wrapper.and(w -> w.like(Scripture::getScriptureName, keyword)
+                        .or().like(Scripture::getAuthor, keyword)
+                        .or().like(Scripture::getDescription, keyword)
+                        .or().like(Scripture::getCategoryTags, keyword));
+            }
+            if (org.springframework.util.StringUtils.hasText(queryVO.getScriptureType())) {
+                wrapper.eq(Scripture::getScriptureType, queryVO.getScriptureType().trim());
+            }
+            if (queryVO.getIsHot() != null) {
+                wrapper.eq(Scripture::getIsHot, queryVO.getIsHot());
+            }
+            if (queryVO.getMinPrice() != null) {
+                wrapper.ge(Scripture::getPrice, queryVO.getMinPrice());
+            }
+            if (queryVO.getMaxPrice() != null) {
+                wrapper.le(Scripture::getPrice, queryVO.getMaxPrice());
+            }
+            if (queryVO.getDifficultyLevel() != null) {
+                wrapper.eq(Scripture::getDifficultyLevel, queryVO.getDifficultyLevel());
+            }
+            if (org.springframework.util.StringUtils.hasText(queryVO.getTag())) {
+                wrapper.like(Scripture::getCategoryTags, queryVO.getTag().trim());
+            }
+
+            boolean asc = !"desc".equalsIgnoreCase(queryVO.getSortOrder());
+            String sortField = queryVO.getSortField();
+            boolean sorted = false;
+            if (org.springframework.util.StringUtils.hasText(sortField)) {
+                switch (sortField.trim().toLowerCase()) {
+                    case "read_count":
+                        wrapper.orderBy(true, asc, Scripture::getReadCount);
+                        sorted = true;
+                        break;
+                    case "purchase_count":
+                        wrapper.orderBy(true, asc, Scripture::getPurchaseCount);
+                        sorted = true;
+                        break;
+                    case "create_time":
+                        wrapper.orderBy(true, asc, Scripture::getCreateTime);
+                        sorted = true;
+                        break;
+                    case "price":
+                        wrapper.orderBy(true, asc, Scripture::getPrice);
+                        sorted = true;
+                        break;
+                    default:
+                        break;
+                }
+            }
+            if (!sorted) {
+                wrapper.orderByAsc(Scripture::getSortOrder)
+                        .orderByDesc(Scripture::getCreateTime);
+            }
+        } else {
+            wrapper.orderByAsc(Scripture::getSortOrder)
+                    .orderByDesc(Scripture::getCreateTime);
+        }
+
+        Page<Scripture> page = new Page<>(pageNum, pageSize);
+        return scriptureMapper.selectPage(page, wrapper);
     }
 
     @Override
