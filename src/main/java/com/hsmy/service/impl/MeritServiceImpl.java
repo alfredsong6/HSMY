@@ -3,15 +3,18 @@ package com.hsmy.service.impl;
 import cn.hutool.core.util.IdUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.hsmy.dto.MeritGainRequest;
 import com.hsmy.entity.ExchangeRecord;
 import com.hsmy.entity.MeritRecord;
 import com.hsmy.entity.UserPeriodStats;
 import com.hsmy.entity.UserStats;
+import com.hsmy.enums.PeriodType;
 import com.hsmy.exception.BusinessException;
 import com.hsmy.mapper.ExchangeRecordMapper;
 import com.hsmy.mapper.MeritRecordMapper;
-import com.hsmy.enums.PeriodType;
 import com.hsmy.mapper.UserStatsMapper;
+import com.hsmy.service.MeritGainService;
+import com.hsmy.service.MeritLevelService;
 import com.hsmy.service.MeritService;
 import com.hsmy.service.UserPeriodStatsService;
 import com.hsmy.utils.IdGenerator;
@@ -25,11 +28,7 @@ import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Locale;
+import java.util.*;
 
 /**
  * 功德Service实现类
@@ -41,9 +40,11 @@ import java.util.Locale;
 @RequiredArgsConstructor
 public class MeritServiceImpl implements MeritService {
     
+    private final MeritGainService meritGainService;
     private final MeritRecordMapper meritRecordMapper;
     private final UserStatsMapper userStatsMapper;
     private final ExchangeRecordMapper exchangeRecordMapper;
+    private final MeritLevelService meritLevelService;
     private final UserPeriodStatsService userPeriodStatsService;
     private final UserLockManager userLockManager;
     
@@ -96,35 +97,6 @@ public class MeritServiceImpl implements MeritService {
         }
 
 
-//        if ("manual".equals(knockType)) {
-//            LambdaQueryWrapper<MeritRecord> wrapper = new LambdaQueryWrapper<>();
-//            wrapper.eq(MeritRecord::getUserId, knockVO.getUserId())
-//                   .eq(MeritRecord::getKnockType, knockType)
-//                   .eq(MeritRecord::getSource, "knock")
-//                   .ge(MeritRecord::getCreateTime, hourStart)
-//                   .le(MeritRecord::getCreateTime, hourEnd);
-//
-//            MeritRecord existingRecord = meritRecordMapper.selectOne(wrapper);
-//            if (existingRecord != null) {
-//                int newTotalMerit = existingRecord.getMeritGained() + totalMerit;
-//                int existingBase = existingRecord.getBaseMerit() != null ? existingRecord.getBaseMerit() : 0;
-//
-//                existingRecord.setMeritGained(newTotalMerit);
-//                existingRecord.setBaseMerit(existingBase + baseMerit);
-//                existingRecord.setBonusRate(bonusRate);
-//                existingRecord.setPropSnapshot(knockVO.getPropSnapshot());
-//                existingRecord.setKnockMode(knockMode);
-//                existingRecord.setStatDate(statDate);
-//                existingRecord.setDescription("手动敲击获得功德(本小时累计功德: " + newTotalMerit + ")");
-//
-//                meritRecordMapper.updateById(existingRecord);
-//
-//                userStatsMapper.updateKnockStats(knockVO.getUserId(), knockCountLong, totalMeritLong);
-//                userPeriodStatsService.recordKnock(knockVO.getUserId(), knockCountLong, totalMeritLong,
-//                        knockVO.getComboCount() != null ? knockVO.getComboCount() : 0, knockTime);
-//                return totalMerit;
-//            }
-//        }
 
         MeritRecord record = new MeritRecord();
         record.setId(IdGenerator.nextId());
@@ -144,7 +116,12 @@ public class MeritServiceImpl implements MeritService {
 
         meritRecordMapper.insert(record);
 
-        userStatsMapper.updateKnockStats(knockVO.getUserId(), knockCountLong, totalMeritLong);
+        meritGainService.gainMerit(MeritGainRequest.builder()
+                .userId(knockVO.getUserId())
+                .meritDelta(totalMeritLong)
+                .knockDelta(knockCountLong)
+                .updateLastKnockTime(true)
+                .build());
         userPeriodStatsService.recordKnock(knockVO.getUserId(), knockCountLong, totalMeritLong,
                         knockVO.getComboCount() != null ? knockVO.getComboCount() : 0, knockTime);
 
@@ -373,7 +350,10 @@ public class MeritServiceImpl implements MeritService {
             meritRecordMapper.insert(record);
 
             // 更新用户统计
-            userStatsMapper.addMerit(userId, merit.longValue());
+            meritGainService.gainMerit(MeritGainRequest.builder()
+                    .userId(userId)
+                    .meritDelta(merit.longValue())
+                    .build());
 
             return true;
         });

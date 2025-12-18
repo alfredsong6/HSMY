@@ -76,15 +76,7 @@ public class KnockServiceImpl implements KnockService {
         Long userId = knockVO.getUserId();
 
         // 1. 校验敲击频率限制
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime lastKnockTime = lastKnockTimeMap.get(userId);
-        if (lastKnockTime != null) {
-            long intervalMs = ChronoUnit.MILLIS.between(lastKnockTime, now);
-            if (intervalMs < MIN_KNOCK_INTERVAL_MS) {
-                throw new BusinessException("敲击太快了，请稍后再试");
-            }
-        }
-        lastKnockTimeMap.put(userId, now);
+        checkKnockFrequence(userId);
 
         // 2. 补全敲击上下文
         if (knockVO.getMultiplier() == null || knockVO.getMultiplier() <= 0) {
@@ -95,12 +87,6 @@ public class KnockServiceImpl implements KnockService {
         } else {
             knockVO.setKnockMode(knockVO.getKnockMode().toUpperCase(Locale.ROOT));
         }
-//        if (knockVO.getLimitType() != null) {
-//            knockVO.setLimitType(knockVO.getLimitType().toUpperCase(Locale.ROOT));
-//        }
-//        if (knockVO.getKnockCount() == null || knockVO.getKnockCount() <= 0) {
-//            knockVO.setKnockCount(1);
-//        }
         if (knockVO.getMeritValue() == null || knockVO.getMeritValue() <= 0) {
             knockVO.setMeritValue(BASE_MERIT_PER_KNOCK);
         }
@@ -139,6 +125,18 @@ public class KnockServiceImpl implements KnockService {
 
         //knockRealtimeNotifier.notifyManualKnock(userId, result);
         return null;
+    }
+
+    private static void checkKnockFrequence(Long userId) {
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime lastKnockTime = lastKnockTimeMap.get(userId);
+        if (lastKnockTime != null) {
+            long intervalMs = ChronoUnit.MILLIS.between(lastKnockTime, now);
+            if (intervalMs < MIN_KNOCK_INTERVAL_MS) {
+                throw new BusinessException("敲击太快了，请稍后再试");
+            }
+        }
+        lastKnockTimeMap.put(userId, now);
     }
 
     @Override

@@ -2,6 +2,7 @@ package com.hsmy.service.impl;
 
 import cn.hutool.core.util.IdUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.hsmy.dto.MeritGainRequest;
 import com.hsmy.entity.UserStats;
 import com.hsmy.entity.meditation.MeditationDailyStats;
 import com.hsmy.entity.meditation.MeditationSession;
@@ -20,6 +21,7 @@ import com.hsmy.mapper.meditation.MeritCoinTransactionMapper;
 import com.hsmy.mapper.MeritRecordMapper;
 import com.hsmy.service.UserPeriodStatsService;
 import com.hsmy.service.MeditationService;
+import com.hsmy.service.MeritGainService;
 import com.hsmy.utils.UserLockManager;
 import com.hsmy.vo.meditation.*;
 import lombok.RequiredArgsConstructor;
@@ -50,6 +52,7 @@ public class MeditationServiceImpl implements MeditationService {
     private final MeditationUserPrefMapper meditationUserPrefMapper;
     private final MeritCoinTransactionMapper meritCoinTransactionMapper;
     private final MeritRecordMapper meritRecordMapper;
+    private final MeritGainService meritGainService;
     private final UserPeriodStatsService userPeriodStatsService;
     private final UserStatsMapper userStatsMapper;
     private final UserLockManager userLockManager;
@@ -249,7 +252,10 @@ public class MeditationServiceImpl implements MeditationService {
             meditationSessionMapper.updateById(session);
 
             if (rewardEligible) {
-                userStatsMapper.addMerit(userId, 30L);
+                meritGainService.gainMerit(MeritGainRequest.builder()
+                        .userId(userId)
+                        .meritDelta(30L)
+                        .build());
                 reward = 30;
             }
             return reward;
@@ -358,8 +364,10 @@ public class MeditationServiceImpl implements MeditationService {
         record.setDescription("冥想完成");
         meritRecordMapper.insert(record);
 
-        //userPeriodStatsService.recordKnock(userId, 0L, minutes, 0, endTime);
-        userStatsMapper.addMerit(userId, (long) minutes);
+        meritGainService.gainMerit(MeritGainRequest.builder()
+                .userId(userId)
+                .meritDelta((long) minutes)
+                .build());
         return minutes;
     }
 

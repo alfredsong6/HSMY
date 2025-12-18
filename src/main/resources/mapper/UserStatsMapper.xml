@@ -79,4 +79,28 @@
         AND is_deleted = 0
     </update>
 
+    <!-- 增加功德并更新当前等级 -->
+    <update id="updateMeritAndLevel">
+        UPDATE t_user_stats
+        SET total_merit = total_merit + #{merit},
+            current_level = #{currentLevel},
+            update_time = NOW()
+        WHERE user_id = #{userId}
+        AND is_deleted = 0
+    </update>
+
+    <!-- 增加功德与敲击，并更新当前等级 -->
+    <update id="updateKnockStatsAndLevel">
+        UPDATE t_user_stats
+        SET total_knocks = total_knocks + #{knockCount},
+            total_merit = total_merit + #{merit},
+            current_level = #{currentLevel},
+            <if test="lastKnockTime != null">
+                last_knock_time = #{lastKnockTime},
+            </if>
+            update_time = NOW()
+        WHERE user_id = #{userId}
+        AND is_deleted = 0
+    </update>
+
 </mapper>

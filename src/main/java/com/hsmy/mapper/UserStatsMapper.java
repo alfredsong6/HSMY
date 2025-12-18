@@ -22,4 +22,14 @@ public interface UserStatsMapper extends BaseMapper<UserStats> {
     int updateKnockStats(@Param("userId") Long userId,
                          @Param("knockCount") Long knockCount,
                          @Param("merit") Long merit);
+
+    int updateMeritAndLevel(@Param("userId") Long userId,
+                            @Param("merit") Long merit,
+                            @Param("currentLevel") Integer currentLevel);
+
+    int updateKnockStatsAndLevel(@Param("userId") Long userId,
+                                 @Param("knockCount") Long knockCount,
+                                 @Param("merit") Long merit,
+                                 @Param("currentLevel") Integer currentLevel,
+                                 @Param("lastKnockTime") java.util.Date lastKnockTime);
 }
