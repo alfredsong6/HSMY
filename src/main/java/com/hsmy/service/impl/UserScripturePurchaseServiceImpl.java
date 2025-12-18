@@ -1,6 +1,7 @@
 package com.hsmy.service.impl;
 
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.hsmy.entity.Scripture;
 import com.hsmy.entity.ScriptureSection;
 import com.hsmy.entity.UserScripturePurchase;
@@ -163,6 +164,12 @@ public class UserScripturePurchaseServiceImpl implements UserScripturePurchaseSe
     @Override
     public List<UserScripturePurchase> getPurchasesByUserId(Long userId) {
         return userScripturePurchaseMapper.selectByUserId(userId);
+    }
+
+    @Override
+    public Page<UserScripturePurchase> getPurchasesByUserId(Long userId, Integer pageNum, Integer pageSize) {
+        Page<UserScripturePurchase> page = new Page<>(pageNum, pageSize);
+        return userScripturePurchaseMapper.selectByUserIdPage(page, userId);
     }
 
     @Override

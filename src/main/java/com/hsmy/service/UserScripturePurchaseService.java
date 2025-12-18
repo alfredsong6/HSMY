@@ -1,5 +1,6 @@
 package com.hsmy.service;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.hsmy.entity.UserScripturePurchase;
 
 import java.util.Date;
@@ -39,6 +40,16 @@ public interface UserScripturePurchaseService {
      * @return 购买记录列表
      */
     List<UserScripturePurchase> getPurchasesByUserId(Long userId);
+
+    /**
+     * 根据用户ID分页获取购买记录
+     *
+     * @param userId 用户ID
+     * @param pageNum 页码
+     * @param pageSize 每页大小
+     * @return 购买记录分页结果
+     */
+    Page<UserScripturePurchase> getPurchasesByUserId(Long userId, Integer pageNum, Integer pageSize);
 
     /**
      * 获取用户有效的典籍购买记录

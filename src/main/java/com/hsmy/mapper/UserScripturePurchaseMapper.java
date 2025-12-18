@@ -1,6 +1,7 @@
 package com.hsmy.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.hsmy.entity.UserScripturePurchase;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -24,6 +25,15 @@ public interface UserScripturePurchaseMapper extends BaseMapper<UserScripturePur
      * @return 购买记录列表
      */
     List<UserScripturePurchase> selectByUserId(@Param("userId") Long userId);
+
+    /**
+     * 根据用户ID分页查询购买记录
+     *
+     * @param page 分页参数
+     * @param userId 用户ID
+     * @return 购买记录分页结果
+     */
+    Page<UserScripturePurchase> selectByUserIdPage(Page<UserScripturePurchase> page, @Param("userId") Long userId);
 
     /**
      * 根据用户ID和典籍ID查询购买记录

@@ -1,5 +1,6 @@
 package com.hsmy.controller.scripture;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.hsmy.annotation.ApiVersion;
 import com.hsmy.common.Result;
 import com.hsmy.constant.ApiVersionConstant;
@@ -51,39 +52,18 @@ public class ScriptureController {
      * @return 典籍列表
      */
     @GetMapping("/list")
-    public Result<List<ScriptureVO>> getScriptureList(ScriptureQueryVO queryVO, HttpServletRequest request) {
+    public Result<Page<ScriptureVO>> getScriptureList(ScriptureQueryVO queryVO, HttpServletRequest request) {
         if (StringUtils.hasText(queryVO.getScriptureType()) && queryVO.getScriptureType().equals("hot")) {
             queryVO.setScriptureType(null);
             queryVO.setIsHot(1);
         }
         try {
-            List<Scripture> scriptures;
+            // 使用分页查询
+            Page<Scripture> scripturesPage = scriptureService.pageScriptures(queryVO);
 
-            if (StringUtils.hasText(queryVO.getKeyword())) {
-                // 关键词搜索
-                scriptures = scriptureService.searchScriptures(queryVO.getKeyword());
-            } else if (StringUtils.hasText(queryVO.getScriptureType())) {
-                // 按类型查询
-                scriptures = scriptureService.getScripturesByType(queryVO.getScriptureType());
-            } else if (queryVO.getIsHot() != null && queryVO.getIsHot() == 1) {
-                // 热门典籍
-                scriptures = scriptureService.getHotScriptures();
-            } else if (queryVO.getMinPrice() != null || queryVO.getMaxPrice() != null) {
-                // 价格范围查询
-                scriptures = scriptureService.getScripturesByPriceRange(queryVO.getMinPrice(), queryVO.getMaxPrice());
-            } else if (queryVO.getDifficultyLevel() != null) {
-                // 难度等级查询
-                scriptures = scriptureService.getScripturesByDifficultyLevel(queryVO.getDifficultyLevel());
-            } else if (StringUtils.hasText(queryVO.getTag())) {
-                // 标签查询
-                scriptures = scriptureService.getScripturesByTag(queryVO.getTag());
-            } else {
-                // 获取所有上架典籍
-                scriptures = scriptureService.getAllActiveScriptures();
-            }
-
-            // 转换为VO并填充用户购买信息
-            List<ScriptureVO> scriptureVOs = scriptures.stream().map(scripture -> {
+            // 转换为VO Page对象
+            Page<ScriptureVO> voPage = new Page<>(scripturesPage.getCurrent(), scripturesPage.getSize(), scripturesPage.getTotal());
+            List<ScriptureVO> scriptureVOs = scripturesPage.getRecords().stream().map(scripture -> {
                 ScriptureVO vo = new ScriptureVO();
                 BeanUtils.copyProperties(scripture, vo);
                 vo.setId(scripture.getId().toString());
@@ -118,7 +98,9 @@ public class ScriptureController {
                 return vo;
             }).collect(Collectors.toList());
 
-            return Result.success(scriptureVOs);
+            voPage.setRecords(scriptureVOs);
+
+            return Result.success(voPage);
         } catch (Exception e) {
             return Result.error("获取典籍列表失败：" + e.getMessage());
         }

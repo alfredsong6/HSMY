@@ -43,6 +43,15 @@
         ORDER BY purchase_time DESC
     </select>
 
+    <!-- 根据用户ID分页查询购买记录 -->
+    <select id="selectByUserIdPage" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM t_user_scripture_purchase
+        WHERE user_id = #{userId} AND is_deleted = 0
+        ORDER BY purchase_time DESC
+    </select>
+
     <!-- 根据用户ID和典籍ID查询购买记录 -->
     <select id="selectByUserAndScripture" resultMap="BaseResultMap">
         SELECT

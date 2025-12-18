@@ -1,5 +1,6 @@
 package com.hsmy.controller.user;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.hsmy.annotation.ApiVersion;
 import com.hsmy.common.Result;
 import com.hsmy.constant.ApiVersionConstant;
@@ -113,16 +114,21 @@ public class UserScriptureController {
     /**
      * 获取用户购买的典籍列表
      *
+     * @param pageNum 页码
+     * @param pageSize 每页大小
      * @param httpRequest HTTP请求
      * @return 购买记录列表
      */
     @GetMapping("/purchase/list")
-    public Result<List<UserScripturePurchaseVO>> getUserPurchases(HttpServletRequest httpRequest) {
+    public Result<Page<UserScripturePurchaseVO>> getUserPurchases(@RequestParam(defaultValue = "1") Integer pageNum,
+                                                                   @RequestParam(defaultValue = "10") Integer pageSize,
+                                                                   HttpServletRequest httpRequest) {
         try {
             Long userId = UserContextUtil.requireCurrentUserId();
-            List<UserScripturePurchase> purchases = userScripturePurchaseService.getPurchasesByUserId(userId);
+            Page<UserScripturePurchase> purchasesPage = userScripturePurchaseService.getPurchasesByUserId(userId, pageNum, pageSize);
 
-            List<UserScripturePurchaseVO> purchaseVOs = purchases.stream().map(purchase -> {
+            Page<UserScripturePurchaseVO> voPage = new Page<>(purchasesPage.getCurrent(), purchasesPage.getSize(), purchasesPage.getTotal());
+            List<UserScripturePurchaseVO> purchaseVOs = purchasesPage.getRecords().stream().map(purchase -> {
                 UserScripturePurchaseVO vo = new UserScripturePurchaseVO();
                 BeanUtils.copyProperties(purchase, vo);
 
@@ -181,7 +187,9 @@ public class UserScriptureController {
                 return vo;
             }).collect(Collectors.toList());
 
-            return Result.success(purchaseVOs);
+            voPage.setRecords(purchaseVOs);
+
+            return Result.success(voPage);
         } catch (Exception e) {
             return Result.error("获取购买记录失败：" + e.getMessage());
         }
