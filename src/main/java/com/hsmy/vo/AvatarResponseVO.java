@@ -14,4 +14,5 @@ public class AvatarResponseVO implements Serializable {
 
     private String avatarUrl;
     private String base64Content;
+    private boolean base64Encoded;
 }

@@ -1,5 +1,6 @@
 package com.hsmy.service.impl;
 
+import com.hsmy.config.FileStorageProperties;
 import com.hsmy.entity.Ranking;
 import com.hsmy.mapper.RankingMapper;
 import com.hsmy.mapper.UserStatsMapper;
@@ -9,9 +10,15 @@ import com.hsmy.utils.IdGenerator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
+import java.net.URI;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Date;
 import java.util.List;
 
@@ -27,6 +34,7 @@ public class RankingServiceImpl implements RankingService {
     
     private final RankingMapper rankingMapper;
     private final UserStatsMapper userStatsMapper;
+    private final FileStorageProperties fileStorageProperties;
     
     @Override
     public List<Ranking> getRankingList(String rankType, LocalDate snapshotDate, Integer limit) {
@@ -52,7 +60,9 @@ public class RankingServiceImpl implements RankingService {
     
     @Override
     public List<Ranking> getTotalRanking(Integer limit) {
-        return getRankingList("total", LocalDate.now(), limit);
+        List<Ranking> rankings = getRankingList("total", LocalDate.now(), limit);
+        enrichAvatarForRankings(rankings);
+        return rankings;
     }
     
     @Override
@@ -119,5 +129,80 @@ public class RankingServiceImpl implements RankingService {
     @Transactional(rollbackFor = Exception.class)
     public Integer cleanExpiredRankings(LocalDate beforeDate) {
         return rankingMapper.deleteBeforeDate(DateUtil.localDateToDate(beforeDate));
+    }
+    
+    private void enrichAvatarForRankings(List<Ranking> rankings) {
+        if (rankings == null || rankings.isEmpty()) {
+            return;
+        }
+        for (Ranking ranking : rankings) {
+            if (ranking == null || ranking.getUser() == null) {
+                continue;
+            }
+            String avatarUrl = ranking.getUser().getAvatarUrl();
+            if (!StringUtils.hasText(avatarUrl)) {
+                continue;
+            }
+            if (avatarUrl.toLowerCase().startsWith("https")) {
+                continue;
+            }
+            try {
+                String relativePath = resolveRelativePath(avatarUrl);
+                Path avatarPath = Paths.get(fileStorageProperties.getLocal().getRootPath(), relativePath);
+                if (!Files.exists(avatarPath)) {
+                    continue;
+                }
+                byte[] fileBytes = Files.readAllBytes(avatarPath);
+                String mimeType = resolveMimeType(avatarPath);
+                String base64Data = Base64.getEncoder().encodeToString(fileBytes);
+                ranking.getUser().setAvatarBase64Content("data:" + mimeType + ";base64," + base64Data);
+                ranking.getUser().setAvatarBase64Encoded(true);
+            } catch (Exception e) {
+                // 保持静默，避免影响排行榜返回
+            }
+        }
+    }
+    
+    private String resolveRelativePath(String avatarUrl) {
+        String relativePath = avatarUrl;
+        try {
+            if (avatarUrl.contains("://")) {
+                relativePath = URI.create(avatarUrl).getPath();
+            }
+        } catch (Exception e) {
+            // ignore
+        }
+        String urlPrefix = fileStorageProperties.getLocal().getUrlPrefix();
+        if (StringUtils.hasText(urlPrefix) && relativePath.startsWith(urlPrefix)) {
+            relativePath = relativePath.substring(urlPrefix.length());
+        }
+        if (relativePath.startsWith("/")) {
+            relativePath = relativePath.substring(1);
+        }
+        return relativePath;
+    }
+    
+    private String resolveMimeType(Path path) {
+        try {
+            String detected = Files.probeContentType(path);
+            if (StringUtils.hasText(detected)) {
+                return detected;
+            }
+        } catch (Exception e) {
+            // ignore
+        }
+        String filename = path.getFileName().toString().toLowerCase();
+        if (filename.endsWith(".png")) {
+            return "image/png";
+        } else if (filename.endsWith(".jpg") || filename.endsWith(".jpeg")) {
+            return "image/jpeg";
+        } else if (filename.endsWith(".gif")) {
+            return "image/gif";
+        } else if (filename.endsWith(".bmp")) {
+            return "image/bmp";
+        } else if (filename.endsWith(".webp")) {
+            return "image/webp";
+        }
+        return "application/octet-stream";
     }
 }
