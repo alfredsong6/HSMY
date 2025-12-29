@@ -8,6 +8,7 @@ import com.hsmy.service.RankingService;
 import com.hsmy.utils.DateUtil;
 import com.hsmy.utils.IdGenerator;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -16,11 +17,13 @@ import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Base64;
-import java.util.Date;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 排行榜Service实现类
@@ -35,6 +38,10 @@ public class RankingServiceImpl implements RankingService {
     private final RankingMapper rankingMapper;
     private final UserStatsMapper userStatsMapper;
     private final FileStorageProperties fileStorageProperties;
+    private final RedisTemplate<String, Object> redisTemplate;
+    
+    private static final String TOTAL_RANKING_CACHE_KEY_PREFIX = "ranking:total:";
+    private static final Duration TOTAL_RANKING_TTL = Duration.ofMinutes(60);
     
     @Override
     public List<Ranking> getRankingList(String rankType, LocalDate snapshotDate, Integer limit) {
@@ -60,8 +67,18 @@ public class RankingServiceImpl implements RankingService {
     
     @Override
     public List<Ranking> getTotalRanking(Integer limit) {
+        String cacheKey = buildTotalRankingCacheKey(limit);
+        Object cached = redisTemplate.opsForValue().get(cacheKey);
+        if (cached instanceof List) {
+            List<?> cachedList = (List<?>) cached;
+            @SuppressWarnings("unchecked")
+            List<Ranking> cachedRankings = (List<Ranking>) cached;
+            return cachedRankings;
+        }
+        
         List<Ranking> rankings = getRankingList("total", LocalDate.now(), limit);
         enrichAvatarForRankings(rankings);
+        redisTemplate.opsForValue().set(cacheKey, rankings, TOTAL_RANKING_TTL.getSeconds(), TimeUnit.SECONDS);
         return rankings;
     }
     
@@ -119,6 +136,8 @@ public class RankingServiceImpl implements RankingService {
                 return rankingMapper.batchInsert(rankings) > 0;
             }
             
+            // 刷新缓存
+            evictTotalRankingCache();
             return true;
         } catch (Exception e) {
             throw new RuntimeException("生成排行榜快照失败：" + e.getMessage());
@@ -204,5 +223,17 @@ public class RankingServiceImpl implements RankingService {
             return "image/webp";
         }
         return "application/octet-stream";
+    }
+    
+    private String buildTotalRankingCacheKey(Integer limit) {
+        int safeLimit = (limit != null && limit > 0) ? limit : 0;
+        return TOTAL_RANKING_CACHE_KEY_PREFIX + safeLimit;
+    }
+    
+    private void evictTotalRankingCache() {
+        Set<String> keys = redisTemplate.keys(TOTAL_RANKING_CACHE_KEY_PREFIX + "*");
+        if (keys != null && !keys.isEmpty()) {
+            redisTemplate.delete(keys);
+        }
     }
 }

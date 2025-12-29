@@ -32,4 +32,9 @@ public interface UserStatsMapper extends BaseMapper<UserStats> {
                                  @Param("merit") Long merit,
                                  @Param("currentLevel") Integer currentLevel,
                                  @Param("lastKnockTime") java.util.Date lastKnockTime);
+
+    /**
+     * 按总功德值倒序查询TOP榜单
+     */
+    java.util.List<UserStats> selectTopTotalMerit(@Param("limit") Integer limit);
 }

@@ -59,7 +59,7 @@ public class RankingController {
      * @return 总榜数据
      */
     @GetMapping("/total")
-    public Result<List<Ranking>> getTotalRanking(@RequestParam(defaultValue = "100") Integer limit) {
+    public Result<List<Ranking>> getTotalRanking(@RequestParam(defaultValue = "50") Integer limit) {
         List<Ranking> rankings = rankingService.getTotalRanking(limit);
         return Result.success(rankings);
     }

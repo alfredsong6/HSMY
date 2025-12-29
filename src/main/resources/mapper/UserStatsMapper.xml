@@ -103,4 +103,16 @@
         AND is_deleted = 0
     </update>
 
+    <!-- 按总功德值倒序查询TOP榜单 -->
+    <select id="selectTopTotalMerit" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM t_user_stats
+        WHERE is_deleted = 0
+        ORDER BY total_merit DESC
+        <if test="limit != null">
+            LIMIT #{limit}
+        </if>
+    </select>
+
 </mapper>
