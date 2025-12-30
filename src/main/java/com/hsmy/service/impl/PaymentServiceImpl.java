@@ -190,6 +190,15 @@ public class PaymentServiceImpl implements PaymentService {
         }
     }
 
+    @Override
+    public Integer getPaymentStatus(String orderNo) {
+        RechargeOrder order = rechargeOrderMapper.selectByOrderNo(orderNo);
+        if (order == null) {
+            throw new BusinessException("订单不存在");
+        }
+        return order.getPaymentStatus();
+    }
+
     private RechargeOrder buildRechargeOrder(Long userId, String username, WechatPayPrepayRequest request,
                                              String orderNo, BigDecimal amount) {
         RechargeOrder order = new RechargeOrder();

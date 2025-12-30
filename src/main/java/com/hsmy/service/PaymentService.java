@@ -33,4 +33,12 @@ public interface PaymentService {
      * @return 订单是否已进入终态（成功/失败/退款）
      */
     boolean syncWechatOrder(String orderNo);
+
+    /**
+     * 查询订单支付状态（仅本地记录，不访问微信）
+     *
+     * @param orderNo 商户订单号
+     * @return 支付状态：0-待支付，1-成功，2-失败，3-退款
+     */
+    Integer getPaymentStatus(String orderNo);
 }
