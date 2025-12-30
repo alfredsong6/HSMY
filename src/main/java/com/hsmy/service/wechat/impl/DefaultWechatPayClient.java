@@ -3,6 +3,7 @@ package com.hsmy.service.wechat.impl;
 import com.hsmy.service.wechat.WechatPayClient;
 import com.wechat.pay.java.core.Config;
 import com.wechat.pay.java.service.payments.jsapi.JsapiServiceExtension;
+import com.wechat.pay.java.service.payments.jsapi.model.CloseOrderRequest;
 import com.wechat.pay.java.service.payments.jsapi.model.PrepayRequest;
 import com.wechat.pay.java.service.payments.jsapi.model.PrepayWithRequestPaymentResponse;
 import com.wechat.pay.java.service.payments.jsapi.model.QueryOrderByOutTradeNoRequest;
@@ -32,6 +33,11 @@ public class DefaultWechatPayClient implements WechatPayClient {
         return getService().queryOrderByOutTradeNo(request);
     }
 
+    @Override
+    public void closeOrder(CloseOrderRequest request) {
+        getService().closeOrder(request);
+    }
+
     private JsapiServiceExtension getService() {
         Config config = configProvider.getIfAvailable();
         if (config == null) {
@@ -40,4 +46,3 @@ public class DefaultWechatPayClient implements WechatPayClient {
         return new JsapiServiceExtension.Builder().config(config).build();
     }
 }
-

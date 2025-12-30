@@ -1,6 +1,7 @@
 package com.hsmy.controller.mock;
 
 import com.hsmy.service.wechat.WechatPayClient;
+import com.wechat.pay.java.service.payments.jsapi.model.CloseOrderRequest;
 import com.wechat.pay.java.service.payments.jsapi.model.PrepayRequest;
 import com.wechat.pay.java.service.payments.jsapi.model.PrepayWithRequestPaymentResponse;
 import com.wechat.pay.java.service.payments.jsapi.model.QueryOrderByOutTradeNoRequest;
@@ -46,7 +47,11 @@ public class MockWechatPayClientConfig {
                 transaction.setSuccessTime(java.time.OffsetDateTime.now().toString());
                 return transaction;
             }
+
+            @Override
+            public void closeOrder(CloseOrderRequest request) {
+                log.info("[MOCK] 关闭订单 orderNo={}", request.getOutTradeNo());
+            }
         };
     }
 }
-

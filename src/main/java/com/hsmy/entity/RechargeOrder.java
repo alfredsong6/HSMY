@@ -55,7 +55,17 @@ public class RechargeOrder extends BaseEntity {
      * 支付状态：0-待支付，1-支付成功，2-支付失败，3-已退款
      */
     private Integer paymentStatus;
-    
+
+    /**
+     * 订单状态查询次数
+     */
+    private Integer queryCount;
+
+    /**
+     * 最近一次查询时间
+     */
+    private Date lastQueryTime;
+
     /**
      * 支付时间
      */

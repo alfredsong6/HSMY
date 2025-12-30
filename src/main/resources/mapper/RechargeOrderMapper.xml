@@ -11,6 +11,8 @@
         <result column="bonus_coins" property="bonusCoins"/>
         <result column="payment_method" property="paymentMethod"/>
         <result column="payment_status" property="paymentStatus"/>
+        <result column="query_count" property="queryCount"/>
+        <result column="last_query_time" property="lastQueryTime"/>
         <result column="payment_time" property="paymentTime"/>
         <result column="transaction_id" property="transactionId"/>
         <result column="remark" property="remark"/>
@@ -23,7 +25,7 @@
 
     <sql id="Base_Column_List">
         id, order_no, user_id, amount, merit_coins, bonus_coins,
-        payment_method, payment_status, payment_time, transaction_id,
+        payment_method, payment_status, query_count, last_query_time, payment_time, transaction_id,
         remark, create_by, create_time, update_by, update_time, is_deleted
     </sql>
 
@@ -67,5 +69,28 @@
         ORDER BY create_time ASC
         LIMIT #{limit}
     </select>
+
+    <select id="selectRecentPendingOrders" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM t_recharge_order
+        WHERE is_deleted = 0
+          AND payment_status = 0
+          AND create_time &gt;= #{fromTime}
+          AND query_count &lt; #{maxQueryCount}
+        ORDER BY create_time ASC
+        LIMIT #{limit}
+    </select>
+
+    <update id="incrementQueryCount">
+        UPDATE t_recharge_order
+        SET query_count = query_count + 1,
+            last_query_time = #{queryTime},
+            update_by = 'system',
+            update_time = NOW()
+        WHERE order_no = #{orderNo}
+          AND payment_status = 0
+          AND is_deleted = 0
+    </update>
 
 </mapper>

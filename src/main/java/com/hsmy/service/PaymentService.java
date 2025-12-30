@@ -41,4 +41,11 @@ public interface PaymentService {
      * @return 支付状态：0-待支付，1-成功，2-失败，3-退款
      */
     Integer getPaymentStatus(String orderNo);
+
+    /**
+     * 关闭微信订单
+     *
+     * @param orderNo 商户订单号
+     */
+    void closeWechatOrder(String orderNo);
 }

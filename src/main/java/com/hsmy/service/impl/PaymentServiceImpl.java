@@ -27,6 +27,7 @@ import com.wechat.pay.java.core.exception.ServiceException;
 import com.wechat.pay.java.core.notification.NotificationParser;
 import com.wechat.pay.java.core.notification.RequestParam;
 import com.wechat.pay.java.service.payments.jsapi.model.Amount;
+import com.wechat.pay.java.service.payments.jsapi.model.CloseOrderRequest;
 import com.wechat.pay.java.service.payments.jsapi.model.Payer;
 import com.wechat.pay.java.service.payments.jsapi.model.PrepayRequest;
 import com.wechat.pay.java.service.payments.jsapi.model.PrepayWithRequestPaymentResponse;
@@ -197,6 +198,28 @@ public class PaymentServiceImpl implements PaymentService {
             throw new BusinessException("订单不存在");
         }
         return order.getPaymentStatus();
+    }
+
+    @Override
+    public void closeWechatOrder(String orderNo) {
+        if (!wechatPayProperties.isEnabled()) {
+            log.debug("微信支付未启用，跳过关单，orderNo={}", orderNo);
+            return;
+        }
+        CloseOrderRequest request = new CloseOrderRequest();
+        request.setMchid(wechatPayProperties.getMchId());
+        request.setOutTradeNo(orderNo);
+        try {
+            wechatPayClient.closeOrder(request);
+            rechargeOrderMapper.updatePaymentStatusByOrderNo(orderNo, STATUS_FAILED, null, new Date());
+            log.info("关单成功，orderNo={}", orderNo);
+        } catch (ServiceException e) {
+            log.error("关单失败，orderNo={}, code={}, message={}", orderNo, e.getErrorCode(), e.getErrorMessage());
+            throw new BusinessException("关单失败：" + e.getErrorMessage(), e);
+        } catch (Exception e) {
+            log.error("关单异常，orderNo={}", orderNo, e);
+            throw new BusinessException("关单异常", e);
+        }
     }
 
     private RechargeOrder buildRechargeOrder(Long userId, String username, WechatPayPrepayRequest request,
