@@ -42,11 +42,10 @@ public class User extends BaseEntity {
     private String avatarUrl;
     
     @TableField(exist = false)
-    private String avatarBase64Content;
-    
-    @TableField(exist = false)
     private boolean avatarBase64Encoded;
-    
+
+    @TableField(exist = false)
+    private String avatarBase64Content;
     /**
      * 邮箱
      */
