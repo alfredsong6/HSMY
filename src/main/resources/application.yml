@@ -63,6 +63,7 @@ auth:
       - /auth/app/login
       - /auth/code
       - /auth/health
+      - /scripture/list
       # 文件接口（下载不需要登录）
       - /file/uploads/**
       # 系统接口
