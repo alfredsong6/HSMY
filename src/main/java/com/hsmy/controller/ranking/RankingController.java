@@ -6,7 +6,9 @@ import com.hsmy.constant.ApiVersionConstant;
 import com.hsmy.entity.Ranking;
 import com.hsmy.service.RankingService;
 import com.hsmy.utils.UserContextUtil;
+import com.hsmy.vo.RankingVO;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -24,6 +26,7 @@ import java.util.Map;
 @RequestMapping("/rankings")
 @ApiVersion(ApiVersionConstant.V1_0)
 @RequiredArgsConstructor
+@Slf4j
 public class RankingController {
     
     private final RankingService rankingService;
@@ -59,8 +62,8 @@ public class RankingController {
      * @return 总榜数据
      */
     @GetMapping("/total")
-    public Result<List<Ranking>> getTotalRanking(@RequestParam(defaultValue = "50") Integer limit) {
-        List<Ranking> rankings = rankingService.getTotalRanking(limit);
+    public Result<List<RankingVO>> getTotalRanking(@RequestParam(defaultValue = "30") Integer limit) {
+        List<RankingVO> rankings = rankingService.getTotalRanking(limit);
         return Result.success(rankings);
     }
     

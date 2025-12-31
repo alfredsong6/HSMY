@@ -1,6 +1,7 @@
 package com.hsmy.service;
 
 import com.hsmy.entity.Ranking;
+import com.hsmy.vo.RankingVO;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -55,7 +56,7 @@ public interface RankingService {
      * @param limit 查询条数
      * @return 排行榜列表
      */
-    List<Ranking> getTotalRanking(Integer limit);
+    List<RankingVO> getTotalRanking(Integer limit);
     
     /**
      * 获取用户今日排名

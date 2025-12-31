@@ -11,12 +11,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.text.SimpleDateFormat;
-import java.time.DayOfWeek;
-import java.time.LocalDate;
-import java.time.ZoneId;
-import java.time.temporal.TemporalAdjusters;
-import java.time.temporal.WeekFields;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
 
 /**
  * 排名计算服务实现类
@@ -43,7 +41,7 @@ public class RankingCalculationServiceImpl implements RankingCalculationService 
         String period = "total-" + sdf.format(date);
 
         // 查询总功德排名数据（基于用户累计功德总值）
-        List<com.hsmy.entity.UserStats> topStats = userStatsMapper.selectTopTotalMerit(1000);
+        List<com.hsmy.entity.UserStats> topStats = userStatsMapper.selectTopTotalMerit(100);
 
         // 构建排名数据
         List<Ranking> rankings = new ArrayList<>();

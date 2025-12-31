@@ -27,7 +27,7 @@ public class RankingScheduledTask {
     private final RankingCalculationService rankingCalculationService;
     private final RedisTemplate<String, Object> redisTemplate;
     
-    private static final String TOTAL_RANKING_CACHE_KEY_PREFIX = "ranking:total:";
+    private static final String TOTAL_RANKING_CACHE_KEY_PREFIX = "hsmy:ranking:total:";
 
 
 
@@ -35,7 +35,7 @@ public class RankingScheduledTask {
      * 生成总榜数据
      * 每个整点执行
      */
-    @Scheduled(cron = "0 0 * * * ?")
+    @Scheduled(cron = "0 10 * * * ?")
     @Async("asyncExecutor")
     public CompletableFuture<Void> generateTotalRanking() {
         log.info("开始执行总榜生成任务，线程：{}", Thread.currentThread().getName());
@@ -52,9 +52,9 @@ public class RankingScheduledTask {
 
     /**
      * 清理过期排名数据
-     * 每天凌晨0点30分执行，保留最近30天的数据
+     * 每天凌晨0点1分执行，保留最近30天的数据
      */
-    @Scheduled(cron = "0 30 0 * * ?")
+    @Scheduled(cron = "0 1 0 * * ?")
     @Async("asyncExecutor")
     public CompletableFuture<Void> cleanOldRankings() {
         log.info("开始执行排名数据清理任务，线程：{}", Thread.currentThread().getName());

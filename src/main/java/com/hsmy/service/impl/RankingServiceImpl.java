@@ -7,6 +7,8 @@ import com.hsmy.mapper.UserStatsMapper;
 import com.hsmy.service.RankingService;
 import com.hsmy.utils.DateUtil;
 import com.hsmy.utils.IdGenerator;
+import com.hsmy.vo.RankingUserVO;
+import com.hsmy.vo.RankingVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -19,11 +21,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * 排行榜Service实现类
@@ -40,7 +40,7 @@ public class RankingServiceImpl implements RankingService {
     private final FileStorageProperties fileStorageProperties;
     private final RedisTemplate<String, Object> redisTemplate;
     
-    private static final String TOTAL_RANKING_CACHE_KEY_PREFIX = "ranking:total:";
+    private static final String TOTAL_RANKING_CACHE_KEY_PREFIX = "hsmy:ranking:total:";
     private static final Duration TOTAL_RANKING_TTL = Duration.ofMinutes(60);
     
     @Override
@@ -66,20 +66,32 @@ public class RankingServiceImpl implements RankingService {
     }
     
     @Override
-    public List<Ranking> getTotalRanking(Integer limit) {
-        String cacheKey = buildTotalRankingCacheKey(limit);
-        Object cached = redisTemplate.opsForValue().get(cacheKey);
+    public List<RankingVO> getTotalRanking(Integer limit) {
+        // String cacheKey = buildTotalRankingCacheKey(limit);
+        Object cached = redisTemplate.opsForValue().get(TOTAL_RANKING_CACHE_KEY_PREFIX);
+        List<Ranking> rankings = null;
         if (cached instanceof List) {
-            List<?> cachedList = (List<?>) cached;
-            @SuppressWarnings("unchecked")
-            List<Ranking> cachedRankings = (List<Ranking>) cached;
-            return cachedRankings;
+            try {
+                @SuppressWarnings("unchecked")
+                List<Ranking> cachedRankings = (List<Ranking>) cached;
+                rankings = cachedRankings;
+            } catch (ClassCastException ignored) {
+                rankings = null;
+            }
         }
         
-        List<Ranking> rankings = getRankingList("total", LocalDate.now(), limit);
-        enrichAvatarForRankings(rankings);
-        redisTemplate.opsForValue().set(cacheKey, rankings, TOTAL_RANKING_TTL.getSeconds(), TimeUnit.SECONDS);
-        return rankings;
+        if (rankings == null) {
+            rankings = getRankingList("total", LocalDate.now(), limit);
+            enrichAvatarForRankings(rankings);
+            redisTemplate.opsForValue().set(TOTAL_RANKING_CACHE_KEY_PREFIX, rankings, TOTAL_RANKING_TTL.getSeconds(), TimeUnit.SECONDS);
+        }
+        if (rankings == null || rankings.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return rankings.stream()
+                .map(this::convertToRankingVO)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
     }
     
     @Override
@@ -148,6 +160,29 @@ public class RankingServiceImpl implements RankingService {
     @Transactional(rollbackFor = Exception.class)
     public Integer cleanExpiredRankings(LocalDate beforeDate) {
         return rankingMapper.deleteBeforeDate(DateUtil.localDateToDate(beforeDate));
+    }
+    
+    private RankingVO convertToRankingVO(Ranking ranking) {
+        if (ranking == null) {
+            return null;
+        }
+        RankingVO vo = new RankingVO();
+        vo.setUserId(ranking.getUserId() == null ? null : String.valueOf(ranking.getUserId()));
+        vo.setRankType(ranking.getRankType());
+        vo.setMeritValue(ranking.getMeritValue());
+        vo.setRankingPosition(ranking.getRankingPosition());
+        vo.setSnapshotDate(ranking.getSnapshotDate());
+        vo.setPeriod(ranking.getPeriod());
+        if (ranking.getUser() != null) {
+            RankingUserVO userVO = new RankingUserVO();
+            userVO.setId(ranking.getUser().getId() == null ? null : String.valueOf(ranking.getUser().getId()));
+            userVO.setNickname(ranking.getUser().getNickname());
+            userVO.setAvatarUrl(ranking.getUser().getAvatarUrl());
+            userVO.setAvatarBase64Encoded(ranking.getUser().isAvatarBase64Encoded());
+            userVO.setAvatarBase64Content(ranking.getUser().getAvatarBase64Content());
+            vo.setUser(userVO);
+        }
+        return vo;
     }
     
     private void enrichAvatarForRankings(List<Ranking> rankings) {
