@@ -12,7 +12,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -39,30 +38,30 @@ public class WechatOrderCompensationTask {
     /**
      * 每分钟轮询一次未完成订单，兜底同步支付状态。
      */
-    @Scheduled(cron = "0 */1 * * * ?")
-    @Async("asyncExecutor")
-    public void compensatePendingOrders() {
-        if (!wechatPayProperties.isEnabled()) {
-            return;
-        }
-        Date beforeTime = Date.from(Instant.now().minusSeconds(DELAY_SECONDS));
-        List<RechargeOrder> pendingOrders = rechargeOrderMapper.selectPendingOrders(
-                Collections.singletonList(PENDING_STATUS), beforeTime, BATCH_LIMIT);
-        if (pendingOrders.isEmpty()) {
-            return;
-        }
-
-        for (RechargeOrder order : pendingOrders) {
-            try {
-                boolean terminal = paymentService.syncWechatOrder(order.getOrderNo());
-                if (terminal) {
-                    log.info("订单 {} 补偿同步完成", order.getOrderNo());
-                }
-            } catch (Exception ex) {
-                log.error("订单 {} 补偿同步失败", order.getOrderNo(), ex);
-            }
-        }
-    }
+//    @Scheduled(cron = "0 */1 * * * ?")
+//    @Async("asyncExecutor")
+//    public void compensatePendingOrders() {
+//        if (!wechatPayProperties.isEnabled()) {
+//            return;
+//        }
+//        Date beforeTime = Date.from(Instant.now().minusSeconds(DELAY_SECONDS));
+//        List<RechargeOrder> pendingOrders = rechargeOrderMapper.selectPendingOrders(
+//                Collections.singletonList(PENDING_STATUS), beforeTime, BATCH_LIMIT);
+//        if (pendingOrders.isEmpty()) {
+//            return;
+//        }
+//
+//        for (RechargeOrder order : pendingOrders) {
+//            try {
+//                boolean terminal = paymentService.syncWechatOrder(order.getOrderNo());
+//                if (terminal) {
+//                    log.info("订单 {} 补偿同步完成", order.getOrderNo());
+//                }
+//            } catch (Exception ex) {
+//                log.error("订单 {} 补偿同步失败", order.getOrderNo(), ex);
+//            }
+//        }
+//    }
 
     /**
      * 近10分钟未支付订单快速轮询，每30秒执行一次。
@@ -73,6 +72,7 @@ public class WechatOrderCompensationTask {
         if (!wechatPayProperties.isEnabled()) {
             return;
         }
+        log.info("开始执行订单支付结果快速轮询任务");
         Date fromTime = Date.from(Instant.now().minusSeconds(ACTIVE_WINDOW_MINUTES * 60L));
         List<RechargeOrder> orders = rechargeOrderMapper.selectRecentPendingOrders(fromTime, MAX_QUERY_COUNT, ACTIVE_BATCH_LIMIT);
         if (orders.isEmpty()) {

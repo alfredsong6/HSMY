@@ -139,10 +139,10 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public boolean syncWechatOrder(String orderNo) {
-//        if (!wechatPayProperties.isEnabled()) {
-//            log.debug("微信支付未启用，跳过订单 {} 同步", orderNo);
-//            return false;
-//        }
+        if (!wechatPayProperties.isEnabled()) {
+            log.debug("微信支付未启用，跳过订单 {} 同步", orderNo);
+            return false;
+        }
         RechargeOrder order = rechargeOrderMapper.selectByOrderNo(orderNo);
         if (order == null) {
             log.warn("未找到订单，无法同步，orderNo={}", orderNo);
