@@ -10,13 +10,13 @@ import com.hsmy.dto.WechatPayPrepayRequest;
 import com.hsmy.entity.RechargeOrder;
 import com.hsmy.entity.UserStats;
 import com.hsmy.entity.meditation.MeritCoinTransaction;
+import com.hsmy.enums.AuthProvider;
+import com.hsmy.enums.MeritBizType;
 import com.hsmy.exception.BusinessException;
 import com.hsmy.mapper.ActivityMapper;
 import com.hsmy.mapper.RechargeOrderMapper;
 import com.hsmy.mapper.UserStatsMapper;
 import com.hsmy.mapper.meditation.MeritCoinTransactionMapper;
-import com.hsmy.enums.AuthProvider;
-import com.hsmy.enums.MeritBizType;
 import com.hsmy.service.AuthIdentityService;
 import com.hsmy.service.PaymentService;
 import com.hsmy.service.wechat.WechatPayClient;
@@ -26,12 +26,7 @@ import com.wechat.pay.java.core.Config;
 import com.wechat.pay.java.core.exception.ServiceException;
 import com.wechat.pay.java.core.notification.NotificationParser;
 import com.wechat.pay.java.core.notification.RequestParam;
-import com.wechat.pay.java.service.payments.jsapi.model.Amount;
-import com.wechat.pay.java.service.payments.jsapi.model.CloseOrderRequest;
-import com.wechat.pay.java.service.payments.jsapi.model.Payer;
-import com.wechat.pay.java.service.payments.jsapi.model.PrepayRequest;
-import com.wechat.pay.java.service.payments.jsapi.model.PrepayWithRequestPaymentResponse;
-import com.wechat.pay.java.service.payments.jsapi.model.QueryOrderByOutTradeNoRequest;
+import com.wechat.pay.java.service.payments.jsapi.model.*;
 import com.wechat.pay.java.service.payments.model.Transaction;
 import com.wechat.pay.java.service.payments.model.Transaction.TradeStateEnum;
 import lombok.RequiredArgsConstructor;
@@ -144,10 +139,10 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public boolean syncWechatOrder(String orderNo) {
-        if (!wechatPayProperties.isEnabled()) {
-            log.debug("微信支付未启用，跳过订单 {} 同步", orderNo);
-            return false;
-        }
+//        if (!wechatPayProperties.isEnabled()) {
+//            log.debug("微信支付未启用，跳过订单 {} 同步", orderNo);
+//            return false;
+//        }
         RechargeOrder order = rechargeOrderMapper.selectByOrderNo(orderNo);
         if (order == null) {
             log.warn("未找到订单，无法同步，orderNo={}", orderNo);
@@ -163,22 +158,22 @@ public class PaymentServiceImpl implements PaymentService {
         queryRequest.setMchid(wechatPayProperties.getMchId());
         try {
             Transaction transaction = wechatPayClient.queryOrder(queryRequest);
-                TradeStateEnum tradeStateEnum = transaction.getTradeState();
-                boolean terminal = applyTradeState(orderNo, transaction);
-                if (terminal) {
-                    log.info("主动同步订单 {} 成功，交易状态 {}", orderNo, tradeStateEnum);
-                    if (tradeStateEnum == TradeStateEnum.SUCCESS) {
-                        try {
-                            grantMeritCoins(orderNo);
-                        } catch (Exception e) {
-                            log.error("主动同步订单 {} 充值到账处理失败", orderNo, e);
-                        }
+            TradeStateEnum tradeStateEnum = transaction.getTradeState();
+            boolean terminal = applyTradeState(orderNo, transaction);
+            if (terminal) {
+                log.info("主动同步订单 {} 成功，交易状态 {}", orderNo, tradeStateEnum);
+                if (tradeStateEnum == TradeStateEnum.SUCCESS) {
+                    try {
+                        grantMeritCoins(orderNo);
+                    } catch (Exception e) {
+                        log.error("主动同步订单 {} 充值到账处理失败", orderNo, e);
                     }
-                } else {
-                    log.debug("主动同步订单 {} 未完成支付，交易状态 {}", orderNo, tradeStateEnum);
                 }
-                return terminal;
-            } catch (ServiceException e) {
+            } else {
+                log.debug("主动同步订单 {} 未完成支付，交易状态 {}", orderNo, tradeStateEnum);
+            }
+            return terminal;
+        } catch (ServiceException e) {
             if ("ORDER_NOT_EXISTS".equalsIgnoreCase(e.getErrorCode())) {
                 log.warn("微信侧不存在订单记录，orderNo={}, errMsg={}", orderNo, e.getErrorMessage());
             } else {
