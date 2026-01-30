@@ -32,14 +32,20 @@ import com.wechat.pay.java.service.payments.model.Transaction.TradeStateEnum;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.DigestUtils;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.nio.charset.StandardCharsets;
 import java.time.OffsetDateTime;
 import java.util.Date;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 支付服务实现
@@ -58,6 +64,10 @@ public class PaymentServiceImpl implements PaymentService {
     private static final MeritBizType BIZ_TYPE_RECHARGE_PURCHASE = MeritBizType.RECHARGE_PURCHASE;
     private static final MeritBizType BIZ_TYPE_RECHARGE_BONUS = MeritBizType.RECHARGE_BONUS;
     private static final String INVALID_PRODUCT_MESSAGE = "商品信息已失效，请重新刷新页面";
+    private static final String IDEMPOTENCY_CACHE_PREFIX = "hsmy:payment:wechat:prepay:";
+    private static final String IDEMPOTENCY_LOCK_PREFIX = "hsmy:payment:wechat:prepay:lock:";
+    private static final long IDEMPOTENCY_CACHE_TTL_SECONDS = 300;
+    private static final long IDEMPOTENCY_LOCK_TTL_SECONDS = 30;
 
     private final ActivityMapper activityMapper;
     private final WechatPayProperties wechatPayProperties;
@@ -69,43 +79,80 @@ public class PaymentServiceImpl implements PaymentService {
     private final ObjectProvider<com.wechat.pay.java.service.payments.jsapi.JsapiServiceExtension> jsapiServiceProvider;
     private final ObjectProvider<NotificationParser> notificationParserProvider;
     private final AuthIdentityService authIdentityService;
+    private final RedisTemplate<String, Object> redisTemplate;
+
+    @Value("${spring.profiles.active:default}")
+    private String activeProfile;
 
     @Override
-    @Transactional(rollbackFor = Exception.class)
     public WechatPayPrepayVO createWechatPrepay(Long userId, String username, WechatPayPrepayRequest request) {
-//        if (!wechatPayProperties.isEnabled()) {
-//            throw new BusinessException("微信支付功能未启用");
-//        }
+        if (request == null) {
+            throw new BusinessException("请求参数不能为空");
+        }
+        if (!wechatPayProperties.isEnabled()) {
+            throw new BusinessException("微信支付功能未启用");
+        }
         if (userId == null) {
             throw new BusinessException("用户未登录");
         }
-        validateProduct(request);
-        AuthIdentity identity = authIdentityService.getByProviderAndUserId(PROVIDER_WECHAT_MINI, userId);
-        if (identity == null || !Objects.equals(identity.getUserId(), userId)) {
-            log.error("微信身份验证失败，userId={}, provider={}, openId={}", userId, PROVIDER_WECHAT_MINI, request.getPayerOpenId());
-            throw new BusinessException("未找到对应的微信身份，请重新登录");
-        }
-        BigDecimal amount = request.getAmount();
-        if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new BusinessException("支付金额必须大于0");
+        String idempotencyKey = buildIdempotencyKey(userId, request);
+        String cacheKey = buildIdempotencyCacheKey(idempotencyKey);
+        WechatPayPrepayVO cached = getCachedPrepay(cacheKey);
+        if (cached != null) {
+            return cached;
         }
 
-        String orderNo = generateOrderNo();
-        RechargeOrder order = buildRechargeOrder(userId, username, request, orderNo, amount);
-        rechargeOrderMapper.insert(order);
+        String lockKey = buildIdempotencyLockKey(idempotencyKey);
+        if (!tryAcquireIdempotencyLock(lockKey)) {
+            cached = getCachedPrepay(cacheKey);
+            if (cached != null) {
+                return cached;
+            }
+            throw new BusinessException("请求处理中，请勿重复提交");
+        }
 
-        PrepayRequest prepayRequest = buildPrepayRequest(orderNo, request, amount);
+        String orderNo = null;
         try {
+            validateProduct(request);
+            AuthIdentity identity = authIdentityService.getByProviderAndUserId(PROVIDER_WECHAT_MINI, userId);
+            if (identity == null || !Objects.equals(identity.getUserId(), userId)) {
+                log.error("微信身份验证失败，userId={}, provider={}", userId, PROVIDER_WECHAT_MINI);
+                throw new BusinessException("未找到对应的微信身份，请重新登录");
+            }
+            BigDecimal amount = request.getAmount();
+            if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
+                throw new BusinessException("支付金额必须大于0");
+            }
+
+            orderNo = generateOrderNo();
+            RechargeOrder order = buildRechargeOrder(userId, username, request, orderNo, amount);
+            rechargeOrderMapper.insert(order);
+
+            PrepayRequest prepayRequest = buildPrepayRequest(orderNo, request, amount);
+            Payer payer = new Payer();
+            payer.setOpenid(identity.getOpenId());
+            prepayRequest.setPayer(payer);
             PrepayWithRequestPaymentResponse response = wechatPayClient.prepay(prepayRequest);
-            return buildPrepayResponse(orderNo, response);
+            WechatPayPrepayVO vo = buildPrepayResponse(orderNo, response);
+            cachePrepay(cacheKey, vo);
+            return vo;
+        } catch (BusinessException e) {
+            throw e;
         } catch (ServiceException e) {
+            log.warn("微信预下单发生错误，orderNo={}", orderNo, e);
             log.error("微信预下单失败，orderNo={}, errorCode={}, message={}", orderNo, e.getErrorCode(), e.getErrorMessage());
-            rechargeOrderMapper.updatePaymentStatusByOrderNo(orderNo, STATUS_FAILED, null, null);
+            if (orderNo != null) {
+                rechargeOrderMapper.updatePaymentStatusByOrderNo(orderNo, STATUS_FAILED, null, null);
+            }
             throw new BusinessException("微信支付下单失败：" + e.getErrorMessage(), e);
         } catch (Exception e) {
             log.error("微信预下单发生异常，orderNo={}", orderNo, e);
-            rechargeOrderMapper.updatePaymentStatusByOrderNo(orderNo, STATUS_FAILED, null, null);
+            if (orderNo != null) {
+                rechargeOrderMapper.updatePaymentStatusByOrderNo(orderNo, STATUS_FAILED, null, null);
+            }
             throw new BusinessException("微信支付下单异常，请稍后再试", e);
+        } finally {
+            releaseIdempotencyLock(lockKey);
         }
     }
 
@@ -275,6 +322,54 @@ public class PaymentServiceImpl implements PaymentService {
         return vo;
     }
 
+    private String buildIdempotencyKey(Long userId, WechatPayPrepayRequest request) {
+        String clientKey = request.getIdempotencyKey();
+        String baseKey;
+        if (StrUtil.isNotBlank(clientKey)) {
+            baseKey = "client:" + clientKey;
+        } else {
+            BigDecimal amount = request.getAmount();
+            int meritCoins = request.getMeritCoins() == null ? 0 : request.getMeritCoins();
+            int bonusCoins = request.getBonusCoins() == null ? 0 : request.getBonusCoins();
+            String amountText = amount == null ? "null" : amount.toPlainString();
+            baseKey = "auto:" + request.getProductId() + ":" + amountText + ":" + meritCoins + ":" + bonusCoins;
+        }
+        String raw = userId + ":" + baseKey;
+        return DigestUtils.md5DigestAsHex(raw.getBytes(StandardCharsets.UTF_8));
+    }
+
+    private String buildIdempotencyCacheKey(String idempotencyKey) {
+        return IDEMPOTENCY_CACHE_PREFIX + idempotencyKey;
+    }
+
+    private String buildIdempotencyLockKey(String idempotencyKey) {
+        return IDEMPOTENCY_LOCK_PREFIX + idempotencyKey;
+    }
+
+    private WechatPayPrepayVO getCachedPrepay(String cacheKey) {
+        ValueOperations<String, Object> ops = redisTemplate.opsForValue();
+        Object cached = ops.get(cacheKey);
+        if (cached instanceof WechatPayPrepayVO) {
+            return (WechatPayPrepayVO) cached;
+        }
+        return null;
+    }
+
+    private void cachePrepay(String cacheKey, WechatPayPrepayVO vo) {
+        ValueOperations<String, Object> ops = redisTemplate.opsForValue();
+        ops.set(cacheKey, vo, IDEMPOTENCY_CACHE_TTL_SECONDS, TimeUnit.SECONDS);
+    }
+
+    private boolean tryAcquireIdempotencyLock(String lockKey) {
+        ValueOperations<String, Object> ops = redisTemplate.opsForValue();
+        Boolean locked = ops.setIfAbsent(lockKey, "1", IDEMPOTENCY_LOCK_TTL_SECONDS, TimeUnit.SECONDS);
+        return Boolean.TRUE.equals(locked);
+    }
+
+    private void releaseIdempotencyLock(String lockKey) {
+        redisTemplate.delete(lockKey);
+    }
+
     private String extractPrepayId(String packageVal) {
         if (StrUtil.isBlank(packageVal)) {
             return null;
@@ -395,6 +490,9 @@ public class PaymentServiceImpl implements PaymentService {
             throw new BusinessException(INVALID_PRODUCT_MESSAGE);
         }
         ActivityRule rule = activity.getRules();
+        if (isTestProfile()) {
+            return;
+        }
         if (rule.getAmount() == null || request.getAmount() == null ||
                 rule.getAmount().compareTo(request.getAmount()) != 0) {
             throw new BusinessException(INVALID_PRODUCT_MESSAGE);
@@ -407,6 +505,19 @@ public class PaymentServiceImpl implements PaymentService {
         if (rule.getGift() == null || rule.getGift().compareTo(requestBonusCoins) != 0) {
             throw new BusinessException(INVALID_PRODUCT_MESSAGE);
         }
+    }
+
+    private boolean isTestProfile() {
+        if (StrUtil.isBlank(activeProfile)) {
+            return true;
+        }
+        String[] profiles = activeProfile.split(",");
+        for (String profile : profiles) {
+            if ("prod".equals(profile.trim())) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private Date convertToDate(String successTime) {

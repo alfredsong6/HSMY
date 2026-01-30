@@ -91,6 +91,7 @@ auth:
       - /system/whitelist/**
       # 测试接口（可选，生产环境建议移除）
       - /test/**
+      - /payment/wechat/notify
 
 # 文件存储配置
 file:

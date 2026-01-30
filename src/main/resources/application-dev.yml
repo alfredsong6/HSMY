@@ -46,13 +46,16 @@ communication:
     from-name: 敲敲木鱼-开发环境
 
 wechatpay:
-  enabled: false
-  app-id: 123
-  mch-id: 123
-  serial-no: abc123
-  api-v3-key: 123
-  notify-url: 'http://localhost:8080/api/v1.0/payment/wechat/notify'
-  description: '功德充值'
+  enabled: true
+  app-id: wx50e2472b35427201
+  mch-id: 1105704232
+  serial-no: 5B42C5D9F70D7405D3E3FEF41F7F3E5AD1CA463E
+  notify-url: 'https://hntuobo.com/hsmy/api/payment/wechat/notify'
+  description: '虚拟道具购买'
+  private-key-path: D:\Administrator\Desktop\中间服务\wechat\WXCertUtil\cert\apiclient_key.pem
+  public-key-path: D:\Administrator\Desktop\中间服务\wechat\WXCertUtil\cert\pub_key.pem
+  api-v3-key: Administrator1105704232202612220
+  public-key-id: PUB_KEY_ID_0111057042322026012800191909000206
 
 wechat:
   mini:

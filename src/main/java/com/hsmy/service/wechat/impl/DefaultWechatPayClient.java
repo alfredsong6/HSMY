@@ -10,14 +10,13 @@ import com.wechat.pay.java.service.payments.jsapi.model.QueryOrderByOutTradeNoRe
 import com.wechat.pay.java.service.payments.model.Transaction;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 /**
  * 默认微信支付客户端，调用真实微信 SDK。
  */
 @Component
-@Profile({"prod"})
+//@Profile({"prod"})
 @RequiredArgsConstructor
 public class DefaultWechatPayClient implements WechatPayClient {
 

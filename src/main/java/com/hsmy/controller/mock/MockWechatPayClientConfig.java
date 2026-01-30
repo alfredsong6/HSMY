@@ -8,15 +8,13 @@ import com.wechat.pay.java.service.payments.jsapi.model.QueryOrderByOutTradeNoRe
 import com.wechat.pay.java.service.payments.model.Transaction;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
-import org.springframework.context.annotation.Profile;
 
 /**
  * dev/test 环境使用的微信支付 Mock 客户端.
  */
-@Configuration
-@Profile({"dev", "test"})
+//@Configuration
+//@Profile({"dev", "test"})
 @Slf4j
 public class MockWechatPayClientConfig {
 

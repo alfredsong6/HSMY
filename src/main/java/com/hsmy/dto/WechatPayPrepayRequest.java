@@ -50,4 +50,9 @@ public class WechatPayPrepayRequest {
      * 自定义附加数据（会在回调中原样返回）
      */
     private String attach;
+
+    /**
+     * 幂等键（建议前端每次发起支付请求生成唯一值）
+     */
+    private String idempotencyKey;
 }

@@ -74,15 +74,16 @@ communication:
     tls: false
 
 wechatpay:
-  enabled: ${WECHATPAY_ENABLED:true}
-  app-id: ${WECHATPAY_APP_ID:}
-  mch-id: ${WECHATPAY_MCH_ID:}
-  serial-no: ${WECHATPAY_SERIAL_NO:}
-  api-v3-key: ${WECHATPAY_API_V3_KEY:}
-  private-key-path: ${WECHATPAY_PRIVATE_KEY_PATH:}
-  notify-url: ${WECHATPAY_NOTIFY_URL:https://api.hsmy.com/api/v1.0/payment/wechat/notify}
-  description: ${WECHATPAY_DESCRIPTION:功德充值}
-
+  enabled: true
+  app-id: wx50e2472b35427201
+  mch-id: 1105704232
+  serial-no: 5B42C5D9F70D7405D3E3FEF41F7F3E5AD1CA463E
+  notify-url: 'https://hntuobo.com/hsmy/api/payment/wechat/notify'
+  description: '虚拟道具购买'
+  private-key-path: D:\Administrator\Desktop\中间服务\wechat\WXCertUtil\cert\apiclient_key.pem
+  public-key-path: D:\Administrator\Desktop\中间服务\wechat\WXCertUtil\cert\pub_key.pem
+  api-v3-key: Administrator1105704232202612220
+  public-key-id: PUB_KEY_ID_0111057042322026012800191909000206
 wechat:
   mini:
     app-id: ${WECHAT_MINI_APP_ID:}
