@@ -10,8 +10,6 @@ import com.hsmy.enums.AuthProvider;
 import com.hsmy.exception.BusinessException;
 import com.hsmy.mapper.ActivityMapper;
 import com.hsmy.mapper.RechargeOrderMapper;
-import com.hsmy.mapper.UserStatsMapper;
-import com.hsmy.mapper.meditation.MeritCoinTransactionMapper;
 import com.hsmy.service.AuthIdentityService;
 import com.hsmy.service.wechat.WechatPayClient;
 import com.hsmy.vo.WechatPayPrepayVO;
@@ -52,10 +50,6 @@ class PaymentServiceImplTest {
     @Mock
     private RechargeOrderMapper rechargeOrderMapper;
     @Mock
-    private UserStatsMapper userStatsMapper;
-    @Mock
-    private MeritCoinTransactionMapper meritCoinTransactionMapper;
-    @Mock
     private ObjectProvider<Config> wechatPayConfigProvider;
     @Mock
     private WechatPayClient wechatPayClient;
@@ -65,6 +59,10 @@ class PaymentServiceImplTest {
     private ObjectProvider<NotificationParser> notificationParserProvider;
     @Mock
     private AuthIdentityService authIdentityService;
+    @Mock
+    private PaymentOrderProcessor paymentOrderProcessor;
+    @Mock
+    private WechatPayNotificationAsyncService wechatPayNotificationAsyncService;
     @Mock
     private RedisTemplate<String, Object> redisTemplate;
     @Mock
@@ -78,13 +76,13 @@ class PaymentServiceImplTest {
                 activityMapper,
                 wechatPayProperties,
                 rechargeOrderMapper,
-                userStatsMapper,
-                meritCoinTransactionMapper,
                 wechatPayConfigProvider,
                 wechatPayClient,
                 jsapiServiceProvider,
                 notificationParserProvider,
                 authIdentityService,
+                paymentOrderProcessor,
+                wechatPayNotificationAsyncService,
                 redisTemplate
         );
         when(redisTemplate.opsForValue()).thenReturn(valueOperations);

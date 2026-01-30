@@ -51,8 +51,8 @@ wechatpay:
   serial-no: 5B42C5D9F70D7405D3E3FEF41F7F3E5AD1CA463E
   notify-url: 'https://hntuobo.com/hsmy/api/payment/wechat/notify'
   description: '虚拟道具购买'
-  private-key-path: D:\Administrator\Desktop\中间服务\wechat\WXCertUtil\cert\apiclient_key.pem
-  public-key-path: D:\Administrator\Desktop\中间服务\wechat\WXCertUtil\cert\pub_key.pem
+  private-key-path: '/data/project/福天兴业集团云服务/jar/wechat/cert/apiclient_key.pem'
+  public-key-path: '/data/project/福天兴业集团云服务/jar/wechat/cert/pub_key.pem'
   api-v3-key: Administrator1105704232202612220
   public-key-id: PUB_KEY_ID_0111057042322026012800191909000206
 
