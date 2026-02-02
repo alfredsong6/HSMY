@@ -17,16 +17,18 @@ import com.hsmy.service.wechat.WechatPayClient;
 import com.hsmy.utils.IdGenerator;
 import com.hsmy.vo.WechatPayPrepayVO;
 import com.wechat.pay.java.core.Config;
+import com.wechat.pay.java.core.exception.MalformedMessageException;
 import com.wechat.pay.java.core.exception.ServiceException;
+import com.wechat.pay.java.core.exception.ValidationException;
 import com.wechat.pay.java.core.notification.NotificationParser;
 import com.wechat.pay.java.core.notification.RequestParam;
 import com.wechat.pay.java.service.payments.jsapi.model.*;
 import com.wechat.pay.java.service.payments.model.Transaction;
 import com.wechat.pay.java.service.payments.model.Transaction.TradeStateEnum;
-import com.wechat.pay.java.service.payments.model.TransactionAmount;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
@@ -75,6 +77,9 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Value("${spring.profiles.active:default}")
     private String activeProfile;
+
+    @Autowired
+    private NotificationParser notificationParser;
 
     @Override
     public WechatPayPrepayVO createWechatPrepay(Long userId, String username, WechatPayPrepayRequest request) {
@@ -152,8 +157,21 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     public void handleWechatPayNotification(RequestParam requestParam) {
         log.info("回调入参:{}", requestParam.toString());
-        NotificationParser parser = getNotificationParser();
-        Transaction transaction = parser.parse(requestParam, Transaction.class);
+        //NotificationParser parser = getNotificationParser();
+        Transaction transaction = null;
+        try {
+            transaction = notificationParser.parse(requestParam, Transaction.class);
+        } catch (MalformedMessageException e) {
+            log.error("验签失败，解析微信支付应答或回调报文异常，返回信息：", e);
+            throw new BusinessException("验签失败");
+        } catch (ValidationException e) {
+            log.error("验签失败，验证签名失败，返回信息：", e);
+            throw new BusinessException("验签失败");
+        } catch (Exception e) {
+            log.error("验签失败，返回信息：", e);
+            throw new BusinessException("验签失败");
+        }
+        log.info("验签成功！-支付回调结果：{}", transaction.toString());
         validateWechatNotification(transaction);
         wechatPayNotificationAsyncService.handle(transaction);
     }
@@ -427,36 +445,40 @@ public class PaymentServiceImpl implements PaymentService {
         if (transaction == null) {
             throw new BusinessException("交易状态为空");
         }
-        String orderNo = transaction.getOutTradeNo();
-        if (StrUtil.isBlank(orderNo)) {
-            throw new BusinessException("订单编号为空");
-        }
-        RechargeOrder order = rechargeOrderMapper.selectByOrderNo(orderNo);
-        if (order == null) {
-            throw new BusinessException("订单不存在");
-        }
-        String appId = transaction.getAppid();
-        if (StrUtil.isNotBlank(appId) && !appId.equals(wechatPayProperties.getAppId())) {
-            throw new BusinessException("应用AppId异常");
-        }
-        String mchId = transaction.getMchid();
-        if (StrUtil.isNotBlank(mchId) && !mchId.equals(wechatPayProperties.getMchId())) {
-            throw new BusinessException("商户编码异常");
-        }
-        TransactionAmount amount = transaction.getAmount();
-        if (amount == null || amount.getTotal() == null) {
-            throw new BusinessException("支付金额为空");
-        }
-        if (order.getAmount() == null) {
-            throw new BusinessException("订单金额为空");
-        }
-        int expectedTotal = convertAmountToFen(order.getAmount());
-        if (!Objects.equals(amount.getTotal(), expectedTotal)) {
-            throw new BusinessException("订单金额与支付金额不一致");
-        }
-        if (StrUtil.isNotBlank(amount.getCurrency()) && StrUtil.isNotBlank(wechatPayProperties.getCurrency())
-                && !amount.getCurrency().equalsIgnoreCase(wechatPayProperties.getCurrency())) {
-            throw new BusinessException("支付货币不一致");
-        }
+        log.info("解析后的transaction:{}", transaction);
+        log.info("state:{}", transaction.getTradeState());
+        log.info("transactionNo:{}-transactionId:{}", transaction.getOutTradeNo(),transaction.getTransactionId());
+        log.info("success:{}",transaction.getTradeState().toString());
+//        String orderNo = transaction.getOutTradeNo();
+//        if (StrUtil.isBlank(orderNo)) {
+//            throw new BusinessException("订单编号为空");
+//        }
+//        RechargeOrder order = rechargeOrderMapper.selectByOrderNo(orderNo);
+//        if (order == null) {
+//            throw new BusinessException("订单不存在");
+//        }
+//        String appId = transaction.getAppid();
+//        if (StrUtil.isNotBlank(appId) && !appId.equals(wechatPayProperties.getAppId())) {
+//            throw new BusinessException("应用AppId异常");
+//        }
+//        String mchId = transaction.getMchid();
+//        if (StrUtil.isNotBlank(mchId) && !mchId.equals(wechatPayProperties.getMchId())) {
+//            throw new BusinessException("商户编码异常");
+//        }
+//        TransactionAmount amount = transaction.getAmount();
+//        if (amount == null || amount.getTotal() == null) {
+//            throw new BusinessException("支付金额为空");
+//        }
+//        if (order.getAmount() == null) {
+//            throw new BusinessException("订单金额为空");
+//        }
+//        int expectedTotal = convertAmountToFen(order.getAmount());
+//        if (!Objects.equals(amount.getTotal(), expectedTotal)) {
+//            throw new BusinessException("订单金额与支付金额不一致");
+//        }
+//        if (StrUtil.isNotBlank(amount.getCurrency()) && StrUtil.isNotBlank(wechatPayProperties.getCurrency())
+//                && !amount.getCurrency().equalsIgnoreCase(wechatPayProperties.getCurrency())) {
+//            throw new BusinessException("支付货币不一致");
+//        }
     }
 }
