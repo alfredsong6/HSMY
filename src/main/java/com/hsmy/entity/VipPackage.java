@@ -1,6 +1,7 @@
 package com.hsmy.entity;
 
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.hsmy.common.BaseEntity;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -69,6 +70,12 @@ public class VipPackage extends BaseEntity {
      * 排序序号
      */
     private Integer sortOrder;
+
+    /**
+     * Purchase limit times. null or <=0 means no limit.
+     */
+    @TableField("`limit`")
+    private Integer limitTimes;
     
     /**
      * 是否启用：0-禁用，1-启用

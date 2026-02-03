@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hsmy.mapper.VipPackageMapper">
+
+    <resultMap id="BaseResultMap" type="com.hsmy.entity.VipPackage">
+        <id column="id" property="id"/>
+        <result column="package_name" property="packageName"/>
+        <result column="package_type" property="packageType"/>
+        <result column="price" property="price"/>
+        <result column="original_price" property="originalPrice"/>
+        <result column="duration_days" property="durationDays"/>
+        <result column="merit_bonus_rate" property="meritBonusRate"/>
+        <result column="daily_merit_bonus" property="dailyMeritBonus"/>
+        <result column="description" property="description"/>
+        <result column="benefits" property="benefits"/>
+        <result column="sort_order" property="sortOrder"/>
+        <result column="limit" property="limitTimes"/>
+        <result column="is_active" property="isActive"/>
+        <result column="create_by" property="createBy"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_by" property="updateBy"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="is_deleted" property="isDeleted"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, package_name, package_type, price, original_price, duration_days,
+        merit_bonus_rate, daily_merit_bonus, description, benefits, sort_order,
+        `limit`, is_active, create_by, create_time, update_by, update_time, is_deleted
+    </sql>
+
+    <select id="selectAllActive" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM t_vip_package
+        WHERE is_active = 1
+        AND is_deleted = 0
+        ORDER BY sort_order ASC, create_time DESC
+    </select>
+
+    <select id="selectActiveById" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM t_vip_package
+        WHERE id = #{id}
+        AND is_active = 1
+        AND is_deleted = 0
+    </select>
+
+</mapper>
