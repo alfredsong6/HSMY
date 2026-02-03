@@ -40,6 +40,8 @@ import org.springframework.util.DigestUtils;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
@@ -53,6 +55,7 @@ import java.util.concurrent.TimeUnit;
 public class PaymentServiceImpl implements PaymentService {
 
     private static final String PAYMENT_METHOD_WECHAT = "wechat";
+    private static final DateTimeFormatter ORDER_DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
     private static final AuthProvider PROVIDER_WECHAT_MINI = AuthProvider.WECHAT_MINI;
     private static final String INVALID_PRODUCT_MESSAGE = "商品信息已失效，请重新刷新页面";
     private static final String IDEMPOTENCY_CACHE_PREFIX = "hsmy:payment:wechat:prepay:";
@@ -390,7 +393,10 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     private String generateOrderNo() {
-        return "WX" + IdGenerator.nextIdStr();
+        String timePart = LocalDateTime.now().format(ORDER_DATE_FORMATTER);
+        long seq = Math.abs(IdGenerator.nextId() % 1_000_000L);
+        String seqPart = String.format("%06d", seq);
+        return "WX" + timePart + seqPart;
     }
 
     private int convertAmountToFen(BigDecimal amount) {
