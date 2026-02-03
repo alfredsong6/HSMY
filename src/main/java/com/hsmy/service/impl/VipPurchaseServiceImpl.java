@@ -182,11 +182,8 @@ public class VipPurchaseServiceImpl implements VipPurchaseService {
     }
 
     private Integer resolveVipLevel(VipPackage vipPackage) {
-        if (vipPackage == null) {
-            return 0;
-        }
         Integer packageType = vipPackage.getPackageType();
-        return packageType != null ? packageType : 0;
+        return packageType != null ? packageType + 1 : 1;
     }
 
     private String generateOrderNo() {
