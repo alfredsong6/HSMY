@@ -26,7 +26,8 @@ public interface RechargeOrderMapper extends BaseMapper<RechargeOrder> {
     int updatePaymentStatusByOrderNo(@Param("orderNo") String orderNo,
                                      @Param("paymentStatus") Integer paymentStatus,
                                      @Param("transactionId") String transactionId,
-                                     @Param("paymentTime") Date paymentTime);
+                                     @Param("paymentTime") Date paymentTime,
+                                     @Param("paymentStatusDesc") String paymentStatusDesc);
 
     /**
      * 根据订单号查询订单

@@ -8,6 +8,7 @@ import com.hsmy.domain.auth.AuthIdentity;
 import com.hsmy.dto.WechatPayPrepayRequest;
 import com.hsmy.entity.RechargeOrder;
 import com.hsmy.enums.AuthProvider;
+import com.hsmy.enums.PaymentStatusEnum;
 import com.hsmy.exception.BusinessException;
 import com.hsmy.mapper.ActivityMapper;
 import com.hsmy.mapper.RechargeOrderMapper;
@@ -52,10 +53,6 @@ import java.util.concurrent.TimeUnit;
 public class PaymentServiceImpl implements PaymentService {
 
     private static final String PAYMENT_METHOD_WECHAT = "wechat";
-    private static final int STATUS_PENDING = 0;
-    private static final int STATUS_SUCCESS = 1;
-    private static final int STATUS_FAILED = 2;
-    private static final int STATUS_REFUND = 3;
     private static final AuthProvider PROVIDER_WECHAT_MINI = AuthProvider.WECHAT_MINI;
     private static final String INVALID_PRODUCT_MESSAGE = "商品信息已失效，请重新刷新页面";
     private static final String IDEMPOTENCY_CACHE_PREFIX = "hsmy:payment:wechat:prepay:";
@@ -140,13 +137,13 @@ public class PaymentServiceImpl implements PaymentService {
             log.warn("微信预下单发生错误，orderNo={}", orderNo, e);
             log.error("微信预下单失败，orderNo={}, errorCode={}, message={}", orderNo, e.getErrorCode(), e.getErrorMessage());
             if (orderNo != null) {
-                rechargeOrderMapper.updatePaymentStatusByOrderNo(orderNo, STATUS_FAILED, null, null);
+                rechargeOrderMapper.updatePaymentStatusByOrderNo(orderNo, PaymentStatusEnum.FAILED.getCode(), null, null, buildPrepayFailureDesc(e));
             }
             throw new BusinessException("微信支付下单失败" + e.getErrorMessage(), e);
         } catch (Exception e) {
             log.error("微信预下单发生异常，orderNo={}", orderNo, e);
             if (orderNo != null) {
-                rechargeOrderMapper.updatePaymentStatusByOrderNo(orderNo, STATUS_FAILED, null, null);
+                rechargeOrderMapper.updatePaymentStatusByOrderNo(orderNo, PaymentStatusEnum.FAILED.getCode(), null, null, buildPrepayFailureDesc(e));
             }
             throw new BusinessException("微信支付下单异常，请稍后再试", e);
         } finally {
@@ -188,7 +185,7 @@ public class PaymentServiceImpl implements PaymentService {
             log.warn("未找到订单，无法同步，orderNo={}", orderNo);
             return false;
         }
-        if (!Objects.equals(order.getPaymentStatus(), STATUS_PENDING)) {
+        if (!Objects.equals(order.getPaymentStatus(), PaymentStatusEnum.PENDING.getCode())) {
             log.debug("订单 {} 已处于终态，当前状态 {}", orderNo, order.getPaymentStatus());
             return true;
         }
@@ -246,7 +243,7 @@ public class PaymentServiceImpl implements PaymentService {
         request.setOutTradeNo(orderNo);
         try {
             wechatPayClient.closeOrder(request);
-            rechargeOrderMapper.updatePaymentStatusByOrderNo(orderNo, STATUS_FAILED, null, new Date());
+            rechargeOrderMapper.updatePaymentStatusByOrderNo(orderNo, PaymentStatusEnum.CLOSED.getCode(), null, new Date(), "超时关闭");
             log.info("关单成功，orderNo={}", orderNo);
         } catch (ServiceException e) {
             log.error("关单失败，orderNo={}, code={}, message={}", orderNo, e.getErrorCode(), e.getErrorMessage());
@@ -267,7 +264,8 @@ public class PaymentServiceImpl implements PaymentService {
         order.setMeritCoins(request.getMeritCoins() == null ? 0 : request.getMeritCoins());
         order.setBonusCoins(request.getBonusCoins() == null ? 0 : request.getBonusCoins());
         order.setPaymentMethod(PAYMENT_METHOD_WECHAT);
-        order.setPaymentStatus(STATUS_PENDING);
+        order.setPaymentStatus(PaymentStatusEnum.PENDING.getCode());
+        order.setPaymentStatusDesc(PaymentStatusEnum.PENDING.getDefaultDesc());
         order.setRemark(StrUtil.blankToDefault(request.getDescription(), wechatPayProperties.getDescription()));
         String operator = StrUtil.blankToDefault(username, "system");
         order.setCreateBy(operator);
@@ -480,5 +478,19 @@ public class PaymentServiceImpl implements PaymentService {
 //                && !amount.getCurrency().equalsIgnoreCase(wechatPayProperties.getCurrency())) {
 //            throw new BusinessException("支付货币不一致");
 //        }
+    }
+
+    private String buildPrepayFailureDesc(Throwable throwable) {
+        if (throwable instanceof ServiceException) {
+            ServiceException serviceException = (ServiceException) throwable;
+            String errorMessage = StrUtil.blankToDefault(serviceException.getErrorMessage(), "下单失败");
+            String errorCode = serviceException.getErrorCode();
+            if (StrUtil.isNotBlank(errorCode)) {
+                return errorCode + ":" + errorMessage;
+            }
+            return errorMessage;
+        }
+        String message = throwable != null ? throwable.getMessage() : null;
+        return StrUtil.blankToDefault(message, "下单异常");
     }
 }

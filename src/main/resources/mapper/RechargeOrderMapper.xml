@@ -11,6 +11,7 @@
         <result column="bonus_coins" property="bonusCoins"/>
         <result column="payment_method" property="paymentMethod"/>
         <result column="payment_status" property="paymentStatus"/>
+        <result column="payment_status_desc" property="paymentStatusDesc"/>
         <result column="query_count" property="queryCount"/>
         <result column="last_query_time" property="lastQueryTime"/>
         <result column="payment_time" property="paymentTime"/>
@@ -25,7 +26,7 @@
 
     <sql id="Base_Column_List">
         id, order_no, user_id, amount, merit_coins, bonus_coins,
-        payment_method, payment_status, query_count, last_query_time, payment_time, transaction_id,
+        payment_method, payment_status, payment_status_desc, query_count, last_query_time, payment_time, transaction_id,
         remark, create_by, create_time, update_by, update_time, is_deleted
     </sql>
 
@@ -33,6 +34,9 @@
         UPDATE t_recharge_order
         <set>
             payment_status = #{paymentStatus},
+            <if test="paymentStatusDesc != null">
+                payment_status_desc = #{paymentStatusDesc},
+            </if>
             <if test="transactionId != null">
                 transaction_id = #{transactionId},
             </if>

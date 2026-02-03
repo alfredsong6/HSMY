@@ -57,6 +57,11 @@ public class RechargeOrder extends BaseEntity {
     private Integer paymentStatus;
 
     /**
+     * Payment status description.
+     */
+    private String paymentStatusDesc;
+
+    /**
      * 订单状态查询次数
      */
     private Integer queryCount;

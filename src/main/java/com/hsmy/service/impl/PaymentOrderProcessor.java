@@ -6,6 +6,7 @@ import com.hsmy.entity.RechargeOrder;
 import com.hsmy.entity.UserStats;
 import com.hsmy.entity.meditation.MeritCoinTransaction;
 import com.hsmy.enums.MeritBizType;
+import com.hsmy.enums.PaymentStatusEnum;
 import com.hsmy.mapper.RechargeOrderMapper;
 import com.hsmy.mapper.UserStatsMapper;
 import com.hsmy.mapper.meditation.MeritCoinTransactionMapper;
@@ -24,10 +25,6 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class PaymentOrderProcessor {
 
-    private static final int STATUS_PENDING = 0;
-    private static final int STATUS_SUCCESS = 1;
-    private static final int STATUS_FAILED = 2;
-    private static final int STATUS_REFUND = 3;
     private static final MeritBizType BIZ_TYPE_RECHARGE_PURCHASE = MeritBizType.RECHARGE_PURCHASE;
     private static final MeritBizType BIZ_TYPE_RECHARGE_BONUS = MeritBizType.RECHARGE_BONUS;
 
@@ -41,7 +38,7 @@ public class PaymentOrderProcessor {
             log.warn("订单不存在，无法更新状态，orderNo={}", orderNo);
             return false;
         }
-        if (!Objects.equals(order.getPaymentStatus(), STATUS_PENDING)) {
+        if (!Objects.equals(order.getPaymentStatus(), PaymentStatusEnum.PENDING.getCode())) {
             log.info("订单已处于终态，跳过处理，orderNo={}, currentStatus={}", orderNo, order.getPaymentStatus());
             return true;
         }
@@ -53,18 +50,21 @@ public class PaymentOrderProcessor {
             return false;
         }
 
+        String statusDesc = resolveTradeStateDesc(transaction, tradeStateEnum);
         int affectedRows;
         switch (tradeStateEnum) {
             case SUCCESS:
-                affectedRows = rechargeOrderMapper.updatePaymentStatusByOrderNo(orderNo, STATUS_SUCCESS, transactionId, paymentTime);
+                affectedRows = rechargeOrderMapper.updatePaymentStatusByOrderNo(orderNo, PaymentStatusEnum.SUCCESS.getCode(), transactionId, paymentTime, statusDesc);
                 break;
             case REFUND:
-                affectedRows = rechargeOrderMapper.updatePaymentStatusByOrderNo(orderNo, STATUS_REFUND, transactionId, paymentTime);
+                affectedRows = rechargeOrderMapper.updatePaymentStatusByOrderNo(orderNo, PaymentStatusEnum.REFUND.getCode(), transactionId, paymentTime, statusDesc);
                 break;
             case CLOSED:
-            case PAYERROR:
             case REVOKED:
-                affectedRows = rechargeOrderMapper.updatePaymentStatusByOrderNo(orderNo, STATUS_FAILED, transactionId, paymentTime);
+                affectedRows = rechargeOrderMapper.updatePaymentStatusByOrderNo(orderNo, PaymentStatusEnum.CLOSED.getCode(), transactionId, paymentTime, statusDesc);
+                break;
+            case PAYERROR:
+                affectedRows = rechargeOrderMapper.updatePaymentStatusByOrderNo(orderNo, PaymentStatusEnum.FAILED.getCode(), transactionId, paymentTime, statusDesc);
                 break;
             case NOTPAY:
             case USERPAYING:
@@ -86,7 +86,7 @@ public class PaymentOrderProcessor {
             log.warn("充值订单 {} 不存在，无法发放功德币", orderNo);
             return;
         }
-        if (!Objects.equals(order.getPaymentStatus(), STATUS_SUCCESS)) {
+        if (!Objects.equals(order.getPaymentStatus(), PaymentStatusEnum.SUCCESS.getCode())) {
             log.debug("订单 {} 当前状态非成功({})，跳过发放功德币", orderNo, order.getPaymentStatus());
             return;
         }
@@ -163,4 +163,32 @@ public class PaymentOrderProcessor {
             return null;
         }
     }
+
+    private String resolveTradeStateDesc(Transaction transaction, TradeStateEnum tradeStateEnum) {
+        String tradeStateDesc = transaction != null ? transaction.getTradeStateDesc() : null;
+        if (StrUtil.isNotBlank(tradeStateDesc)) {
+            return tradeStateDesc;
+        }
+        if (tradeStateEnum == null) {
+            return null;
+        }
+        switch (tradeStateEnum) {
+            case SUCCESS:
+                return PaymentStatusEnum.SUCCESS.getDefaultDesc();
+            case REFUND:
+                return PaymentStatusEnum.REFUND.getDefaultDesc();
+            case CLOSED:
+            case REVOKED:
+                return PaymentStatusEnum.CLOSED.getDefaultDesc();
+            case PAYERROR:
+                return PaymentStatusEnum.FAILED.getDefaultDesc();
+            case NOTPAY:
+                return PaymentStatusEnum.PENDING.getDefaultDesc();
+            case USERPAYING:
+                return "用户支付中";
+            default:
+                return tradeStateEnum.name();
+        }
+    }
+
 }
