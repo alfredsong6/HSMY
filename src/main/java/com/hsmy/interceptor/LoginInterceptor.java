@@ -66,16 +66,20 @@ public class LoginInterceptor implements HandlerInterceptor {
         String requestPath = getRequestPath(request);
         
         // 检查是否在白名单中
-        if (authWhiteListProperties.getEnabled() && 
-            WhiteListUtil.isInWhiteList(requestPath, authWhiteListProperties.getPaths())) {
-            log.debug("白名单路径放行: {}", requestPath);
-            return true;
+        boolean inWhiteList = authWhiteListProperties.getEnabled() &&
+                WhiteListUtil.isInWhiteList(requestPath, authWhiteListProperties.getPaths());
+        if (inWhiteList) {
+            log.debug("白名单路径: {}", requestPath);
         }
         
         // 获取token
         String token = getToken(request);
         
         if (!StringUtils.hasText(token)) {
+            if (inWhiteList) {
+                log.debug("白名单路径未携带token，直接放行: {}", requestPath);
+                return true;
+            }
             log.warn("请求未携带token，请求路径: {}", requestPath);
             writeErrorResponse(response, "未登录或登录已过期");
             return false;

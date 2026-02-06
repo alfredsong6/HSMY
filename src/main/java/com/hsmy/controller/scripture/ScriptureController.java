@@ -16,6 +16,7 @@ import com.hsmy.utils.TextSanitizerUtil;
 import com.hsmy.utils.UserContextUtil;
 import com.hsmy.vo.*;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
@@ -24,7 +25,10 @@ import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -33,6 +37,7 @@ import java.util.stream.Collectors;
  * @author HSMY
  * @date 2025/09/25
  */
+@Slf4j
 @RestController
 @RequestMapping("/scripture")
 @ApiVersion(ApiVersionConstant.V1_0)
@@ -63,47 +68,48 @@ public class ScriptureController {
 
             // 转换为VO Page对象
             Page<ScriptureVO> voPage = new Page<>(scripturesPage.getCurrent(), scripturesPage.getSize(), scripturesPage.getTotal());
-            List<ScriptureVO> scriptureVOs = scripturesPage.getRecords().stream().map(scripture -> {
-                ScriptureVO vo = new ScriptureVO();
-                BeanUtils.copyProperties(scripture, vo);
-                vo.setId(scripture.getId().toString());
-                vo.setCanPreview(scripture.getPreviewSectionCount() != null && scripture.getPreviewSectionCount() > 0);
 
-                // 填充用户购买信息（如果用户已登录）
-            try {
-                Long userId = UserContextUtil.getCurrentUserId();
-                if (userId != null) {
-                    UserScripturePurchase purchase = userScripturePurchaseService.getUserPurchaseDetail(userId, scripture.getId());
-                    if (purchase == null) {
-                        vo.setIsPurchased(false);
-                    }else if (purchase.getPurchaseType().equals("trial")) {
-                        vo.setIsPurchased(false);
-                    } else if (purchase.getPurchaseType().equals("lease") && purchase.getIsExpired() == 1) {
-                        vo.setIsPurchased(false);
-                    } else {
-                        vo.setIsPurchased(true);
-                    }
-                    //vo.setIsPurchaseValid(purchased && userScripturePurchaseService.isUserPurchaseValid(userId, scripture.getId()));
-                    if (purchase != null) {
-                        vo.setExpireTime(purchase.getExpireTime());
-                        vo.setPurchaseType(purchase.getPurchaseType());
-                    }
-                }
-            } catch (Exception e) {
-                // 用户未登录，忽略
-                vo.setIsPurchased(false);
-                vo.setIsPurchaseValid(false);
+            List<ScriptureVO> scriptureVOs = new ArrayList<>();
+            Long userId = UserContextUtil.getCurrentUserId();
+            Map<Long, UserScripturePurchase> purchases = new HashMap<>();
+            if (userId != null) {
+                List<UserScripturePurchase> result = userScripturePurchaseService.getPurchasesByUserId(userId);
+                purchases = result.stream().collect(Collectors.toMap(UserScripturePurchase::getScriptureId, Function.identity()));
             }
-
-                return vo;
-            }).collect(Collectors.toList());
-
+            for (Scripture record : scripturesPage.getRecords()) {
+                ScriptureVO vo = getScriptureVO(record, purchases);
+                scriptureVOs.add(vo);
+            }
             voPage.setRecords(scriptureVOs);
 
             return Result.success(voPage);
         } catch (Exception e) {
-            return Result.error("获取典籍列表失败：" + e.getMessage());
+            log.error("获取典籍列表失败：{}", e.getMessage());
+            return Result.error("获取典籍列表失败");
         }
+    }
+
+    private ScriptureVO getScriptureVO(Scripture scripture, Map<Long, UserScripturePurchase> purchases) {
+        ScriptureVO vo = new ScriptureVO();
+        BeanUtils.copyProperties(scripture, vo);
+        vo.setId(scripture.getId().toString());
+        vo.setCanPreview(scripture.getPreviewSectionCount() != null && scripture.getPreviewSectionCount() > 0);
+        UserScripturePurchase purchase = purchases.get(scripture.getId());
+        if (purchase == null) {
+            vo.setIsPurchased(false);
+        }else if (purchase.getPurchaseType().equals("trial")) {
+            vo.setIsPurchased(false);
+        } else if (purchase.getPurchaseType().equals("lease") && purchase.getIsExpired() == 1) {
+            vo.setIsPurchased(false);
+        } else {
+            vo.setIsPurchased(true);
+        }
+        //vo.setIsPurchaseValid(purchased && userScripturePurchaseService.isUserPurchaseValid(userId, scripture.getId()));
+        if (purchase != null) {
+            vo.setExpireTime(purchase.getExpireTime());
+            vo.setPurchaseType(purchase.getPurchaseType());
+        }
+        return vo;
     }
 
     /**
