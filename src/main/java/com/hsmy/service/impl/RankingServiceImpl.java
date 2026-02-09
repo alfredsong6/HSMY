@@ -45,7 +45,8 @@ public class RankingServiceImpl implements RankingService {
     
     @Override
     public List<Ranking> getRankingList(String rankType, LocalDate snapshotDate, Integer limit) {
-        return rankingMapper.selectByTypeAndDate(rankType, DateUtil.localDateToDate(snapshotDate), limit);
+        Date queryDate = DateUtil.localDateToDate(snapshotDate);
+        return rankingMapper.selectByTypeAndDate(rankType, queryDate, limit);
     }
     
     @Override

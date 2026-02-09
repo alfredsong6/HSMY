@@ -26,7 +26,7 @@ public interface RankingMapper extends BaseMapper<Ranking> {
      * @return 排行榜列表
      */
     List<Ranking> selectByTypeAndDate(@Param("rankType") String rankType,
-                                     @Param("snapshotDate") Date snapshotDate,
+                                     @Param("queryDate") Date queryDate,
                                      @Param("limit") Integer limit);
     
     /**
