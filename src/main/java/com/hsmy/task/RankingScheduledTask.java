@@ -35,7 +35,7 @@ public class RankingScheduledTask {
      * 生成总榜数据
      * 每个整点执行
      */
-    @Scheduled(cron = "1 0/5 * * * ?")
+    @Scheduled(cron = "1 0 0/3 * * ?")
     @Async("asyncExecutor")
     public CompletableFuture<Void> generateTotalRanking() {
         log.info("开始执行总榜生成任务，线程：{}", Thread.currentThread().getName());

@@ -83,7 +83,7 @@ public class RankingServiceImpl implements RankingService {
         
         if (rankings == null) {
             rankings = getRankingList("total", LocalDate.now(), limit);
-            enrichAvatarForRankings(rankings);
+            // enrichAvatarForRankings(rankings);
             redisTemplate.opsForValue().set(TOTAL_RANKING_CACHE_KEY_PREFIX, rankings, TOTAL_RANKING_TTL.getSeconds(), TimeUnit.SECONDS);
         }
         if (rankings == null || rankings.isEmpty()) {
