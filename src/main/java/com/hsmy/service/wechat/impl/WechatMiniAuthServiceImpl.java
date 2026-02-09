@@ -36,7 +36,7 @@ public class WechatMiniAuthServiceImpl implements WechatMiniAuthService {
     private final RestTemplateBuilder restTemplateBuilder;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    private static final String ACCESS_TOKEN_CACHE_KEY = "wechat:mini:access_token";
+    private static final String ACCESS_TOKEN_CACHE_KEY = "hsmy:wechat:mini:access_token";
 
     @Override
     public WechatSessionInfo code2Session(String appId, String jsCode) {
