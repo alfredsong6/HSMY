@@ -35,7 +35,7 @@ public class RankingScheduledTask {
      * 生成总榜数据
      * 每个整点执行
      */
-    @Scheduled(cron = "0 10 * * * ?")
+    @Scheduled(cron = "1 0/5 * * * ?")
     @Async("asyncExecutor")
     public CompletableFuture<Void> generateTotalRanking() {
         log.info("开始执行总榜生成任务，线程：{}", Thread.currentThread().getName());
@@ -59,7 +59,7 @@ public class RankingScheduledTask {
     public CompletableFuture<Void> cleanOldRankings() {
         log.info("开始执行排名数据清理任务，线程：{}", Thread.currentThread().getName());
         try {
-            int count = rankingCalculationService.cleanOldRankings(30);
+            int count = rankingCalculationService.cleanOldRankings(120);
             log.info("排名数据清理任务完成，清理 {} 条记录", count);
         } catch (Exception e) {
             log.error("排名数据清理任务执行失败", e);

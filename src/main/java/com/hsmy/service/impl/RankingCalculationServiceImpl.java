@@ -1,6 +1,7 @@
 package com.hsmy.service.impl;
 
 import com.hsmy.entity.Ranking;
+import com.hsmy.entity.UserStats;
 import com.hsmy.mapper.RankingMapper;
 import com.hsmy.mapper.UserStatsMapper;
 import com.hsmy.service.RankingCalculationService;
@@ -11,6 +12,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -46,7 +50,12 @@ public class RankingCalculationServiceImpl implements RankingCalculationService 
         // 构建排名数据
         List<Ranking> rankings = new ArrayList<>();
         int position = 1;
-        for (com.hsmy.entity.UserStats stat : topStats) {
+        Date generatedDate = new Date();
+        //今天开始时间
+        ZoneId zone = ZoneId.systemDefault(); // 或 ZoneId.of("America/Denver")
+        Instant startOfToday = LocalDate.now(zone).atStartOfDay(zone).toInstant();
+        Date startDate = Date.from(startOfToday);
+        for (UserStats stat : topStats) {
             if (stat.getTotalMerit() == null || stat.getTotalMerit() <= 0) {
                 continue;
             }
@@ -58,13 +67,14 @@ public class RankingCalculationServiceImpl implements RankingCalculationService 
             ranking.setRankingPosition(position++);
             ranking.setSnapshotDate(date);
             ranking.setPeriod(period);
-            ranking.setCreateTime(new Date());
+            ranking.setCreateTime(generatedDate);
             ranking.setCreateBy("system");
             rankings.add(ranking);
         }
 
         // 批量插入
         if (!rankings.isEmpty()) {
+            rankingMapper.deleteBetweenDate(startDate, generatedDate);
             rankingMapper.batchInsert(rankings);
             log.info("成功生成总榜数据 {} 条", rankings.size());
         }

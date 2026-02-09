@@ -56,4 +56,7 @@ public interface RankingMapper extends BaseMapper<Ranking> {
      * @return 影响行数
      */
     int deleteBeforeDate(@Param("beforeDate") Date beforeDate);
+
+    int deleteBetweenDate(@Param("startDate") Date startDate,
+                         @Param("endDate") Date endDate);
 }

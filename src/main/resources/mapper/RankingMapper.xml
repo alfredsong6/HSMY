@@ -78,5 +78,10 @@
         DELETE FROM t_ranking
         WHERE snapshot_date &lt; #{beforeDate}
     </delete>
+
+    <delete id="deleteBetweenDate">
+        DELETE FROM t_ranking
+        WHERE snapshot_date &gt; #{startDate} AND snapshot_date &lt; #{endDate}
+    </delete>
     
 </mapper>
