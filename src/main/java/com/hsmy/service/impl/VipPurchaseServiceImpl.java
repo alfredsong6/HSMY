@@ -24,7 +24,9 @@ import org.springframework.transaction.annotation.Transactional;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
@@ -87,7 +89,7 @@ public class VipPurchaseServiceImpl implements VipPurchaseService {
         }
         Date endTime = null;
         if (!permanent) {
-            endTime = Date.from(startTime.toInstant().plusSeconds(durationDays * 24L * 3600L));
+            endTime = resolveVipEndTime(startTime, durationDays);
         }
 
         VipPurchase purchase = new VipPurchase();
@@ -191,6 +193,16 @@ public class VipPurchaseServiceImpl implements VipPurchaseService {
         long seq = Math.abs(IdGenerator.nextId() % 1_000_000L);
         String seqPart = String.format("%06d", seq);
         return "VIP" + timePart + seqPart;
+    }
+
+    private Date resolveVipEndTime(Date startTime, Integer durationDays) {
+        ZoneId zoneId = ZoneId.systemDefault();
+        LocalDate expireDate = startTime.toInstant()
+                .atZone(zoneId)
+                .toLocalDate()
+                .plusDays(durationDays);
+        LocalDateTime expireTime = expireDate.atTime(23, 59, 59);
+        return Date.from(expireTime.atZone(zoneId).toInstant());
     }
 
     private void recordMeritCoinTransaction(Long userId, Long purchaseId, VipPackage vipPackage) {
