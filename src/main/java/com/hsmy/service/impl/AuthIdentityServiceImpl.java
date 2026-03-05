@@ -50,6 +50,15 @@ public class AuthIdentityServiceImpl implements AuthIdentityService {
     }
 
     @Override
+    public AuthIdentity get(Long userId, AuthProvider provider, String appidOrClientId) {
+        String providerCode = toCode(provider);
+        if (userId == null || !StringUtils.hasText(providerCode) || !StringUtils.hasText(appidOrClientId)) {
+            return null;
+        }
+        return authIdentityMapper.selectByUserProviderAndClientId(userId, providerCode, appidOrClientId);
+    }
+
+    @Override
     public AuthIdentity getByPhone(AuthProvider provider, String phone) {
         String providerCode = toCode(provider);
         if (!StringUtils.hasText(providerCode) || !StringUtils.hasText(phone)) {
@@ -102,6 +111,20 @@ public class AuthIdentityServiceImpl implements AuthIdentityService {
                           Date lastLoginAt) {
         Date loginTime = lastLoginAt != null ? lastLoginAt : new Date();
         return authIdentityMapper.touchLogin(id, userId, phone, unionId, sessionKeyEnc, loginTime);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public int rebindWechatIdentity(Long id,
+                                    String openId,
+                                    String unionId,
+                                    String sessionKeyEnc,
+                                    Date lastLoginAt) {
+        if (id == null || !StringUtils.hasText(openId)) {
+            return 0;
+        }
+        Date loginTime = lastLoginAt != null ? lastLoginAt : new Date();
+        return authIdentityMapper.rebindWechatIdentity(id, openId, unionId, sessionKeyEnc, loginTime);
     }
 
     private String toCode(AuthProvider provider) {

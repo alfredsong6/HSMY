@@ -205,8 +205,17 @@ public class AuthController {
 
         // 6) 维护身份
         if (identity == null) {
-            authIdentityService.createIdentity(user.getId(), PROVIDER_WECHAT_MINI, appId,
-                    sessionInfo.getOpenId(), sessionInfo.getUnionId(), phone, sessionInfo.getSessionKey());
+            AuthIdentity existing = authIdentityService.get(user.getId(), PROVIDER_WECHAT_MINI, appId);
+            if (existing != null) {
+                // 更新旧身份，不新插
+                authIdentityService.rebindWechatIdentity(existing.getId(),sessionInfo.getOpenId(),
+                        sessionInfo.getUnionId(),sessionInfo.getSessionKey(),new Date()
+                );
+            } else {
+                // 真正首次绑定
+                authIdentityService.createIdentity(user.getId(), PROVIDER_WECHAT_MINI, appId,
+                        sessionInfo.getOpenId(), sessionInfo.getUnionId(), phone, sessionInfo.getSessionKey());
+            }
         } else {
             authIdentityService.touchLogin(identity.getId(), user.getId(), phone,
                     sessionInfo.getUnionId(), sessionInfo.getSessionKey(), new Date());

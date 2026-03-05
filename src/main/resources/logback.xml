@@ -88,6 +88,10 @@
         <appender-ref ref="file_debug" />
         <appender-ref ref="console" />
     </logger>
+    <logger name="org.apache.ibatis" level="debug" additivity="false">
+        <appender-ref ref="file_debug" />
+        <appender-ref ref="console" />
+    </logger>
 
 
 
