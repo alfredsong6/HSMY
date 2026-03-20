@@ -699,7 +699,7 @@ public class UserScriptureController {
             SectionContentResponseVO vo = new SectionContentResponseVO();
 
             SectionContentResponseVO.ScriptureInfo sInfo = new SectionContentResponseVO.ScriptureInfo();
-            sInfo.setId(scripture.getId());
+            sInfo.setId(scripture.getId().toString());
             sInfo.setName(scripture.getScriptureName());
             sInfo.setType(scripture.getScriptureType());
             vo.setScripture(sInfo);
