@@ -92,6 +92,7 @@ auth:
       - /test/**
       - /payment/wechat/notify
       - /virtual-pay/notify
+      - /wechat/get-scheme
 
 # 文件存储配置
 file:
