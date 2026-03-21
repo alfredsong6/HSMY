@@ -2,7 +2,7 @@ package com.hsmy.config;
 
 import cn.hutool.core.util.StrUtil;
 import com.wechat.pay.java.core.Config;
-import com.wechat.pay.java.core.RSAAutoCertificateConfig;
+import com.wechat.pay.java.core.RSAPublicKeyConfig;
 import com.wechat.pay.java.core.notification.NotificationConfig;
 import com.wechat.pay.java.core.notification.NotificationParser;
 import com.wechat.pay.java.core.util.PemUtil;
@@ -39,18 +39,16 @@ public class WechatPayConfig {
     public Config wechatPaySdkConfig() {
         validateRequiredProperties();
 
-        RSAAutoCertificateConfig.Builder builder = new RSAAutoCertificateConfig.Builder()
-                .merchantId(properties.getMchId())
-                .merchantSerialNumber(properties.getSerialNo())
-                .apiV3Key(properties.getApiV3Key());
+        Config config =new RSAPublicKeyConfig.Builder()
+                .merchantId(properties.getMchId()) //微信支付的商户号
+                .privateKeyFromPath(properties.getPrivateKeyPath())
+                .publicKeyFromPath(properties.getPublicKeyPath())
+                .publicKeyId(properties.getPublicKeyId()) //微信支付公钥ID
+                .merchantSerialNumber(properties.getSerialNo()) //商户API证书序列号
+                .apiV3Key(properties.getApiV3Key()) //APIv3密钥
+                .build();
 
-        if (StrUtil.isNotBlank(properties.getPrivateKey())) {
-            builder.privateKey(loadPrivateKeyFromContent(properties.getPrivateKey()));
-        } else {
-            builder.privateKey(loadPrivateKeyFromPath(properties.getPrivateKeyPath()));
-        }
-
-        return builder.build();
+        return config;
     }
 
     /**

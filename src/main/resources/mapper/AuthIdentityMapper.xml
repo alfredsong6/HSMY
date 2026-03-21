@@ -57,6 +57,17 @@
         LIMIT 1
     </select>
 
+    <select id="selectByUserProviderAndClientId" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM t_auth_identity
+        WHERE user_id = #{userId}
+          AND provider = #{provider}
+          AND appid_or_client_id = #{appidOrClientId}
+          AND is_deleted = 0
+        LIMIT 1
+    </select>
+
     <select id="selectByPhone" resultMap="BaseResultMap">
         SELECT
         <include refid="Base_Column_List"/>
@@ -82,6 +93,19 @@
             <if test="phone != null">phone = #{phone},</if>
             <if test="unionId != null">union_id = #{unionId},</if>
             <if test="sessionKeyEnc != null">session_key_enc = #{sessionKeyEnc},</if>
+            last_login_at = #{lastLoginAt},
+            update_time = NOW()
+        </set>
+        WHERE id = #{id}
+          AND is_deleted = 0
+    </update>
+
+    <update id="rebindWechatIdentity">
+        UPDATE t_auth_identity
+        <set>
+            open_id = #{openId},
+            <if test="unionId != null and unionId != ''">union_id = #{unionId},</if>
+            <if test="sessionKeyEnc != null and sessionKeyEnc != ''">session_key_enc = #{sessionKeyEnc},</if>
             last_login_at = #{lastLoginAt},
             update_time = NOW()
         </set>

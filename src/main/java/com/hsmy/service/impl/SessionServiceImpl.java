@@ -36,12 +36,12 @@ public class SessionServiceImpl implements SessionService {
     /**
      * Session前缀
      */
-    private static final String SESSION_PREFIX = "session:";
+    private static final String SESSION_PREFIX = "hsmy:session:";
     
     /**
      * 用户Session列表前缀（用于支持多端登录）
      */
-    private static final String USER_SESSIONS_PREFIX = "user:sessions:";
+    private static final String USER_SESSIONS_PREFIX = "hsmy:user:sessions:";
     
     /**
      * Session过期时间（7天）

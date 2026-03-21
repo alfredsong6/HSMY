@@ -1,5 +1,6 @@
 package com.hsmy.entity;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.hsmy.common.BaseEntity;
 import lombok.Data;
@@ -40,6 +41,11 @@ public class User extends BaseEntity {
      */
     private String avatarUrl;
     
+    @TableField(exist = false)
+    private boolean avatarBase64Encoded;
+
+    @TableField(exist = false)
+    private String avatarBase64Content;
     /**
      * 邮箱
      */

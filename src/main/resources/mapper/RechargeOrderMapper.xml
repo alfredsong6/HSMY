@@ -14,6 +14,9 @@
         <result column="payment_status" property="paymentStatus"/>
         <result column="delivered" property="delivered"/>
         <result column="delivered_time" property="deliveredTime"/>
+        <result column="payment_status_desc" property="paymentStatusDesc"/>
+        <result column="query_count" property="queryCount"/>
+        <result column="last_query_time" property="lastQueryTime"/>
         <result column="payment_time" property="paymentTime"/>
         <result column="transaction_id" property="transactionId"/>
         <result column="remark" property="remark"/>
@@ -37,6 +40,9 @@
         UPDATE t_recharge_order
         <set>
             payment_status = #{paymentStatus},
+            <if test="paymentStatusDesc != null">
+                payment_status_desc = #{paymentStatusDesc},
+            </if>
             <if test="transactionId != null">
                 transaction_id = #{transactionId},
             </if>
@@ -120,5 +126,28 @@
           </if>
         ORDER BY create_time DESC
     </select>
+
+    <select id="selectRecentPendingOrders" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM t_recharge_order
+        WHERE is_deleted = 0
+          AND payment_status = 0
+          AND create_time &gt;= #{fromTime}
+          AND query_count &lt; #{maxQueryCount}
+        ORDER BY create_time ASC
+        LIMIT #{limit}
+    </select>
+
+    <update id="incrementQueryCount">
+        UPDATE t_recharge_order
+        SET query_count = query_count + 1,
+            last_query_time = #{queryTime},
+            update_by = 'system',
+            update_time = NOW()
+        WHERE order_no = #{orderNo}
+          AND payment_status = 0
+          AND is_deleted = 0
+    </update>
 
 </mapper>

@@ -1,12 +1,12 @@
 spring:
   datasource:
-    url: jdbc:mysql://127.0.0.1:3306/hsmy_db?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=GMT%2B8
+    url: jdbc:mysql://10.10.15.3:3306/hsmy_db?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=GMT%2B8
     username: root
     #password: sq123456
-    password: sq123456
+    password: 123456
 
   redis:
-    host: 127.0.0.1
+    host: 10.10.0.45
     port: 6379
     database: 0
     password:
@@ -20,7 +20,7 @@ spring:
 
 mybatis-plus:
   configuration:
-    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
 
 logging:
   level:
@@ -44,21 +44,24 @@ communication:
     from: dev@test.com
     password: dev_password
     from-name: 敲敲木鱼-开发环境
-
 wechatpay:
-  enabled: false
-  app-id: 123
-  mch-id: 123
-  serial-no: abc123
-  api-v3-key: 123
-  notify-url: 'https://www.hntuobo.com/hsmy/api/payment/wechat/notify'
-  description: '功德充值'
+  enabled: true
+  app-id: wx50e2472b35427201
+  mch-id: 1105704232
+  serial-no: 5B42C5D9F70D7405D3E3FEF41F7F3E5AD1CA463E
+  notify-url: 'https://hntuobo.com/hsmy/api/payment/wechat/notify'
+  description: '虚拟道具购买'
+  private-key-path: '/data/project/福天兴业集团云服务/jar/wechat/cert/apiclient_key.pem'
+  public-key-path: '/data/project/福天兴业集团云服务/jar/wechat/cert/pub_key.pem'
+  api-v3-key: Administrator1105704232202612220
+  public-key-id: PUB_KEY_ID_0111057042322026012800191909000206
   virtual:
     enabled: true
     offer-id: 1450488421
     app-key: IrGwKLLkI0oJibcHMT7Yj0lbdbKqdQZ5
     env: 1
     notify-url: 'https://www.hntuobo.com/hsmy/api/virtual-pay/notify'
+
 
 wechat:
   mini:

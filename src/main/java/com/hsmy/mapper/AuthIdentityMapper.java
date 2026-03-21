@@ -33,6 +33,10 @@ public interface AuthIdentityMapper extends BaseMapper<AuthIdentity> {
     AuthIdentity selectByProviderAndUserId(@Param("provider") String provider,
                                            @Param("userId") Long userId);
 
+    AuthIdentity selectByUserProviderAndClientId(@Param("userId") Long userId,
+                                                 @Param("provider") String provider,
+                                                 @Param("appidOrClientId") String appidOrClientId);
+
     /**
      * 根据 provider + phone 查询.
      */
@@ -53,4 +57,10 @@ public interface AuthIdentityMapper extends BaseMapper<AuthIdentity> {
                    @Param("unionId") String unionId,
                    @Param("sessionKeyEnc") String sessionKeyEnc,
                    @Param("lastLoginAt") Date lastLoginAt);
+
+    int rebindWechatIdentity(@Param("id") Long id,
+                             @Param("openId") String openId,
+                             @Param("unionId") String unionId,
+                             @Param("sessionKeyEnc") String sessionKeyEnc,
+                             @Param("lastLoginAt") Date lastLoginAt);
 }

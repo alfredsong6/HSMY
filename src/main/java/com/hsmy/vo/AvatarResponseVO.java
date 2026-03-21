@@ -13,5 +13,6 @@ public class AvatarResponseVO implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private String avatarUrl;
+    private boolean base64Encoded;
     private String base64Content;
 }

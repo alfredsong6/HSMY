@@ -26,6 +26,8 @@ public interface AuthIdentityService {
      */
     AuthIdentity getByProviderAndUserId(AuthProvider provider, Long userId);
 
+    AuthIdentity get(Long userId, AuthProvider provider, String appidOrClientId);
+
     /**
      * 根据手机号查询身份.
      */
@@ -56,4 +58,10 @@ public interface AuthIdentityService {
                    String unionId,
                    String sessionKeyEnc,
                    Date lastLoginAt);
+
+    int rebindWechatIdentity(Long id,
+                             String openId,
+                             String unionId,
+                             String sessionKeyEnc,
+                             Date lastLoginAt);
 }

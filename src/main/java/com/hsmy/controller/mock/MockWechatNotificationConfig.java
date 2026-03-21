@@ -5,21 +5,16 @@ import com.wechat.pay.java.core.cipher.AeadCipher;
 import com.wechat.pay.java.core.notification.NotificationConfig;
 import com.wechat.pay.java.core.notification.NotificationParser;
 import com.wechat.pay.java.core.notification.RequestParam;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
-import org.springframework.context.annotation.Profile;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * dev/test 环境下的微信回调解析 mock.
  */
-@Configuration
-@Profile({"dev", "test"})
+@Slf4j
 public class MockWechatNotificationConfig {
 
-    @Bean
-    @Primary
     public NotificationParser mockNotificationParser() {
+        log.info("------------------mockNotificationParser-----------------");
         NotificationConfig config = new NotificationConfig() {
             @Override
             public String getSignType() {

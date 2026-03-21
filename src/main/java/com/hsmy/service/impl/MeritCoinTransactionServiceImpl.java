@@ -110,6 +110,7 @@ public class MeritCoinTransactionServiceImpl implements MeritCoinTransactionServ
         if (order != null) {
             detail.setTitle("充值订单");
             detail.setDescription("订单号：" + order.getOrderNo());
+            detail.setPaymentStatus(order.getPaymentStatus());
             detail.setExtraInfo("支付金额：" + order.getAmount() + " 元，功德币：" + order.getMeritCoins());
         } else {
             detail.setTitle("充值订单");
@@ -132,7 +133,7 @@ public class MeritCoinTransactionServiceImpl implements MeritCoinTransactionServ
         UserItem userItem = userItemMapper.selectById(tx.getBizId());
         if (userItem != null) {
             Item fallbackItem = itemMapper.selectById(userItem.getItemId());
-            String itemName = fallbackItem != null ? fallbackItem.getItemName() : String.valueOf(userItem.getItemId());
+            String itemName = formatItemName(fallbackItem, userItem.getItemId());
             detail.setTitle("购买道具");
             detail.setItemName(itemName);
             detail.setDescription("道具：" + itemName);
@@ -143,6 +144,25 @@ public class MeritCoinTransactionServiceImpl implements MeritCoinTransactionServ
         detail.setDescription("道具信息已失效");
         detail.setExtraInfo("");
         return detail;
+    }
+
+    private String formatItemName(Item fallbackItem, Long defaultItemId) {
+        if (fallbackItem == null) {
+            return String.valueOf(defaultItemId);
+        }
+        ItemType itemType = ItemType.fromCode(fallbackItem.getItemType());
+        String itemName = fallbackItem.getItemName();
+        if (itemType != null) {
+            String shortName = itemName != null ? itemName.substring(0, Math.min(2, itemName.length())) : "";
+            String combined = itemType.getVal() + shortName;
+            if (!combined.isEmpty()) {
+                return combined;
+            }
+        }
+        if (itemName != null && !itemName.isEmpty()) {
+            return itemName;
+        }
+        return String.valueOf(defaultItemId);
     }
 
     private MeritCoinTransactionDetailVO.Detail buildScriptureDetail(MeritCoinTransaction tx) {
@@ -166,6 +186,35 @@ public class MeritCoinTransactionServiceImpl implements MeritCoinTransactionServ
             detail.setExtraInfo("");
         }
         return detail;
+    }
+
+    private enum ItemType {
+        AUTO_KNOCK("autoKnock", "自动敲击"),
+        MEDITATION("meditation", "冥想");
+
+        private final String code;
+        private final String val;
+
+        ItemType(String code, String val) {
+            this.code = code;
+            this.val = val;
+        }
+
+        public String getVal() {
+            return val;
+        }
+
+        public static ItemType fromCode(String code) {
+            if (code == null) {
+                return null;
+            }
+            for (ItemType type : values()) {
+                if (type.code.equalsIgnoreCase(code)) {
+                    return type;
+                }
+            }
+            return null;
+        }
     }
 
     private enum TransactionFilter {

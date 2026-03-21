@@ -7,12 +7,12 @@ import com.hsmy.service.RankingCalculationService;
 import com.hsmy.task.RankingScheduledTask;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * 排行榜管理接口
@@ -31,91 +31,8 @@ public class RankingAdminController {
     private final RankingCalculationService rankingCalculationService;
     private final RankingScheduledTask rankingScheduledTask;
 
-    /**
-     * 手动生成所有排行榜
-     */
-    @PostMapping("/generate/all")
-    public Result<Map<String, Integer>> generateAllRankings() {
-        log.info("管理员手动触发生成所有排行榜");
 
-        Date now = new Date();
-        Map<String, Integer> result = new HashMap<>();
 
-        try {
-            result.put("daily", rankingCalculationService.generateDailyRanking(now));
-            result.put("weekly", rankingCalculationService.generateWeeklyRanking(now));
-            result.put("monthly", rankingCalculationService.generateMonthlyRanking(now));
-            result.put("total", rankingCalculationService.generateTotalRanking(now));
-
-            return Result.success("排行榜生成成功", result);
-        } catch (Exception e) {
-            log.error("生成排行榜失败", e);
-            return Result.error("生成失败：" + e.getMessage());
-        }
-    }
-
-    /**
-     * 手动生成日榜
-     *
-     * @param date 指定日期（可选，默认今天）
-     */
-    @PostMapping("/generate/daily")
-    public Result<Integer> generateDailyRanking(
-            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date date) {
-
-        Date targetDate = date != null ? date : new Date();
-        log.info("管理员手动生成日榜，日期：{}", targetDate);
-
-        try {
-            int count = rankingCalculationService.generateDailyRanking(targetDate);
-            return Result.success("日榜生成成功，共 " + count + " 条记录", count);
-        } catch (Exception e) {
-            log.error("生成日榜失败", e);
-            return Result.error("生成失败：" + e.getMessage());
-        }
-    }
-
-    /**
-     * 手动生成周榜
-     *
-     * @param date 指定日期（可选，默认今天）
-     */
-    @PostMapping("/generate/weekly")
-    public Result<Integer> generateWeeklyRanking(
-            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date date) {
-
-        Date targetDate = date != null ? date : new Date();
-        log.info("管理员手动生成周榜，日期：{}", targetDate);
-
-        try {
-            int count = rankingCalculationService.generateWeeklyRanking(targetDate);
-            return Result.success("周榜生成成功，共 " + count + " 条记录", count);
-        } catch (Exception e) {
-            log.error("生成周榜失败", e);
-            return Result.error("生成失败：" + e.getMessage());
-        }
-    }
-
-    /**
-     * 手动生成月榜
-     *
-     * @param date 指定日期（可选，默认今天）
-     */
-    @PostMapping("/generate/monthly")
-    public Result<Integer> generateMonthlyRanking(
-            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date date) {
-
-        Date targetDate = date != null ? date : new Date();
-        log.info("管理员手动生成月榜，日期：{}", targetDate);
-
-        try {
-            int count = rankingCalculationService.generateMonthlyRanking(targetDate);
-            return Result.success("月榜生成成功，共 " + count + " 条记录", count);
-        } catch (Exception e) {
-            log.error("生成月榜失败", e);
-            return Result.error("生成失败：" + e.getMessage());
-        }
-    }
 
     /**
      * 手动生成总榜
@@ -154,19 +71,4 @@ public class RankingAdminController {
         }
     }
 
-    /**
-     * 触发定时任务立即执行
-     */
-    @PostMapping("/trigger")
-    public Result<String> triggerScheduledTask() {
-        log.info("管理员触发定时任务立即执行");
-
-        try {
-            rankingScheduledTask.executeAllRankingsNow();
-            return Result.success("定时任务触发成功");
-        } catch (Exception e) {
-            log.error("触发定时任务失败", e);
-            return Result.error("触发失败：" + e.getMessage());
-        }
-    }
 }

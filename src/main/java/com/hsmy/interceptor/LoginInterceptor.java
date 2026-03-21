@@ -16,6 +16,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Collections;
 
 /**
  * 登录拦截器
@@ -66,14 +67,19 @@ public class LoginInterceptor implements HandlerInterceptor {
         String requestPath = getRequestPath(request);
         
         // 检查是否在白名单中
-        if (authWhiteListProperties.getEnabled() && 
-            WhiteListUtil.isInWhiteList(requestPath, authWhiteListProperties.getPaths())) {
+        if (authWhiteListProperties.getEnabled() &&
+                WhiteListUtil.isInWhiteList(requestPath, authWhiteListProperties.getPaths())) {
             log.debug("白名单路径放行: {}", requestPath);
             return true;
         }
         
         // 获取token
         String token = getToken(request);
+
+        if (WhiteListUtil.isInWhiteList(requestPath, Collections.singletonList("/scripture/list")) && !StringUtils.hasText(token)) {
+            log.debug("加持库白名单路径放行: {}", requestPath);
+            return true;
+        }
         
         if (!StringUtils.hasText(token)) {
             log.warn("请求未携带token，请求路径: {}", requestPath);

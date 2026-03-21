@@ -49,6 +49,12 @@ public class WechatPayProperties {
      */
     private String privateKey;
 
+    private String publicKeyPath;
+
+    private String publicKey;
+
+    private String publicKeyId;
+
     /**
      * 支付结果回调地址
      */

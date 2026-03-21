@@ -8,11 +8,13 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.hsmy.dto.RegisterByCodeRequest;
 import com.hsmy.entity.DailyWishRecord;
 import com.hsmy.entity.User;
+import com.hsmy.entity.UserProfileChangeLog;
 import com.hsmy.entity.UserStats;
 import com.hsmy.enums.AccountType;
 import com.hsmy.exception.BusinessException;
 import com.hsmy.mapper.DailyWishRecordMapper;
 import com.hsmy.mapper.UserMapper;
+import com.hsmy.mapper.UserProfileChangeLogMapper;
 import com.hsmy.mapper.UserStatsMapper;
 import com.hsmy.service.UserService;
 import com.hsmy.service.UserSettingService;
@@ -30,6 +32,7 @@ import org.springframework.util.DigestUtils;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
 import java.util.Random;
@@ -47,6 +50,7 @@ public class UserServiceImpl implements UserService {
     private final UserMapper userMapper;
     private final UserStatsMapper userStatsMapper;
     private final DailyWishRecordMapper dailyWishRecordMapper;
+    private final UserProfileChangeLogMapper userProfileChangeLogMapper;
     private final VerificationCodeService verificationCodeService;
     private final UserSettingService userSettingService;
     
@@ -391,28 +395,45 @@ public class UserServiceImpl implements UserService {
     public Boolean updateAvatar(Long userId, String avatarUrl) {
         User user = userMapper.selectById(userId);
         if (user == null) {
-            throw new BusinessException("用户不存在");
+            throw new BusinessException("User not found");
         }
-        
+        String oldAvatar = user.getAvatarUrl();
+        if (oldAvatar != null && oldAvatar.equals(avatarUrl)) {
+            return true;
+        }
+        ensureProfileChangeAllowed(user, "CHANGE_AVATAR");
         user.setAvatarUrl(avatarUrl);
         user.setUpdateTime(new Date());
-        
-        return userMapper.updateById(user) > 0;
+        boolean updated = userMapper.updateById(user) > 0;
+        if (updated) {
+            insertProfileChangeLog(userId, "CHANGE_AVATAR", oldAvatar, avatarUrl, null);
+        }
+        return updated;
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Boolean updateNickname(Long userId, String nickname) {
         if (StrUtil.isBlank(nickname)) {
-            throw new BusinessException("昵称不能为空");
+            throw new BusinessException("Nickname cannot be empty");
         }
         User user = userMapper.selectById(userId);
         if (user == null) {
-            throw new BusinessException("用户不存在");
+            throw new BusinessException("User not found");
         }
-        user.setNickname(nickname.trim());
+        String newNickname = nickname.trim();
+        String oldNickname = user.getNickname();
+        if (oldNickname != null && oldNickname.equals(newNickname)) {
+            return true;
+        }
+        ensureProfileChangeAllowed(user, "CHANGE_NAME");
+        user.setNickname(newNickname);
         user.setUpdateTime(new Date());
-        return userMapper.updateById(user) > 0;
+        boolean updated = userMapper.updateById(user) > 0;
+        if (updated) {
+            insertProfileChangeLog(userId, "CHANGE_NAME", oldNickname, newNickname, null);
+        }
+        return updated;
     }
     
     /**
@@ -526,5 +547,49 @@ public class UserServiceImpl implements UserService {
         user.setUpdateTime(new Date());
         
         return userMapper.updateById(user) > 0;
+    }
+
+    private void ensureProfileChangeAllowed(User user, String changeType) {
+        if (user == null || user.getId() == null) {
+            return;
+        }
+        UserProfileChangeLog latest = userProfileChangeLogMapper.selectOne(
+                new LambdaQueryWrapper<UserProfileChangeLog>()
+                        .eq(UserProfileChangeLog::getUserId, user.getId())
+                        .eq(UserProfileChangeLog::getChangeType, changeType)
+                        .eq(UserProfileChangeLog::getIsDeleted, 0)
+                        .orderByDesc(UserProfileChangeLog::getCreateTime)
+                        .last("LIMIT 1")
+        );
+        if (latest == null || latest.getCreateTime() == null) {
+            return;
+        }
+        LocalDateTime lastTime = LocalDateTime.ofInstant(latest.getCreateTime().toInstant(), ZoneId.systemDefault());
+        LocalDateTime nextAllowed = isVipActive(user) ? lastTime.plusMonths(1) : lastTime.plusYears(1);
+        if (LocalDateTime.now().isBefore(nextAllowed)) {
+            if (isVipActive(user)) {
+                throw new BusinessException("VIP users can change profile once per month");
+            }
+            throw new BusinessException("Non-VIP users can change profile once per year");
+        }
+    }
+
+    private boolean isVipActive(User user) {
+        if (user == null || user.getVipLevel() == null || user.getVipLevel() <= 0) {
+            return false;
+        }
+        Date expireTime = user.getVipExpireTime();
+        return expireTime == null || expireTime.after(new Date());
+    }
+
+    private void insertProfileChangeLog(Long userId, String changeType, String oldValue, String newValue, String remark) {
+        UserProfileChangeLog log = new UserProfileChangeLog();
+        log.setId(IdGenerator.nextId());
+        log.setUserId(userId);
+        log.setChangeType(changeType);
+        log.setOldValue(oldValue);
+        log.setNewValue(newValue);
+        log.setRemark(remark);
+        userProfileChangeLogMapper.insert(log);
     }
 }

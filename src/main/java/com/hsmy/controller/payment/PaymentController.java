@@ -97,4 +97,13 @@ public class PaymentController {
         boolean terminal = paymentService.syncWechatOrder(orderNo);
         return Result.success(terminal);
     }
+
+    /**
+     * 查询订单支付状态（仅查本地记录）
+     */
+    @GetMapping("/wechat/order/{orderNo}/status")
+    public Result<Integer> getWechatOrderStatus(@PathVariable String orderNo) {
+        Integer status = paymentService.getPaymentStatus(orderNo);
+        return Result.success(status);
+    }
 }

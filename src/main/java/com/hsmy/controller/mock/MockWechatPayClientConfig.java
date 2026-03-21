@@ -1,21 +1,20 @@
 package com.hsmy.controller.mock;
 
 import com.hsmy.service.wechat.WechatPayClient;
+import com.wechat.pay.java.service.payments.jsapi.model.CloseOrderRequest;
 import com.wechat.pay.java.service.payments.jsapi.model.PrepayRequest;
 import com.wechat.pay.java.service.payments.jsapi.model.PrepayWithRequestPaymentResponse;
 import com.wechat.pay.java.service.payments.jsapi.model.QueryOrderByOutTradeNoRequest;
 import com.wechat.pay.java.service.payments.model.Transaction;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
-import org.springframework.context.annotation.Profile;
 
 /**
  * dev/test 环境使用的微信支付 Mock 客户端.
  */
-@Configuration
-@Profile({"dev", "test"})
+//@Configuration
+//@Profile({"dev", "test"})
 @Slf4j
 public class MockWechatPayClientConfig {
 
@@ -46,7 +45,11 @@ public class MockWechatPayClientConfig {
                 transaction.setSuccessTime(java.time.OffsetDateTime.now().toString());
                 return transaction;
             }
+
+            @Override
+            public void closeOrder(CloseOrderRequest request) {
+                log.info("[MOCK] 关闭订单 orderNo={}", request.getOutTradeNo());
+            }
         };
     }
 }
-
