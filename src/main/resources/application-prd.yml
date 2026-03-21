@@ -82,6 +82,12 @@ wechatpay:
   private-key-path: ${WECHATPAY_PRIVATE_KEY_PATH:}
   notify-url: ${WECHATPAY_NOTIFY_URL:https://api.hsmy.com/api/v1.0/payment/wechat/notify}
   description: ${WECHATPAY_DESCRIPTION:功德充值}
+  virtual:
+    enabled: ${WECHATPAY_VIRTUAL_ENABLED:false}
+    offer-id: ${WECHATPAY_VIRTUAL_OFFER_ID:}
+    app-key: ${WECHATPAY_VIRTUAL_APP_KEY:}
+    env: ${WECHATPAY_VIRTUAL_ENV:0}
+    notify-url: ${WECHATPAY_VIRTUAL_NOTIFY_URL:https://api.hsmy.com/api/v1.0/virtual-pay/notify}
 
 wechat:
   mini:

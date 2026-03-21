@@ -37,6 +37,14 @@ public interface RechargeOrderMapper extends BaseMapper<RechargeOrder> {
     RechargeOrder selectByOrderNo(@Param("orderNo") String orderNo);
 
     /**
+     * 根据订单号查询订单并加行锁
+     *
+     * @param orderNo 订单号
+     * @return 订单
+     */
+    RechargeOrder selectByOrderNoForUpdate(@Param("orderNo") String orderNo);
+
+    /**
      * 查询待补偿的订单列表
      *
      * @param statusList  待查询的状态集合
@@ -47,4 +55,34 @@ public interface RechargeOrderMapper extends BaseMapper<RechargeOrder> {
     List<RechargeOrder> selectPendingOrders(@Param("statusList") List<Integer> statusList,
                                             @Param("beforeTime") Date beforeTime,
                                             @Param("limit") int limit);
+
+    /**
+     * 更新通知信息
+     *
+     * @param orderNo 订单号
+     * @param notifyPayload 通知原文
+     * @return 影响行数
+     */
+    int updateNotifyInfoByOrderNo(@Param("orderNo") String orderNo,
+                                  @Param("notifyPayload") String notifyPayload);
+
+    /**
+     * 标记订单已到账
+     *
+     * @param orderNo 订单号
+     * @param deliveredTime 到账时间
+     * @return 影响行数
+     */
+    int markDelivered(@Param("orderNo") String orderNo,
+                      @Param("deliveredTime") Date deliveredTime);
+
+    /**
+     * 查询用户充值订单
+     *
+     * @param userId 用户ID
+     * @param paymentMethod 支付方式
+     * @return 订单集合
+     */
+    List<RechargeOrder> selectUserRechargeOrders(@Param("userId") Long userId,
+                                                 @Param("paymentMethod") String paymentMethod);
 }

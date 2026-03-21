@@ -5,15 +5,21 @@
     <resultMap id="BaseResultMap" type="com.hsmy.entity.RechargeOrder">
         <id column="id" property="id"/>
         <result column="order_no" property="orderNo"/>
+        <result column="package_id" property="packageId"/>
         <result column="user_id" property="userId"/>
         <result column="amount" property="amount"/>
         <result column="merit_coins" property="meritCoins"/>
         <result column="bonus_coins" property="bonusCoins"/>
         <result column="payment_method" property="paymentMethod"/>
         <result column="payment_status" property="paymentStatus"/>
+        <result column="delivered" property="delivered"/>
+        <result column="delivered_time" property="deliveredTime"/>
         <result column="payment_time" property="paymentTime"/>
         <result column="transaction_id" property="transactionId"/>
         <result column="remark" property="remark"/>
+        <result column="attach" property="attach"/>
+        <result column="notify_payload" property="notifyPayload"/>
+        <result column="notify_time" property="notifyTime"/>
         <result column="create_by" property="createBy"/>
         <result column="create_time" property="createTime"/>
         <result column="update_by" property="updateBy"/>
@@ -22,9 +28,9 @@
     </resultMap>
 
     <sql id="Base_Column_List">
-        id, order_no, user_id, amount, merit_coins, bonus_coins,
-        payment_method, payment_status, payment_time, transaction_id,
-        remark, create_by, create_time, update_by, update_time, is_deleted
+        id, order_no, package_id, user_id, amount, merit_coins, bonus_coins,
+        payment_method, payment_status, delivered, delivered_time, payment_time, transaction_id,
+        remark, attach, notify_payload, notify_time, create_by, create_time, update_by, update_time, is_deleted
     </sql>
 
     <update id="updatePaymentStatusByOrderNo">
@@ -66,6 +72,53 @@
           AND create_time &lt;= #{beforeTime}
         ORDER BY create_time ASC
         LIMIT #{limit}
+    </select>
+
+    <select id="selectByOrderNoForUpdate" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM t_recharge_order
+        WHERE order_no = #{orderNo}
+          AND is_deleted = 0
+        LIMIT 1
+        FOR UPDATE
+    </select>
+
+    <update id="updateNotifyInfoByOrderNo">
+        UPDATE t_recharge_order
+        <set>
+            <if test="notifyPayload != null">
+                notify_payload = #{notifyPayload},
+            </if>
+            notify_time = NOW(),
+            update_by = 'system',
+            update_time = NOW()
+        </set>
+        WHERE order_no = #{orderNo}
+          AND is_deleted = 0
+    </update>
+
+    <update id="markDelivered">
+        UPDATE t_recharge_order
+        SET delivered = 1,
+            delivered_time = #{deliveredTime},
+            update_by = 'system',
+            update_time = NOW()
+        WHERE order_no = #{orderNo}
+          AND delivered = 0
+          AND is_deleted = 0
+    </update>
+
+    <select id="selectUserRechargeOrders" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM t_recharge_order
+        WHERE user_id = #{userId}
+          AND is_deleted = 0
+          <if test="paymentMethod != null and paymentMethod != ''">
+              AND payment_method = #{paymentMethod}
+          </if>
+        ORDER BY create_time DESC
     </select>
 
 </mapper>

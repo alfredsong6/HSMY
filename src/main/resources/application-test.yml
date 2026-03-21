@@ -51,8 +51,14 @@ wechatpay:
   mch-id: 123
   serial-no: abc123
   api-v3-key: 123
-  notify-url: 'http://localhost:8080/api/v1.0/payment/wechat/notify'
+  notify-url: 'https://www.hntuobo.com/hsmy/api/payment/wechat/notify'
   description: '功德充值'
+  virtual:
+    enabled: true
+    offer-id: 1450488421
+    app-key: IrGwKLLkI0oJibcHMT7Yj0lbdbKqdQZ5
+    env: 1
+    notify-url: 'https://www.hntuobo.com/hsmy/api/virtual-pay/notify'
 
 wechat:
   mini:

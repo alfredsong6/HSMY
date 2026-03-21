@@ -25,6 +25,11 @@ public class RechargeOrder extends BaseEntity {
      * 订单号
      */
     private String orderNo;
+
+    /**
+     * 虚拟支付档位ID
+     */
+    private String packageId;
     
     /**
      * 用户ID
@@ -55,6 +60,16 @@ public class RechargeOrder extends BaseEntity {
      * 支付状态：0-待支付，1-支付成功，2-支付失败，3-已退款
      */
     private Integer paymentStatus;
+
+    /**
+     * 是否已发币：0-否，1-是
+     */
+    private Integer delivered;
+
+    /**
+     * 发币完成时间
+     */
+    private Date deliveredTime;
     
     /**
      * 支付时间
@@ -70,4 +85,19 @@ public class RechargeOrder extends BaseEntity {
      * 备注
      */
     private String remark;
+
+    /**
+     * 业务透传信息
+     */
+    private String attach;
+
+    /**
+     * 最近一次支付通知原文
+     */
+    private String notifyPayload;
+
+    /**
+     * 最近一次通知时间
+     */
+    private Date notifyTime;
 }

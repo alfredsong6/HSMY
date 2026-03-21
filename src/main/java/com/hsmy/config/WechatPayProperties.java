@@ -63,4 +63,38 @@ public class WechatPayProperties {
      * 交易币种，默认人民币
      */
     private String currency = "CNY";
+
+    /**
+     * 微信虚拟支付配置
+     */
+    private VirtualPay virtual = new VirtualPay();
+
+    @Data
+    public static class VirtualPay {
+
+        /**
+         * 是否启用虚拟支付
+         */
+        private boolean enabled = false;
+
+        /**
+         * 虚拟支付 offerId
+         */
+        private String offerId;
+
+        /**
+         * 环境：0-正式，1-沙箱
+         */
+        private Integer env = 1;
+
+        /**
+         * 微信虚拟支付 appKey
+         */
+        private String appKey;
+
+        /**
+         * 虚拟支付通知地址
+         */
+        private String notifyUrl;
+    }
 }

@@ -53,6 +53,12 @@ wechatpay:
   api-v3-key: 123
   notify-url: 'http://localhost:8080/api/v1.0/payment/wechat/notify'
   description: '功德充值'
+  virtual:
+    enabled: true
+    offer-id: offer_dev
+    app-key: dev-app-key
+    env: 1
+    notify-url: 'http://localhost:8080/api/v1.0/virtual-pay/notify'
 
 wechat:
   mini:
