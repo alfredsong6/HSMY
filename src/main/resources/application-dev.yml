@@ -58,8 +58,8 @@ wechatpay:
   public-key-id: PUB_KEY_ID_0111057042322026012800191909000206
   virtual:
     enabled: true
-    offer-id: offer_dev
-    app-key: dev-app-key
+    offer-id: 1450488421
+    app-key: 3aC7OY6W1cRIkKUftath42AyfCE2S3QN
     env: 1
     notify-url: 'http://localhost:8080/api/v1.0/virtual-pay/notify'
 

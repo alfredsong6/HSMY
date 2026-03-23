@@ -134,7 +134,7 @@ public class PaymentServiceImpl implements PaymentService {
             cachePrepay(cacheKey, vo);
             return vo;
         } catch (BusinessException e) {
-            log.error("微信预下单失败，orderNo={}, message={}", orderNo, e.getMessage());
+            log.error("微信预下单失败，orderNo={}", orderNo, e);
             throw new BusinessException("微信预下单失败");
         } catch (ServiceException e) {
             log.warn("微信预下单发生错误，orderNo={}", orderNo, e);

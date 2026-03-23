@@ -21,22 +21,24 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.time.Duration;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
- * 微信小程序认证实现.
+ * 微信小程序认证实现。
  */
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class WechatMiniAuthServiceImpl implements WechatMiniAuthService {
 
+    private static final String ACCESS_TOKEN_CACHE_KEY_PREFIX = "hsmy:wechat:mini:access_token:";
+
     private final WechatMiniProperties properties;
     private final StringRedisTemplate stringRedisTemplate;
     private final RestTemplateBuilder restTemplateBuilder;
     private final ObjectMapper objectMapper = new ObjectMapper();
-
-    private static final String ACCESS_TOKEN_CACHE_KEY = "hsmy:wechat:mini:access_token";
 
     @Override
     public WechatSessionInfo code2Session(String appId, String jsCode) {
@@ -44,6 +46,7 @@ public class WechatMiniAuthServiceImpl implements WechatMiniAuthService {
         if (!StringUtils.hasText(resolvedAppId) || !StringUtils.hasText(properties.getSecret())) {
             throw new BusinessException("微信小程序配置缺失");
         }
+
         String url = UriComponentsBuilder
                 .fromHttpUrl("https://api.weixin.qq.com/sns/jscode2session")
                 .queryParam("appid", resolvedAppId)
@@ -70,11 +73,12 @@ public class WechatMiniAuthServiceImpl implements WechatMiniAuthService {
     @Override
     public WechatPhoneInfo getPhoneNumber(String phoneCode, String sessionKey) {
         if (!StringUtils.hasText(sessionKey)) {
-            throw new BusinessException("sessionKey缺失，请先调用code2session");
+            throw new BusinessException("sessionKey 缺失，请先调用 code2Session");
         }
         if (!StringUtils.hasText(phoneCode)) {
-            throw new BusinessException("phoneCode不能为空");
+            throw new BusinessException("phoneCode 不能为空");
         }
+
         String accessToken = getAccessToken();
         String url = UriComponentsBuilder
                 .fromHttpUrl("https://api.weixin.qq.com/wxa/business/getuserphonenumber")
@@ -109,28 +113,43 @@ public class WechatMiniAuthServiceImpl implements WechatMiniAuthService {
 
     @Override
     public String getAccessToken() {
-        String cached = stringRedisTemplate.opsForValue().get(ACCESS_TOKEN_CACHE_KEY);
+        String appId = properties.getAppId();
+        String secret = properties.getSecret();
+        if (!StringUtils.hasText(appId) || !StringUtils.hasText(secret)) {
+            throw new BusinessException("微信小程序配置缺失");
+        }
+
+        String cacheKey = ACCESS_TOKEN_CACHE_KEY_PREFIX + appId;
+        String cached = stringRedisTemplate.opsForValue().get(cacheKey);
         if (StringUtils.hasText(cached)) {
             return cached;
         }
 
-        String url = UriComponentsBuilder
-                .fromHttpUrl("https://api.weixin.qq.com/cgi-bin/token")
-                .queryParam("grant_type", "client_credential")
-                .queryParam("appid", properties.getAppId())
-                .queryParam("secret", properties.getSecret())
-                .toUriString();
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
 
-        String body = getRestTemplate().getForObject(url, String.class);
-        JsonNode resp = parseJson(body, "getAccessToken");
-        checkWechatError(resp, "getAccessToken");
+        Map<String, Object> requestBody = new HashMap<>();
+        requestBody.put("grant_type", "client_credential");
+        requestBody.put("appid", appId);
+        requestBody.put("secret", secret);
+        requestBody.put("force_refresh", false);
+
+        ResponseEntity<String> response = getRestTemplate().postForEntity(
+                "https://api.weixin.qq.com/cgi-bin/stable_token",
+                new HttpEntity<>(requestBody, headers),
+                String.class
+        );
+        JsonNode resp = parseJson(response.getBody(), "getStableAccessToken");
+        checkWechatError(resp, "getStableAccessToken");
 
         String token = resp.path("access_token").asText(null);
         int expiresIn = resp.path("expires_in").asInt(7000);
         if (!StringUtils.hasText(token)) {
-            throw new BusinessException("获取微信access_token失败");
+            throw new BusinessException("获取微信 access_token 失败");
         }
-        stringRedisTemplate.opsForValue().set(ACCESS_TOKEN_CACHE_KEY, token, expiresIn - 200, TimeUnit.SECONDS);
+
+        long cacheSeconds = Math.max(expiresIn - 200L, 60L);
+        stringRedisTemplate.opsForValue().set(cacheKey, token, cacheSeconds, TimeUnit.SECONDS);
         return token;
     }
 
@@ -138,6 +157,7 @@ public class WechatMiniAuthServiceImpl implements WechatMiniAuthService {
         if (resp == null) {
             throw new BusinessException("微信接口异常: " + api);
         }
+
         int errCode = resp.path("errcode").asInt(0);
         if (errCode != 0) {
             String errMsg = resp.path("errmsg").asText("unknown error");

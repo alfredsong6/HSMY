@@ -23,8 +23,7 @@ public class WechatUrlSchemeController {
 
     private static final long ALLOW_TIME_DIFF_MILLIS = 5000L;
 
-    private static final String ACCESS_TOKEN_URL =
-            "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid={appid}&secret={secret}";
+    private static final String ACCESS_TOKEN_URL = "https://api.weixin.qq.com/cgi-bin/stable_token";
 
     private static final String GENERATE_SCHEME_URL =
             "https://api.weixin.qq.com/wxa/generatescheme?access_token={accessToken}";
@@ -127,11 +126,19 @@ public class WechatUrlSchemeController {
     }
 
     private String getAccessToken() throws Exception {
-        ResponseEntity<String> response = restTemplate.getForEntity(
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        Map<String, Object> body = new HashMap<String, Object>();
+        body.put("grant_type", "client_credential");
+        body.put("appid", wechatProperties.getAppId());
+        body.put("secret", wechatProperties.getSecret());
+        body.put("force_refresh", false);
+
+        ResponseEntity<String> response = restTemplate.postForEntity(
                 ACCESS_TOKEN_URL,
-                String.class,
-                wechatProperties.getAppId(),
-                wechatProperties.getSecret()
+                new HttpEntity<Map<String, Object>>(body, headers),
+                String.class
         );
 
         if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {

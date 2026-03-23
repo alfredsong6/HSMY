@@ -175,7 +175,9 @@ public class UserServiceImpl implements UserService {
         List<DailyWishRecord> todayRecords = dailyWishRecordMapper.selectByUserIdAndTimeRange(userId, startOfToday, endOfToday);
         userVO.setDailyWishCompleted(todayRecords != null && !todayRecords.isEmpty());
         DailyWishRecord dailyWishRecord = dailyWishRecordMapper.selectLatestByUserId(userId);
-        userVO.setLastestDailyWish(dailyWishRecord.getWishContent());
+        if (dailyWishRecord != null) {
+            userVO.setLastestDailyWish(dailyWishRecord.getWishContent());
+        }
 
         return userVO;
     }

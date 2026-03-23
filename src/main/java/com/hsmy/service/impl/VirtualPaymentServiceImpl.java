@@ -4,29 +4,24 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hsmy.config.WechatPayProperties;
-import com.hsmy.domain.auth.AuthIdentity;
 import com.hsmy.domain.activity.ActivityDomain;
 import com.hsmy.domain.activity.ActivityRule;
+import com.hsmy.domain.auth.AuthIdentity;
 import com.hsmy.dto.VirtualPayCreateOrderRequest;
 import com.hsmy.entity.RechargeOrder;
 import com.hsmy.entity.UserStats;
 import com.hsmy.entity.meditation.MeritCoinTransaction;
+import com.hsmy.enums.AuthProvider;
 import com.hsmy.enums.MeritBizType;
 import com.hsmy.exception.BusinessException;
 import com.hsmy.mapper.ActivityMapper;
 import com.hsmy.mapper.RechargeOrderMapper;
 import com.hsmy.mapper.UserStatsMapper;
 import com.hsmy.mapper.meditation.MeritCoinTransactionMapper;
-import com.hsmy.enums.AuthProvider;
-import com.hsmy.service.VirtualPaymentService;
 import com.hsmy.service.AuthIdentityService;
+import com.hsmy.service.VirtualPaymentService;
 import com.hsmy.utils.IdGenerator;
-import com.hsmy.vo.VirtualPayBalanceVO;
-import com.hsmy.vo.VirtualPayCreateOrderVO;
-import com.hsmy.vo.VirtualPayOrderStatusVO;
-import com.hsmy.vo.VirtualPayPackageVO;
-import com.hsmy.vo.VirtualPayRecordVO;
-import com.hsmy.vo.VirtualPaySignDataVO;
+import com.hsmy.vo.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -37,17 +32,8 @@ import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
 import java.time.OffsetDateTime;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.Collections;
-import java.util.Date;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * 微信虚拟支付服务实现.
@@ -61,7 +47,7 @@ public class VirtualPaymentServiceImpl implements VirtualPaymentService {
     private static final String PAYMENT_METHOD_WECHAT_VIRTUAL = "wechat_virtual";
     private static final String MODE_SHORT_SERIES_COIN = "short_series_coin";
     private static final String CURRENCY_TYPE = "CNY";
-    private static final String PAY_METHOD_NAME = "requestMidasPaymentGameItem";
+    private static final String PAY_METHOD_NAME = "requestVirtualPayment";
     private static final int STATUS_PENDING = 0;
     private static final int STATUS_SUCCESS = 1;
     private static final int STATUS_FAILED = 2;
@@ -160,13 +146,13 @@ public class VirtualPaymentServiceImpl implements VirtualPaymentService {
 
         if (!notifyPayload.isSuccess()) {
             rechargeOrderMapper.updatePaymentStatusByOrderNo(order.getOrderNo(), STATUS_FAILED,
-                    notifyPayload.getTransactionId(), notifyPayload.getPaymentTime());
+                    notifyPayload.getTransactionId(), notifyPayload.getPaymentTime(), null);
             return;
         }
 
         if (!Objects.equals(order.getPaymentStatus(), STATUS_SUCCESS)) {
             rechargeOrderMapper.updatePaymentStatusByOrderNo(order.getOrderNo(), STATUS_SUCCESS,
-                    notifyPayload.getTransactionId(), notifyPayload.getPaymentTime());
+                    notifyPayload.getTransactionId(), notifyPayload.getPaymentTime(), null);
             order.setPaymentStatus(STATUS_SUCCESS);
             order.setTransactionId(notifyPayload.getTransactionId());
             order.setPaymentTime(notifyPayload.getPaymentTime());

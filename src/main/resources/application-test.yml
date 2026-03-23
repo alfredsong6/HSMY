@@ -59,7 +59,7 @@ wechatpay:
     enabled: true
     offer-id: 1450488421
     app-key: IrGwKLLkI0oJibcHMT7Yj0lbdbKqdQZ5
-    env: 1
+    env: 0
     notify-url: 'https://www.hntuobo.com/hsmy/api/virtual-pay/notify'
 
 
