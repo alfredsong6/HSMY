@@ -1,0 +1,29 @@
+query_user_balance
+地址
+https://api.weixin.qq.com/xpay/query_user_balance?access_token=xxx&pay_sig=xxx
+
+描述
+查询用户代币余额
+
+请求方法
+POST ， 请求参数为json字符串，Content-Type为application/json
+
+请求参数
+字段	类型	说明
+openid	string	用户的openid
+env	int	0-正式环境 1-沙箱环境
+user_ip	string	用户ip，例如:1.1.1.1
+返回参数
+字段	类型	说明
+errcode	int	错误码
+errmsg	string	错误信息
+balance	int	代币总余额，包括有价和赠送部分
+present_balance	int	赠送账户的代币余额
+sum_save	int	累计有价货币充值数量
+sum_present	int	累计赠送无价货币数量
+sum_balance	int	历史总增加的代币金额
+sum_cost	int	历史总消耗代币金额
+first_save_flag	bool	是否满足首充活动标记。0:不满足。1:满足
+备注
+需要用户态签名与支付签名
+currency_pay

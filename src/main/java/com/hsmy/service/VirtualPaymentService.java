@@ -21,8 +21,13 @@ public interface VirtualPaymentService {
 
     void handleNotify(String body, Map<String, String> headers);
 
+    boolean syncWechatOrder(String orderNo);
+
     VirtualPayOrderStatusVO queryOrderStatus(Long userId, String outTradeNo);
 
+    /**
+     * Returns both the local balance and the latest WeChat balance.
+     */
     VirtualPayBalanceVO queryBalance(Long userId);
 
     List<VirtualPayRecordVO> listOrders(Long userId);

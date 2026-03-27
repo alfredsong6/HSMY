@@ -10,4 +10,9 @@ public class VirtualPayBalanceVO {
 
     private Long userId;
     private Long balance;
+
+    /**
+     * Latest balance returned by WeChat virtual payment API.
+     */
+    private Long wechatBalance;
 }

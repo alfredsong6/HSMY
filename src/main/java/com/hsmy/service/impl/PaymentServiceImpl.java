@@ -14,6 +14,7 @@ import com.hsmy.mapper.ActivityMapper;
 import com.hsmy.mapper.RechargeOrderMapper;
 import com.hsmy.service.AuthIdentityService;
 import com.hsmy.service.PaymentService;
+import com.hsmy.service.VirtualPaymentService;
 import com.hsmy.service.wechat.WechatPayClient;
 import com.hsmy.utils.IdGenerator;
 import com.hsmy.vo.WechatPayPrepayVO;
@@ -55,6 +56,7 @@ import java.util.concurrent.TimeUnit;
 public class PaymentServiceImpl implements PaymentService {
 
     private static final String PAYMENT_METHOD_WECHAT = "wechat";
+    private static final String PAYMENT_METHOD_WECHAT_VIRTUAL = "wechat_virtual";
     private static final DateTimeFormatter ORDER_DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
     private static final AuthProvider PROVIDER_WECHAT_MINI = AuthProvider.WECHAT_MINI;
     private static final String INVALID_PRODUCT_MESSAGE = "商品信息已失效，请重新刷新页面";
@@ -71,6 +73,7 @@ public class PaymentServiceImpl implements PaymentService {
     private final ObjectProvider<com.wechat.pay.java.service.payments.jsapi.JsapiServiceExtension> jsapiServiceProvider;
     private final ObjectProvider<NotificationParser> notificationParserProvider;
     private final AuthIdentityService authIdentityService;
+    private final VirtualPaymentService virtualPaymentService;
     private final PaymentOrderProcessor paymentOrderProcessor;
     private final WechatPayNotificationAsyncService wechatPayNotificationAsyncService;
     private final RedisTemplate<String, Object> redisTemplate;
@@ -188,6 +191,9 @@ public class PaymentServiceImpl implements PaymentService {
             log.warn("未找到订单，无法同步，orderNo={}", orderNo);
             return false;
         }
+        if (isVirtualWechatOrder(order)) {
+            return virtualPaymentService.syncWechatOrder(orderNo);
+        }
         if (!Objects.equals(order.getPaymentStatus(), PaymentStatusEnum.PENDING.getCode())) {
             log.debug("订单 {} 已处于终态，当前状态 {}", orderNo, order.getPaymentStatus());
             return true;
@@ -224,6 +230,10 @@ public class PaymentServiceImpl implements PaymentService {
             log.error("主动同步订单 {} 失败", orderNo, e);
             return false;
         }
+    }
+
+    private boolean isVirtualWechatOrder(RechargeOrder order) {
+        return order != null && PAYMENT_METHOD_WECHAT_VIRTUAL.equalsIgnoreCase(order.getPaymentMethod());
     }
 
     @Override

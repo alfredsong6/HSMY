@@ -1,0 +1,163 @@
+query_order
+地址
+https://api.weixin.qq.com/xpay/query_order?access_token=xxx&pay_sig=xxx
+
+描述
+查询创建的订单（现金单，非代币单）
+
+请求方法
+POST ， 请求参数为json字符串，Content-Type为application/json
+
+请求参数
+字段	类型	说明
+openid	string	用户的openid
+env	int	0-正式环境 1-沙箱环境
+order_id	string	创建的订单号
+wx_order_id	string	微信内部单号(与order_id二选一)
+返回参数
+字段	类型	说明
+errcode	int	错误码
+errmsg	string	错误信息
+order	object	订单信息
+其中order的内容如下：
+
+字段	类型	说明
+order_id	string	订单号
+create_time	int	创建时间
+update_time	int	更新时间
+status	int	当前状态 0-订单初始化（未创建成功，不可用于支付）1-订单创建成功 2-订单已经支付，待发货 3-订单发货中 4-订单已发货 5-订单已经退款 6-订单已经关闭（不可再使用） 7-订单退款失败 8-用户退款完成 9-回收广告金完成 10-分账回退完成
+biz_type	int	业务类型0-短剧
+order_fee	int	订单金额，单位分
+coupon_fee	int	订单优惠金额，单位分(暂无此字段)
+paid_fee	int	用户支付金额
+order_type	int	订单类型 0-普通虚拟支付 1-普通退款 7-苹果iOS支付 8-苹果iOS退款
+refund_fee	int	当类型为退款单时表示退款金额，单位分
+paid_time	int	支付/退款时间，unix秒级时间戳
+provide_time	int	发货时间
+biz_meta	string	订单创建时传的信息
+env_type	int	环境类型1-现网 2-沙箱
+token	string	下单时米大师返回的token
+left_fee	int	支付单类型时表示此单经过退款还剩余的金额，单位分
+wx_order_id	string	微信内部单号
+channel_order_id	string	渠道单号，为用户微信支付详情页面上的商户单号
+wxpay_order_id	string	微信支付交易单号，为用户微信支付详情页面上的交易单号
+sett_time	int	结算时间的秒级时间戳，大于0表示结算成功
+sett_state	int	结算状态0-未开始结算 1-结算中 2-结算成功 3-待结算（与0相同）
+platform_fee_fen	int	虚拟支付技术服务费，单位为分；sett_state = 2时返回
+cps_fee_fen	int	公众号、视频号平台的cps服务费，单位为分；sett_state = 2时返回
+
+
+补充：
+2.3.服务器API
+用户态签名
+签名参数为signature，加在query后面，例如接口地址是：https://api.weixin.qq.com/xpay/query_user_balance?access_token=xxxx，加上签名后则需要传https://api.weixin.qq.com/xpay/query_user_balance?access_token=xxxx&signature=xxx
+
+支付签名
+签名参数为pay_sig，加在query后面，例如接口地址是：https://api.weixin.qq.com/xpay/query_user_balance?access_token=xxxx，加上签名后则需要传https://api.weixin.qq.com/xpay/query_user_balance?access_token=xxxx&pay_sig=xxx
+
+错误码
+错误码	描述
+-1	系统错误
+268490001	openid错误
+268490002	请求参数字段错误，具体看errmsg
+268490003	签名错误
+268490004	重复操作（赠送和代币支付和充值广告金相关接口会返回，表示之前的操作已经成功）
+268490005	订单已经通过cancel_currency_pay接口退款，不支持再退款
+268490006	代币的退款/支付操作金额不足
+268490007	图片或文字存在敏感内容，禁止使用
+268490008	代币未发布，不允许进行代币操作
+268490009	用户session_key不存在或已过期，请重新登录
+268490011	数据生成中，请稍后调用本接口获取
+268490012	批量任务运行中，请等待完成后才能再次运行
+268490013	禁止对核销状态的单进行退款
+268490014	退款操作进行中，稍后可以使用相同参数重试
+268490015	频率限制
+268490016	退款的left_fee字段与实际不符，请通过query_order接口查询确认
+268490018	广告金充值帐户行业 id 不匹配
+268490019	广告金充值帐户 id已绑定其他 appid
+268490020	广告金充值帐户主体名称错误
+268490021	账户未完成进件
+268490022	广告金充值账户无效
+268490023	广告金余额不足
+268490024	广告金充值金额必须大于 0
+
+
+参考的python脚本
+以调用query_user_balance接口为例，签名计算如下：
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+""" pay_sig签名算法计算示例 """
+
+import hmac
+import hashlib
+import json
+import time
+
+def calc_pay_sig(uri, post_body, appkey):
+    """ pay_sig签名算法
+      Args:
+     uri - 当前请求的API的uri部分，不带query_string 例如：/xpay/query_user_balance
+          post_body - http POST的数据包体
+          appkey    - 对应环境的AppKey
+      Returns:
+          支付请求签名pay_sig
+    """
+    need_sign_msg = uri + '&' + post_body
+    pay_sig = hmac.new(key = appkey.encode('utf-8'), msg = need_sign_msg.encode('utf-8'),
+                       digestmod=hashlib.sha256).hexdigest()
+    return pay_sig
+
+def calc_signature(post_body, session_key):
+    """ 用户登录态signature签名算法
+      Args:
+          post_body   - http POST的数据包体
+          session_key - 当前用户有效的session_key，参考auth.code2Session接口
+      Returns:
+          用户登录态签名signature
+    """
+    need_sign_msg = post_body
+    signature = hmac.new(key = session_key.encode('utf-8'), msg = need_sign_msg.encode('utf-8'),
+                       digestmod=hashlib.sha256).hexdigest()
+    return signature
+
+# uri，切记不可带参数，即去掉"?"及后面的部分
+# 如果是基础库的wx.requestVirtualPayment，uri固定为requestVirtualPayment
+uri = '/xpay/query_user_balance'
+
+# 此处appkey为假设值，实际使用应根据支付环境(env参数)替换为对应的AppKey
+appkey = "12345"
+
+# 注意：JSON数据序列化结果，不同语言/版本结果可能不同
+# 所以示例为了保证稳定性，直接用其中一个序列化的版本
+# 实际使用时只需要保证，参与签名的post_body和真正发起http请求的一致即可
+"""
+# 不同接口要求的Post Body参数不一样，此处以query_user_balance接口为例(和uri对应）
+post_body = json.dumps({
+    "openid": "xxx",
+    "user_ip": "127.0.0.1",
+    "env": 0
+})
+"""
+post_body = '{"openid": "xxx", "user_ip": "127.0.0.1", "env": 0}'
+
+# step1. pay_sig签名计算（支付请求签名算法）
+pay_sig = calc_pay_sig(uri, post_body, appkey)
+print("pay_sig:", pay_sig)
+
+# 若实际请求返回pay_sig签名不对，根据以下步骤排查：
+# 1. 确认算法：uri、post_body、appkey写死以上参数，确保你的签名算法和示例calc_pay_sig结果完全一致
+# 2. 确认参数：
+#    - uri不可带参数（即"?"及后续部分全部舍去）
+#    - post_body必须和真正发起HTTP请求的post body完全一致
+#    - appkey必须是与请求中对应的环境匹配（env参数决定）
+assert pay_sig == "c37809f27c6d7fd1837ad2500a04512b66b34fd793a39a385fade56dca89a4b5"
+
+# step2. signature签名计算（用户登录态签名算法）
+# session_key需要为当前用户有效session_key（参考auth.code2Session接口获取）
+# 此处写死方便复现算法
+session_key = "9hAb/NEYUlkaMBEsmFgzig=="
+signature = calc_signature(post_body, session_key)
+print("signature:", signature)
+
+# 若实际请求返回signature签名不对，参考随后的"90010-signature签名错误问题排查思路"进行排查
+assert signature == "089d9e8dc5d308977360c4b79ec600a93d736802802a807d634192328032f6c7"

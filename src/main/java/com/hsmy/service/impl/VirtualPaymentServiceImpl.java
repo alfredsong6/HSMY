@@ -13,6 +13,7 @@ import com.hsmy.entity.UserStats;
 import com.hsmy.entity.meditation.MeritCoinTransaction;
 import com.hsmy.enums.AuthProvider;
 import com.hsmy.enums.MeritBizType;
+import com.hsmy.enums.PaymentStatusEnum;
 import com.hsmy.exception.BusinessException;
 import com.hsmy.mapper.ActivityMapper;
 import com.hsmy.mapper.RechargeOrderMapper;
@@ -20,13 +21,21 @@ import com.hsmy.mapper.UserStatsMapper;
 import com.hsmy.mapper.meditation.MeritCoinTransactionMapper;
 import com.hsmy.service.AuthIdentityService;
 import com.hsmy.service.VirtualPaymentService;
+import com.hsmy.service.wechat.WechatMiniAuthService;
 import com.hsmy.utils.IdGenerator;
 import com.hsmy.vo.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -48,10 +57,16 @@ public class VirtualPaymentServiceImpl implements VirtualPaymentService {
     private static final String MODE_SHORT_SERIES_COIN = "short_series_coin";
     private static final String CURRENCY_TYPE = "CNY";
     private static final String PAY_METHOD_NAME = "requestVirtualPayment";
-    private static final int STATUS_PENDING = 0;
-    private static final int STATUS_SUCCESS = 1;
-    private static final int STATUS_FAILED = 2;
-    private static final int STATUS_CLOSED = 3;
+    private static final String QUERY_ORDER_SIGN_URI = "/xpay/query_order";
+    private static final String QUERY_ORDER_URL = "https://api.weixin.qq.com/xpay/query_order";
+    private static final String QUERY_BALANCE_SIGN_URI = "/xpay/query_user_balance";
+    private static final String QUERY_BALANCE_URL = "https://api.weixin.qq.com/xpay/query_user_balance";
+    private static final String DEFAULT_USER_IP = "127.0.0.1";
+    private static final int STATUS_PENDING = PaymentStatusEnum.PENDING.getCode();
+    private static final int STATUS_SUCCESS = PaymentStatusEnum.SUCCESS.getCode();
+    private static final int STATUS_FAILED = PaymentStatusEnum.FAILED.getCode();
+    private static final int STATUS_REFUND = PaymentStatusEnum.REFUND.getCode();
+    private static final int STATUS_CLOSED = PaymentStatusEnum.CLOSED.getCode();
     private static final int DELIVERED_NO = 0;
     private static final int DELIVERED_YES = 1;
 
@@ -62,6 +77,8 @@ public class VirtualPaymentServiceImpl implements VirtualPaymentService {
     private final WechatPayProperties wechatPayProperties;
     private final ObjectMapper objectMapper;
     private final AuthIdentityService authIdentityService;
+    private final WechatMiniAuthService wechatMiniAuthService;
+    private final RestTemplateBuilder restTemplateBuilder;
 
     @Override
     public List<VirtualPayPackageVO> listPackages() {
@@ -163,6 +180,55 @@ public class VirtualPaymentServiceImpl implements VirtualPaymentService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean syncWechatOrder(String orderNo) {
+        ensureVirtualPayEnabled();
+        RechargeOrder order = rechargeOrderMapper.selectByOrderNoForUpdate(orderNo);
+        if (order == null) {
+            log.warn("未找到虚拟支付订单，无法同步，orderNo={}", orderNo);
+            return false;
+        }
+        if (!PAYMENT_METHOD_WECHAT_VIRTUAL.equalsIgnoreCase(order.getPaymentMethod())) {
+            log.warn("订单 {} 不是微信虚拟支付订单，paymentMethod={}", orderNo, order.getPaymentMethod());
+            return false;
+        }
+        if (isTerminal(order) && Objects.equals(order.getDelivered(), DELIVERED_YES)) {
+            return true;
+        }
+        if (Objects.equals(order.getPaymentStatus(), STATUS_SUCCESS)) {
+            deliverCoins(order);
+            rechargeOrderMapper.markDelivered(order.getOrderNo(), new Date());
+            return true;
+        }
+        if (isTerminal(order)) {
+            return true;
+        }
+
+        VirtualOrderQueryResult queryResult = queryVirtualOrder(order);
+        if (queryResult == null || queryResult.getOrderStatus() == null) {
+            return false;
+        }
+        if (isVirtualPendingStatus(queryResult.getOrderStatus())) {
+            return false;
+        }
+        if (isVirtualSuccessStatus(queryResult.getOrderStatus())) {
+            rechargeOrderMapper.updatePaymentStatusByOrderNo(order.getOrderNo(), STATUS_SUCCESS,
+                    queryResult.getTransactionId(), queryResult.getPaymentTime(), queryResult.getStatusDesc());
+            order.setPaymentStatus(STATUS_SUCCESS);
+            order.setTransactionId(queryResult.getTransactionId());
+            order.setPaymentTime(queryResult.getPaymentTime());
+            deliverCoins(order);
+            rechargeOrderMapper.markDelivered(order.getOrderNo(), new Date());
+            return true;
+        }
+
+        int targetStatus = resolveTerminalPaymentStatus(queryResult.getOrderStatus());
+        rechargeOrderMapper.updatePaymentStatusByOrderNo(order.getOrderNo(), targetStatus,
+                queryResult.getTransactionId(), queryResult.getPaymentTime(), queryResult.getStatusDesc());
+        return true;
+    }
+
+    @Override
     public VirtualPayOrderStatusVO queryOrderStatus(Long userId, String outTradeNo) {
         RechargeOrder order = rechargeOrderMapper.selectByOrderNo(outTradeNo);
         if (order == null || !Objects.equals(order.getUserId(), userId)) {
@@ -176,6 +242,9 @@ public class VirtualPaymentServiceImpl implements VirtualPaymentService {
         VirtualPayBalanceVO balanceVO = new VirtualPayBalanceVO();
         balanceVO.setUserId(userId);
         balanceVO.setBalance(queryRemainingCoins(userId));
+        if (wechatPayProperties.getVirtual().isEnabled()) {
+            balanceVO.setWechatBalance(queryWechatBalance(userId));
+        }
         return balanceVO;
     }
 
@@ -243,6 +312,9 @@ public class VirtualPaymentServiceImpl implements VirtualPaymentService {
         }
         if (Objects.equals(order.getPaymentStatus(), STATUS_FAILED)) {
             return "FAILED";
+        }
+        if (Objects.equals(order.getPaymentStatus(), STATUS_REFUND)) {
+            return "REFUND";
         }
         if (Objects.equals(order.getPaymentStatus(), STATUS_CLOSED)) {
             return "CLOSED";
@@ -329,11 +401,15 @@ public class VirtualPaymentServiceImpl implements VirtualPaymentService {
     }
 
     private String signPayData(String signDataJson) {
+        return signPayData(PAY_METHOD_NAME, signDataJson);
+    }
+
+    private String signPayData(String methodName, String payloadJson) {
         String appKey = wechatPayProperties.getVirtual().getAppKey();
         if (!StringUtils.hasText(appKey)) {
             throw new BusinessException("未配置微信虚拟支付appKey");
         }
-        return hmacSha256Hex(PAY_METHOD_NAME + "&" + signDataJson, appKey);
+        return hmacSha256Hex(methodName + "&" + payloadJson, appKey);
     }
 
     private String signUserData(String signDataJson, String sessionKey) {
@@ -450,6 +526,218 @@ public class VirtualPaymentServiceImpl implements VirtualPaymentService {
         return pkg;
     }
 
+    private boolean isTerminal(RechargeOrder order) {
+        Integer paymentStatus = order.getPaymentStatus();
+        return Objects.equals(paymentStatus, STATUS_SUCCESS)
+                || Objects.equals(paymentStatus, STATUS_FAILED)
+                || Objects.equals(paymentStatus, STATUS_REFUND)
+                || Objects.equals(paymentStatus, STATUS_CLOSED);
+    }
+
+    private Long queryWechatBalance(Long userId) {
+        try {
+            String requestJson = buildQueryBalanceRequestJson(userId);
+            String accessToken = wechatMiniAuthService.getAccessToken();
+            String paySig = buildQueryBalancePaySig(requestJson);
+            String signature = signUserData(requestJson, resolveSessionKey(userId));
+            String url = UriComponentsBuilder.fromHttpUrl(QUERY_BALANCE_URL)
+                    .queryParam("access_token", accessToken)
+                    .queryParam("pay_sig", paySig)
+                    .queryParam("signature", signature)
+                    .toUriString();
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            ResponseEntity<String> response = getRestTemplate().postForEntity(
+                    url,
+                    new HttpEntity<>(requestJson, headers),
+                    String.class
+            );
+            log.info("查询微信虚拟支付余额结果: {}", response);
+            return parseWechatBalance(response.getBody());
+        } catch (Exception e) {
+            log.error("查询微信虚拟支付余额失败", e);
+        }
+        return null;
+    }
+
+    private VirtualOrderQueryResult queryVirtualOrder(RechargeOrder order) {
+        try {
+            String requestJson = buildQueryOrderRequestJson(order);
+            String accessToken = wechatMiniAuthService.getAccessToken();
+            String paySig = buildQueryOrderPaySig(requestJson);
+            String url = UriComponentsBuilder.fromHttpUrl(QUERY_ORDER_URL)
+                    .queryParam("access_token", accessToken)
+                    .queryParam("pay_sig", paySig)
+                    .toUriString();
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            ResponseEntity<String> response = getRestTemplate().postForEntity(
+                    url,
+                    new HttpEntity<>(requestJson, headers),
+                    String.class
+            );
+            return parseVirtualOrderQueryResult(response.getBody());
+        } catch (BusinessException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new BusinessException("查询微信虚拟支付订单失败", e);
+        }
+    }
+
+    private String buildQueryOrderRequestJson(RechargeOrder order) {
+        try {
+            Map<String, Object> payload = new LinkedHashMap<>();
+            payload.put("openid", resolveVirtualOpenId(order.getUserId()));
+            payload.put("env", wechatPayProperties.getVirtual().getEnv());
+            payload.put("order_id", order.getOrderNo());
+            return objectMapper.writeValueAsString(payload);
+        } catch (BusinessException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new BusinessException("构建虚拟支付查询请求失败", e);
+        }
+    }
+
+    private String buildQueryBalanceRequestJson(Long userId) {
+        try {
+            Map<String, Object> payload = new LinkedHashMap<>();
+            payload.put("openid", resolveVirtualOpenId(userId));
+            payload.put("env", wechatPayProperties.getVirtual().getEnv());
+            payload.put("user_ip", DEFAULT_USER_IP);
+            return objectMapper.writeValueAsString(payload);
+        } catch (BusinessException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new BusinessException("构建微信虚拟支付余额查询请求失败", e);
+        }
+    }
+
+    private String buildQueryOrderPaySig(String requestJson) {
+        return signPayData(QUERY_ORDER_SIGN_URI, requestJson);
+    }
+
+    private String buildQueryBalancePaySig(String requestJson) {
+        return signPayData(QUERY_BALANCE_SIGN_URI, requestJson);
+    }
+
+    private String resolveVirtualOpenId(Long userId) {
+        AuthIdentity identity = authIdentityService.getByProviderAndUserId(AuthProvider.WECHAT_MINI, userId);
+        if (identity == null || !StringUtils.hasText(identity.getOpenId())) {
+            throw new BusinessException("未找到微信openId，无法查询虚拟支付订单");
+        }
+        return identity.getOpenId();
+    }
+
+    private VirtualOrderQueryResult parseVirtualOrderQueryResult(String body) {
+        try {
+            Map<String, Object> payload = objectMapper.readValue(body, new TypeReference<Map<String, Object>>() { });
+            Integer errCode = integerValue(payload.get("errcode"));
+            if (errCode != null && errCode != 0) {
+                throw new BusinessException("微信虚拟支付查询失败: " + stringValue(payload, "errmsg"));
+            }
+            Object orderObject = payload.get("order");
+            if (!(orderObject instanceof Map)) {
+                return null;
+            }
+            Map<String, Object> orderMap = (Map<String, Object>) orderObject;
+            VirtualOrderQueryResult result = new VirtualOrderQueryResult();
+            result.setOrderStatus(integerValue(orderMap.get("status")));
+            result.setTransactionId(stringValue(orderMap, "wxpay_order_id", "channel_order_id", "wx_order_id"));
+            result.setPaymentTime(toDateFromEpochSeconds(orderMap.get("paid_time")));
+            result.setStatusDesc("VIRTUAL_ORDER_STATUS_" + result.getOrderStatus());
+            return result;
+        } catch (BusinessException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new BusinessException("解析微信虚拟支付查询结果失败", e);
+        }
+    }
+
+    private Long parseWechatBalance(String body) {
+        try {
+            Map<String, Object> payload = objectMapper.readValue(body, new TypeReference<Map<String, Object>>() { });
+            Integer errCode = integerValue(payload.get("errcode"));
+            if (errCode != null && errCode != 0) {
+                throw new BusinessException("微信虚拟支付余额查询失败: " + stringValue(payload, "errmsg"));
+            }
+            Long balance = longValue(payload.get("balance"));
+            return balance != null ? balance : 0L;
+        } catch (BusinessException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new BusinessException("解析微信虚拟支付余额失败", e);
+        }
+    }
+
+    private boolean isVirtualPendingStatus(Integer orderStatus) {
+        return Objects.equals(orderStatus, 1);
+    }
+
+    private boolean isVirtualSuccessStatus(Integer orderStatus) {
+        return Objects.equals(orderStatus, 2)
+                || Objects.equals(orderStatus, 3)
+                || Objects.equals(orderStatus, 4)
+                || Objects.equals(orderStatus, 9)
+                || Objects.equals(orderStatus, 10);
+    }
+
+    private int resolveTerminalPaymentStatus(Integer orderStatus) {
+        if (Objects.equals(orderStatus, 5) || Objects.equals(orderStatus, 8)) {
+            return STATUS_REFUND;
+        }
+        if (Objects.equals(orderStatus, 6)) {
+            return STATUS_CLOSED;
+        }
+        return STATUS_FAILED;
+    }
+
+    private Integer integerValue(Object value) {
+        if (value == null) {
+            return null;
+        }
+        if (value instanceof Number) {
+            return ((Number) value).intValue();
+        }
+        try {
+            return Integer.parseInt(String.valueOf(value));
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    private Long longValue(Object value) {
+        if (value == null) {
+            return null;
+        }
+        if (value instanceof Number) {
+            return ((Number) value).longValue();
+        }
+        try {
+            return Long.parseLong(String.valueOf(value));
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    private Date toDateFromEpochSeconds(Object value) {
+        if (value == null) {
+            return null;
+        }
+        long epochSeconds;
+        if (value instanceof Number) {
+            epochSeconds = ((Number) value).longValue();
+        } else {
+            try {
+                epochSeconds = Long.parseLong(String.valueOf(value));
+            } catch (NumberFormatException e) {
+                return null;
+            }
+        }
+        return epochSeconds > 0 ? new Date(epochSeconds * 1000L) : null;
+    }
+
     private String stringValue(Map<String, Object> payload, String... keys) {
         for (String key : keys) {
             Object value = payload.get(key);
@@ -521,6 +809,10 @@ public class VirtualPaymentServiceImpl implements VirtualPaymentService {
         }
     }
 
+    private RestTemplate getRestTemplate() {
+        return restTemplateBuilder.build();
+    }
+
     private String toHex(byte[] data) {
         StringBuilder sb = new StringBuilder(data.length * 2);
         for (byte b : data) {
@@ -547,5 +839,13 @@ public class VirtualPaymentServiceImpl implements VirtualPaymentService {
         private String transactionId;
         private boolean success;
         private Date paymentTime;
+    }
+
+    @lombok.Data
+    private static class VirtualOrderQueryResult {
+        private Integer orderStatus;
+        private String transactionId;
+        private Date paymentTime;
+        private String statusDesc;
     }
 }

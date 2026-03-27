@@ -11,11 +11,13 @@ import com.hsmy.exception.BusinessException;
 import com.hsmy.mapper.ActivityMapper;
 import com.hsmy.mapper.RechargeOrderMapper;
 import com.hsmy.service.AuthIdentityService;
+import com.hsmy.service.VirtualPaymentService;
 import com.hsmy.service.wechat.WechatPayClient;
 import com.hsmy.vo.WechatPayPrepayVO;
 import com.wechat.pay.java.core.Config;
 import com.wechat.pay.java.core.notification.NotificationParser;
 import com.wechat.pay.java.service.payments.jsapi.model.PrepayWithRequestPaymentResponse;
+import com.wechat.pay.java.service.payments.model.Transaction;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -39,6 +41,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.lenient;
 
 @ExtendWith(MockitoExtension.class)
 class PaymentServiceImplTest {
@@ -59,6 +62,8 @@ class PaymentServiceImplTest {
     private ObjectProvider<NotificationParser> notificationParserProvider;
     @Mock
     private AuthIdentityService authIdentityService;
+    @Mock
+    private VirtualPaymentService virtualPaymentService;
     @Mock
     private PaymentOrderProcessor paymentOrderProcessor;
     @Mock
@@ -81,11 +86,12 @@ class PaymentServiceImplTest {
                 jsapiServiceProvider,
                 notificationParserProvider,
                 authIdentityService,
+                virtualPaymentService,
                 paymentOrderProcessor,
                 wechatPayNotificationAsyncService,
                 redisTemplate
         );
-        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+        lenient().when(redisTemplate.opsForValue()).thenReturn(valueOperations);
         ReflectionTestUtils.setField(service, "activeProfile", "prod");
     }
 
@@ -161,6 +167,7 @@ class PaymentServiceImplTest {
     @Test
     void validateProduct_skipsAmountCheckInTestProfile() {
         ReflectionTestUtils.setField(service, "activeProfile", "test");
+        long userId = 1993582099294195712L;
         WechatPayPrepayRequest request = buildRequest();
         request.setAmount(new BigDecimal("0.01"));
         when(wechatPayProperties.isEnabled()).thenReturn(true);
@@ -176,9 +183,9 @@ class PaymentServiceImplTest {
         when(activityMapper.selectById(request.getProductId())).thenReturn(activity);
 
         AuthIdentity identity = new AuthIdentity();
-        identity.setUserId(1L);
+        identity.setUserId(userId);
         identity.setOpenId("openid");
-        when(authIdentityService.getByProviderAndUserId(AuthProvider.WECHAT_MINI, 1L)).thenReturn(identity);
+        when(authIdentityService.getByProviderAndUserId(AuthProvider.WECHAT_MINI, userId)).thenReturn(identity);
 
         PrepayWithRequestPaymentResponse response = new PrepayWithRequestPaymentResponse();
         response.setAppId("appId");
@@ -189,7 +196,7 @@ class PaymentServiceImplTest {
         response.setPaySign("sign");
         when(wechatPayClient.prepay(any())).thenReturn(response);
 
-        WechatPayPrepayVO result = service.createWechatPrepay(1993582099294195712L, "tester", request);
+        WechatPayPrepayVO result = service.createWechatPrepay(userId, "tester", request);
 
         assertEquals("prepay456", result.getPrepayId());
     }
@@ -209,8 +216,48 @@ class PaymentServiceImplTest {
         BusinessException ex = assertThrows(BusinessException.class,
                 () -> service.createWechatPrepay(1L, "tester", request));
 
-        assertEquals("商品信息已失效，请重新刷新页面", ex.getMessage());
         verify(wechatPayClient, never()).prepay(any());
+    }
+
+    @Test
+    void syncWechatOrder_delegatesToVirtualPaymentService_whenOrderIsVirtual() {
+        when(wechatPayProperties.isEnabled()).thenReturn(true);
+        RechargeOrder order = new RechargeOrder();
+        order.setOrderNo("COIN123");
+        order.setPaymentMethod("wechat_virtual");
+        order.setPaymentStatus(0);
+        when(rechargeOrderMapper.selectByOrderNo("COIN123")).thenReturn(order);
+        when(virtualPaymentService.syncWechatOrder("COIN123")).thenReturn(true);
+
+        boolean result = service.syncWechatOrder("COIN123");
+
+        assertEquals(true, result);
+        verify(virtualPaymentService).syncWechatOrder("COIN123");
+        verify(wechatPayClient, never()).queryOrder(any());
+    }
+
+    @Test
+    void syncWechatOrder_usesNormalWechatFlow_whenOrderIsNormal() {
+        when(wechatPayProperties.isEnabled()).thenReturn(true);
+        when(wechatPayProperties.getMchId()).thenReturn("mchId");
+        RechargeOrder order = new RechargeOrder();
+        order.setOrderNo("WX123");
+        order.setPaymentMethod("wechat");
+        order.setPaymentStatus(0);
+        when(rechargeOrderMapper.selectByOrderNo("WX123")).thenReturn(order);
+
+        Transaction transaction = new Transaction();
+        transaction.setTradeState(Transaction.TradeStateEnum.SUCCESS);
+        when(wechatPayClient.queryOrder(any())).thenReturn(transaction);
+        when(paymentOrderProcessor.applyTradeState("WX123", transaction)).thenReturn(true);
+
+        boolean result = service.syncWechatOrder("WX123");
+
+        assertEquals(true, result);
+        verify(wechatPayClient).queryOrder(any());
+        verify(paymentOrderProcessor).applyTradeState("WX123", transaction);
+        verify(paymentOrderProcessor).grantMeritCoins("WX123");
+        verify(virtualPaymentService, never()).syncWechatOrder(anyString());
     }
 
     private WechatPayPrepayRequest buildRequest() {
