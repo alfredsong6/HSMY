@@ -44,4 +44,14 @@ public class StartReadingStatusVO implements Serializable {
      * 总分段数
      */
     private Integer totalSections;
+
+    /**
+     * 最近阅读分段ID
+     */
+    private String lastSectionId;
+
+    /**
+     * 最近阅读分段内位置
+     */
+    private Integer lastPosition;
 }
