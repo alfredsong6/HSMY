@@ -1,9 +1,12 @@
 package com.hsmy.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.hsmy.domain.activity.ActivityDomain;
+import com.hsmy.domain.activity.ActivityRule;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hsmy.config.WechatPayProperties;
 import com.hsmy.domain.auth.AuthIdentity;
+import com.hsmy.dto.VirtualPayCreateOrderRequest;
 import com.hsmy.entity.RechargeOrder;
 import com.hsmy.entity.UserStats;
 import com.hsmy.enums.AuthProvider;
@@ -13,6 +16,8 @@ import com.hsmy.mapper.UserStatsMapper;
 import com.hsmy.mapper.meditation.MeritCoinTransactionMapper;
 import com.hsmy.service.AuthIdentityService;
 import com.hsmy.service.wechat.WechatMiniAuthService;
+import com.hsmy.service.wechat.dto.WechatSessionInfo;
+import com.hsmy.vo.VirtualPayCreateOrderVO;
 import com.hsmy.vo.VirtualPayBalanceVO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -24,11 +29,19 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
+import java.lang.reflect.Field;
+import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -70,11 +83,11 @@ class VirtualPaymentServiceImplTest {
                 wechatMiniAuthService,
                 restTemplateBuilder
         );
-        when(restTemplateBuilder.build()).thenReturn(restTemplate);
     }
 
     @Test
     void syncWechatOrder_returnsFalse_whenVirtualOrderStillPending() {
+        when(restTemplateBuilder.build()).thenReturn(restTemplate);
         RechargeOrder order = new RechargeOrder();
         order.setOrderNo("COIN100");
         order.setUserId(1L);
@@ -96,6 +109,7 @@ class VirtualPaymentServiceImplTest {
 
     @Test
     void syncWechatOrder_marksOrderSuccessAndDelivered_whenVirtualOrderPaid() {
+        when(restTemplateBuilder.build()).thenReturn(restTemplate);
         RechargeOrder order = new RechargeOrder();
         order.setId(100L);
         order.setOrderNo("COIN200");
@@ -123,7 +137,32 @@ class VirtualPaymentServiceImplTest {
     }
 
     @Test
+    void syncWechatOrder_completesLocalDelivery_whenOrderAlreadyPaidButUndelivered() {
+        RechargeOrder order = new RechargeOrder();
+        order.setId(101L);
+        order.setOrderNo("COIN201");
+        order.setUserId(1L);
+        order.setPaymentStatus(1);
+        order.setPaymentMethod("wechat_virtual");
+        order.setDelivered(0);
+        order.setMeritCoins(8);
+        order.setBonusCoins(2);
+        when(rechargeOrderMapper.selectByOrderNoForUpdate("COIN201")).thenReturn(order);
+        when(wechatPayProperties.getVirtual()).thenReturn(newVirtualConfig());
+        when(meritCoinTransactionMapper.selectCount(any(LambdaQueryWrapper.class))).thenReturn(0L);
+
+        boolean result = service.syncWechatOrder("COIN201");
+
+        assertEquals(true, result);
+        verify(userStatsMapper).addMeritCoins(1L, 8L);
+        verify(userStatsMapper).addMeritCoins(1L, 2L);
+        verify(rechargeOrderMapper).markDelivered(eq("COIN201"), any(Date.class));
+        verify(restTemplateBuilder, never()).build();
+    }
+
+    @Test
     void queryBalance_returnsLocalAndWechatBalance() {
+        when(restTemplateBuilder.build()).thenReturn(restTemplate);
         when(wechatPayProperties.getVirtual()).thenReturn(newVirtualConfig());
         when(wechatMiniAuthService.getAccessToken()).thenReturn("token");
         AuthIdentity identity = buildIdentity();
@@ -143,12 +182,78 @@ class VirtualPaymentServiceImplTest {
         assertEquals(Long.valueOf(120L), result.getWechatBalance());
     }
 
+    @Test
+    void createOrder_refreshesSessionKeyAndSignsWithLatestValue_whenCodeProvided() {
+        when(wechatPayProperties.getVirtual()).thenReturn(newVirtualConfig());
+        when(activityMapper.selectById(100L)).thenReturn(buildActivityDomain());
+
+        AuthIdentity identity = buildIdentity();
+        identity.setId(9L);
+        identity.setSessionKeyEnc("stored-session-key");
+        when(authIdentityService.getByProviderAndUserId(AuthProvider.WECHAT_MINI, 1L)).thenReturn(identity);
+        when(wechatMiniAuthService.getDefaultAppId()).thenReturn("wx-mini-app");
+        when(authIdentityService.touchLogin(eq(9L), eq(1L), isNull(), eq("union-new"), eq("latest-session-key"), any(Date.class)))
+                .thenReturn(1);
+
+        WechatSessionInfo sessionInfo = new WechatSessionInfo();
+        sessionInfo.setSessionKey("latest-session-key");
+        sessionInfo.setUnionId("union-new");
+        when(wechatMiniAuthService.code2Session("wx-mini-app", "mini-login-code")).thenReturn(sessionInfo);
+
+        VirtualPayCreateOrderRequest request = new VirtualPayCreateOrderRequest();
+        request.setPackageId("activity_100");
+        setRequestCode(request, "mini-login-code");
+
+        VirtualPayCreateOrderVO result = service.createOrder(1L, "tester", request);
+
+        assertEquals(hmacSha256Hex(result.getSignData(), "latest-session-key"), result.getSignature());
+        assertEquals(hmacSha256Hex("requestVirtualPayment&" + result.getSignData(), "app-key"), result.getPaySig());
+        verify(wechatMiniAuthService).code2Session("wx-mini-app", "mini-login-code");
+        verify(authIdentityService).touchLogin(eq(9L), eq(1L), isNull(), eq("union-new"), eq("latest-session-key"), any(Date.class));
+    }
+
+    @Test
+    void createOrder_usesStoredSessionKey_whenCodeMissing() {
+        when(wechatPayProperties.getVirtual()).thenReturn(newVirtualConfig());
+        when(activityMapper.selectById(100L)).thenReturn(buildActivityDomain());
+
+        AuthIdentity identity = buildIdentity();
+        identity.setId(9L);
+        identity.setSessionKeyEnc("stored-session-key");
+        when(authIdentityService.getByProviderAndUserId(AuthProvider.WECHAT_MINI, 1L)).thenReturn(identity);
+
+        VirtualPayCreateOrderRequest request = new VirtualPayCreateOrderRequest();
+        request.setPackageId("activity_100");
+
+        VirtualPayCreateOrderVO result = service.createOrder(1L, "tester", request);
+
+        assertEquals(hmacSha256Hex(result.getSignData(), "stored-session-key"), result.getSignature());
+        verify(wechatMiniAuthService, never()).code2Session(any(), any());
+        verify(authIdentityService, never()).touchLogin(any(), any(), any(), any(), any(), any());
+    }
+
     private WechatPayProperties.VirtualPay newVirtualConfig() {
         WechatPayProperties.VirtualPay virtualPay = new WechatPayProperties.VirtualPay();
         virtualPay.setEnabled(true);
         virtualPay.setEnv(1);
         virtualPay.setAppKey("app-key");
+        virtualPay.setOfferId("offer-id");
         return virtualPay;
+    }
+
+    private ActivityDomain buildActivityDomain() {
+        ActivityRule rule = new ActivityRule();
+        rule.setAmount(new BigDecimal("6.66"));
+        rule.setGive(new BigDecimal("60"));
+        rule.setGift(new BigDecimal("6"));
+
+        ActivityDomain activity = new ActivityDomain();
+        activity.setId(100L);
+        activity.setActivityName("Coin Pack");
+        activity.setDescription("Virtual coin pack");
+        activity.setStatus(1);
+        activity.setRules(rule);
+        return activity;
     }
 
     private AuthIdentity buildIdentity() {
@@ -156,5 +261,29 @@ class VirtualPaymentServiceImplTest {
         identity.setUserId(1L);
         identity.setOpenId("openid");
         return identity;
+    }
+
+    private void setRequestCode(VirtualPayCreateOrderRequest request, String code) {
+        assertDoesNotThrow(() -> {
+            Field codeField = request.getClass().getDeclaredField("code");
+            codeField.setAccessible(true);
+            codeField.set(request, code);
+        }, "VirtualPayCreateOrderRequest should support code");
+    }
+
+    private String hmacSha256Hex(String content, String key) {
+        try {
+            Mac mac = Mac.getInstance("HmacSHA256");
+            mac.init(new SecretKeySpec(key.getBytes(StandardCharsets.UTF_8), "HmacSHA256"));
+            byte[] digest = mac.doFinal(content.getBytes(StandardCharsets.UTF_8));
+            StringBuilder sb = new StringBuilder(digest.length * 2);
+            for (byte b : digest) {
+                sb.append(String.format("%02x", b));
+            }
+            return sb.toString();
+        } catch (Exception e) {
+            fail(e);
+            return null;
+        }
     }
 }

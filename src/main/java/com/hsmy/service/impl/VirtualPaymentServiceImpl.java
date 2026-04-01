@@ -22,6 +22,7 @@ import com.hsmy.mapper.meditation.MeritCoinTransactionMapper;
 import com.hsmy.service.AuthIdentityService;
 import com.hsmy.service.VirtualPaymentService;
 import com.hsmy.service.wechat.WechatMiniAuthService;
+import com.hsmy.service.wechat.dto.WechatSessionInfo;
 import com.hsmy.utils.IdGenerator;
 import com.hsmy.vo.*;
 import lombok.RequiredArgsConstructor;
@@ -128,7 +129,7 @@ public class VirtualPaymentServiceImpl implements VirtualPaymentService {
 
         VirtualPaySignDataVO signData = buildSignData(order, rechargePackage, attach);
         String signDataJson = toSignDataJson(signData);
-        String sessionKey = resolveSessionKey(userId);
+        String sessionKey = resolveSessionKey(userId, request.getCode());
         VirtualPayCreateOrderVO response = new VirtualPayCreateOrderVO();
         response.setMode(MODE_SHORT_SERIES_COIN);
         response.setOfferId(signData.getOfferId());
@@ -182,6 +183,7 @@ public class VirtualPaymentServiceImpl implements VirtualPaymentService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public boolean syncWechatOrder(String orderNo) {
+        log.info("开始同步微信虚拟支付订单，orderNo={}", orderNo);
         ensureVirtualPayEnabled();
         RechargeOrder order = rechargeOrderMapper.selectByOrderNoForUpdate(orderNo);
         if (order == null) {
@@ -196,8 +198,7 @@ public class VirtualPaymentServiceImpl implements VirtualPaymentService {
             return true;
         }
         if (Objects.equals(order.getPaymentStatus(), STATUS_SUCCESS)) {
-            deliverCoins(order);
-            rechargeOrderMapper.markDelivered(order.getOrderNo(), new Date());
+            completeVirtualOrderDelivery(order);
             return true;
         }
         if (isTerminal(order)) {
@@ -217,14 +218,14 @@ public class VirtualPaymentServiceImpl implements VirtualPaymentService {
             order.setPaymentStatus(STATUS_SUCCESS);
             order.setTransactionId(queryResult.getTransactionId());
             order.setPaymentTime(queryResult.getPaymentTime());
-            deliverCoins(order);
-            rechargeOrderMapper.markDelivered(order.getOrderNo(), new Date());
+            completeVirtualOrderDelivery(order);
             return true;
         }
 
         int targetStatus = resolveTerminalPaymentStatus(queryResult.getOrderStatus());
         rechargeOrderMapper.updatePaymentStatusByOrderNo(order.getOrderNo(), targetStatus,
                 queryResult.getTransactionId(), queryResult.getPaymentTime(), queryResult.getStatusDesc());
+        log.info("订单 {} 状态已更新为 {}", orderNo, targetStatus);
         return true;
     }
 
@@ -417,6 +418,14 @@ public class VirtualPaymentServiceImpl implements VirtualPaymentService {
             throw new BusinessException("未找到用户session_key，无法生成signature");
         }
         return hmacSha256Hex(signDataJson, sessionKey);
+    }
+
+    private void completeVirtualOrderDelivery(RechargeOrder order) {
+        if (order == null || !Objects.equals(order.getPaymentStatus(), STATUS_SUCCESS)) {
+            throw new BusinessException("订单状态异常");
+        }
+        deliverCoins(order);
+        rechargeOrderMapper.markDelivered(order.getOrderNo(), new Date());
     }
 
     private void deliverCoins(RechargeOrder order) {
@@ -765,6 +774,34 @@ public class VirtualPaymentServiceImpl implements VirtualPaymentService {
             throw new BusinessException("未找到用户微信session_key，请重新登录");
         }
         return identity.getSessionKeyEnc();
+    }
+
+    private String resolveSessionKey(Long userId, String code) {
+        if (!StringUtils.hasText(code)) {
+            return resolveSessionKey(userId);
+        }
+
+        AuthIdentity identity = authIdentityService.getByProviderAndUserId(AuthProvider.WECHAT_MINI, userId);
+        if (identity == null || identity.getId() == null) {
+            throw new BusinessException("Wechat identity not found, please login again");
+        }
+
+        String appId = wechatMiniAuthService.getDefaultAppId();
+        if (!StringUtils.hasText(appId)) {
+            throw new BusinessException("Mini program AppId is not configured");
+        }
+
+        WechatSessionInfo sessionInfo = wechatMiniAuthService.code2Session(appId, code);
+        if (sessionInfo == null || !StringUtils.hasText(sessionInfo.getSessionKey())) {
+            throw new BusinessException("Failed to get latest sessionKey");
+        }
+
+        int updated = authIdentityService.touchLogin(identity.getId(), userId, identity.getPhone(),
+                sessionInfo.getUnionId(), sessionInfo.getSessionKey(), new Date());
+        if (updated <= 0) {
+            throw new BusinessException("Failed to update sessionKey");
+        }
+        return sessionInfo.getSessionKey();
     }
 
     private String buildNotifySignature(String body, String event, String key) {

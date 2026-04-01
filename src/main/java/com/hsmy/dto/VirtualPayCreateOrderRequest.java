@@ -5,11 +5,13 @@ import lombok.Data;
 import javax.validation.constraints.NotBlank;
 
 /**
- * 创建虚拟支付订单请求.
+ * Request for creating a virtual payment order.
  */
 @Data
 public class VirtualPayCreateOrderRequest {
 
-    @NotBlank(message = "packageId不能为空")
+    @NotBlank(message = "packageId must not be blank")
     private String packageId;
+
+    private String code;
 }
