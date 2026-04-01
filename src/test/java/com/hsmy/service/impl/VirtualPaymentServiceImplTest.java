@@ -15,10 +15,12 @@ import com.hsmy.mapper.RechargeOrderMapper;
 import com.hsmy.mapper.UserStatsMapper;
 import com.hsmy.mapper.meditation.MeritCoinTransactionMapper;
 import com.hsmy.service.AuthIdentityService;
+import com.hsmy.service.VirtualOrderShortPollingService;
 import com.hsmy.service.wechat.WechatMiniAuthService;
 import com.hsmy.service.wechat.dto.WechatSessionInfo;
 import com.hsmy.vo.VirtualPayCreateOrderVO;
 import com.hsmy.vo.VirtualPayBalanceVO;
+import com.hsmy.vo.VirtualPayOrderStatusVO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -43,6 +45,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -67,6 +71,8 @@ class VirtualPaymentServiceImplTest {
     private RestTemplateBuilder restTemplateBuilder;
     @Mock
     private RestTemplate restTemplate;
+    @Mock
+    private VirtualOrderShortPollingService shortPollingService;
 
     private VirtualPaymentServiceImpl service;
 
@@ -81,7 +87,8 @@ class VirtualPaymentServiceImplTest {
                 new ObjectMapper(),
                 authIdentityService,
                 wechatMiniAuthService,
-                restTemplateBuilder
+                restTemplateBuilder,
+                shortPollingService
         );
     }
 
@@ -230,6 +237,72 @@ class VirtualPaymentServiceImplTest {
         assertEquals(hmacSha256Hex(result.getSignData(), "stored-session-key"), result.getSignature());
         verify(wechatMiniAuthService, never()).code2Session(any(), any());
         verify(authIdentityService, never()).touchLogin(any(), any(), any(), any(), any(), any());
+    }
+
+    @Test
+    void confirmOrder_returnsSyncedStatus_withoutRegisteringPolling_whenImmediateSyncSucceeds() {
+        RechargeOrder pendingOrder = new RechargeOrder();
+        pendingOrder.setOrderNo("COIN300");
+        pendingOrder.setUserId(1L);
+        pendingOrder.setPackageId("activity_100");
+        pendingOrder.setPaymentMethod("wechat_virtual");
+        pendingOrder.setPaymentStatus(0);
+        pendingOrder.setDelivered(0);
+        pendingOrder.setMeritCoins(10);
+        pendingOrder.setBonusCoins(5);
+
+        RechargeOrder deliveredOrder = new RechargeOrder();
+        deliveredOrder.setOrderNo("COIN300");
+        deliveredOrder.setUserId(1L);
+        deliveredOrder.setPackageId("activity_100");
+        deliveredOrder.setPaymentMethod("wechat_virtual");
+        deliveredOrder.setPaymentStatus(1);
+        deliveredOrder.setDelivered(1);
+        deliveredOrder.setMeritCoins(10);
+        deliveredOrder.setBonusCoins(5);
+
+        when(rechargeOrderMapper.selectByOrderNo("COIN300")).thenReturn(pendingOrder, deliveredOrder);
+
+        VirtualPaymentServiceImpl spyService = spy(service);
+        doReturn(true).when(spyService).syncWechatOrder("COIN300");
+
+        VirtualPayOrderStatusVO result = spyService.confirmOrder(1L, "COIN300");
+
+        assertEquals("DELIVERED", result.getStatus());
+        verify(shortPollingService, never()).ensurePolling("COIN300");
+    }
+
+    @Test
+    void confirmOrder_registersShortPolling_whenImmediateSyncStillPending() {
+        RechargeOrder pendingOrder = new RechargeOrder();
+        pendingOrder.setOrderNo("COIN301");
+        pendingOrder.setUserId(1L);
+        pendingOrder.setPackageId("activity_100");
+        pendingOrder.setPaymentMethod("wechat_virtual");
+        pendingOrder.setPaymentStatus(0);
+        pendingOrder.setDelivered(0);
+        pendingOrder.setMeritCoins(10);
+        pendingOrder.setBonusCoins(5);
+
+        RechargeOrder refreshedPendingOrder = new RechargeOrder();
+        refreshedPendingOrder.setOrderNo("COIN301");
+        refreshedPendingOrder.setUserId(1L);
+        refreshedPendingOrder.setPackageId("activity_100");
+        refreshedPendingOrder.setPaymentMethod("wechat_virtual");
+        refreshedPendingOrder.setPaymentStatus(0);
+        refreshedPendingOrder.setDelivered(0);
+        refreshedPendingOrder.setMeritCoins(10);
+        refreshedPendingOrder.setBonusCoins(5);
+
+        when(rechargeOrderMapper.selectByOrderNo("COIN301")).thenReturn(pendingOrder, refreshedPendingOrder);
+
+        VirtualPaymentServiceImpl spyService = spy(service);
+        doReturn(false).when(spyService).syncWechatOrder("COIN301");
+
+        VirtualPayOrderStatusVO result = spyService.confirmOrder(1L, "COIN301");
+
+        assertEquals("CREATED", result.getStatus());
+        verify(shortPollingService).ensurePolling("COIN301");
     }
 
     private WechatPayProperties.VirtualPay newVirtualConfig() {

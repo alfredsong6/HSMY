@@ -73,6 +73,12 @@ public class VirtualPaymentController {
         return Result.success(virtualPaymentService.queryOrderStatus(userId, outTradeNo));
     }
 
+    @PostMapping("/order/confirm")
+    public Result<VirtualPayOrderStatusVO> confirmOrder(@RequestParam("outTradeNo") String outTradeNo) {
+        Long userId = UserContextUtil.requireCurrentUserId();
+        return Result.success(virtualPaymentService.confirmOrder(userId, outTradeNo));
+    }
+
     @GetMapping("/balance")
     public Result<VirtualPayBalanceVO> queryBalance() {
         Long userId = UserContextUtil.requireCurrentUserId();

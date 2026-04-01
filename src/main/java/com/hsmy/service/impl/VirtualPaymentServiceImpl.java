@@ -20,6 +20,7 @@ import com.hsmy.mapper.RechargeOrderMapper;
 import com.hsmy.mapper.UserStatsMapper;
 import com.hsmy.mapper.meditation.MeritCoinTransactionMapper;
 import com.hsmy.service.AuthIdentityService;
+import com.hsmy.service.VirtualOrderShortPollingService;
 import com.hsmy.service.VirtualPaymentService;
 import com.hsmy.service.wechat.WechatMiniAuthService;
 import com.hsmy.service.wechat.dto.WechatSessionInfo;
@@ -80,6 +81,7 @@ public class VirtualPaymentServiceImpl implements VirtualPaymentService {
     private final AuthIdentityService authIdentityService;
     private final WechatMiniAuthService wechatMiniAuthService;
     private final RestTemplateBuilder restTemplateBuilder;
+    private final VirtualOrderShortPollingService shortPollingService;
 
     @Override
     public List<VirtualPayPackageVO> listPackages() {
@@ -239,6 +241,21 @@ public class VirtualPaymentServiceImpl implements VirtualPaymentService {
     }
 
     @Override
+    public VirtualPayOrderStatusVO confirmOrder(Long userId, String outTradeNo) {
+        RechargeOrder order = requireOwnedVirtualOrder(userId, outTradeNo);
+        if (canReturnDirectly(order)) {
+            return toOrderStatusVO(order);
+        }
+
+        syncWechatOrder(outTradeNo);
+        RechargeOrder refreshed = requireOwnedVirtualOrder(userId, outTradeNo);
+        if (isPendingForConfirm(refreshed)) {
+            shortPollingService.ensurePolling(outTradeNo);
+        }
+        return toOrderStatusVO(refreshed);
+    }
+
+    @Override
     public VirtualPayBalanceVO queryBalance(Long userId) {
         VirtualPayBalanceVO balanceVO = new VirtualPayBalanceVO();
         balanceVO.setUserId(userId);
@@ -321,6 +338,31 @@ public class VirtualPaymentServiceImpl implements VirtualPaymentService {
             return "CLOSED";
         }
         return "UNKNOWN";
+    }
+
+    private RechargeOrder requireOwnedVirtualOrder(Long userId, String outTradeNo) {
+        RechargeOrder order = rechargeOrderMapper.selectByOrderNo(outTradeNo);
+        if (order == null || !Objects.equals(order.getUserId(), userId)) {
+            throw new BusinessException("ORDER_NOT_FOUND");
+        }
+        if (!PAYMENT_METHOD_WECHAT_VIRTUAL.equalsIgnoreCase(order.getPaymentMethod())) {
+            throw new BusinessException("INVALID_VIRTUAL_ORDER");
+        }
+        return order;
+    }
+
+    private boolean canReturnDirectly(RechargeOrder order) {
+        if (order == null) {
+            return true;
+        }
+        if (Objects.equals(order.getPaymentStatus(), STATUS_SUCCESS)) {
+            return Objects.equals(order.getDelivered(), DELIVERED_YES);
+        }
+        return isTerminal(order);
+    }
+
+    private boolean isPendingForConfirm(RechargeOrder order) {
+        return order != null && Objects.equals(order.getPaymentStatus(), STATUS_PENDING);
     }
 
     private String generateVirtualOrderNo() {

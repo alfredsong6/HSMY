@@ -23,6 +23,8 @@ public interface VirtualPaymentService {
 
     boolean syncWechatOrder(String orderNo);
 
+    VirtualPayOrderStatusVO confirmOrder(Long userId, String outTradeNo);
+
     VirtualPayOrderStatusVO queryOrderStatus(Long userId, String outTradeNo);
 
     /**

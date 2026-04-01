@@ -1,0 +1,31 @@
+代币支付推送（xpay_coin_pay_notify）
+请求参数
+字段	类型	说明
+ToUserName	String	小程序原始ID
+FromUserName	String	该事件消息的openid，道具发货场景固定为微信官方的openid
+CreateTime	Number	消息发送时间
+MsgType	String	消息类型，固定为：event
+Event	String	事件类型
+xpay_coin_pay_notify
+OpenId	String	用户openid
+OutTradeNo	String	业务订单号
+Env	Number	环境配置0：现网环境（也叫正式环境） 1：沙箱环境
+WeChatPayInfo	Object	微信支付信息 非微信支付渠道可能没有
+CoinInfo	Object	代币参数信息
+WeChatPayInfo 结构：
+
+字段	类型	说明
+MchOrderNo	String	微信支付商户单号
+TransactionId	String	交易单号（微信支付订单号）
+PaidTime	Number	用户支付时间，Linux秒级时间戳
+CoinInfo 结构：
+
+字段	类型	说明
+Quantity	Number	数量
+OrigPrice	Number	物品原始价格 （单位：分）
+ActualPrice	Number	物品实际支付价格（单位：分）
+Attach	String	透传信息
+返回参数
+字段	类型	是否必填	说明
+ErrCode	Number	是	发送状态。0：成功，其他：失败
+ErrMsg	String	否	错误原因，用于调试。在errcode非0 的情况下可以返回
