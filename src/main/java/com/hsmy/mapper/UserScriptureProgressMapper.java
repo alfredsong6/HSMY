@@ -22,4 +22,9 @@ public interface UserScriptureProgressMapper extends BaseMapper<UserScripturePro
      * 统计已完成分段数量
      */
     Integer countCompletedByScripture(@Param("userId") Long userId, @Param("scriptureId") Long scriptureId);
+
+    /**
+     * 汇总用户在整本经文下的章节阅读进度
+     */
+    Double sumReadingProgressByScripture(@Param("userId") Long userId, @Param("scriptureId") Long scriptureId);
 }

@@ -29,4 +29,9 @@ public interface UserScriptureProgressService {
      * 统计已完成分段数量
      */
     Integer countCompletedSections(Long userId, Long scriptureId);
+
+    /**
+     * 汇总用户在整本经文下的章节阅读进度
+     */
+    Double sumSectionReadingProgress(Long userId, Long scriptureId);
 }

@@ -68,4 +68,10 @@ public class UserScriptureProgressServiceImpl implements UserScriptureProgressSe
     public Integer countCompletedSections(Long userId, Long scriptureId) {
         return userScriptureProgressMapper.countCompletedByScripture(userId, scriptureId);
     }
+
+    @Override
+    public Double sumSectionReadingProgress(Long userId, Long scriptureId) {
+        Double total = userScriptureProgressMapper.sumReadingProgressByScripture(userId, scriptureId);
+        return total == null ? 0D : total;
+    }
 }

@@ -71,7 +71,7 @@ class UserScriptureControllerTest {
         Scripture scripture = buildScripture();
         UserScripturePurchase purchase = buildPurchase();
         ScriptureSection latestSection = buildSection(LATEST_SECTION_ID, 3, "第三卷");
-        UserScriptureProgress latestProgress = buildProgress(LATEST_SECTION_ID, 7613, 0, new Date());
+        UserScriptureProgress latestProgress = buildProgress(LATEST_SECTION_ID, 7613, 0, 0D, new Date());
 
         when(scriptureService.getScriptureById(SCRIPTURE_ID)).thenReturn(scripture);
         when(userScripturePurchaseService.getUserPurchaseDetail(USER_ID, SCRIPTURE_ID)).thenReturn(purchase);
@@ -92,7 +92,7 @@ class UserScriptureControllerTest {
         Scripture scripture = buildScripture();
         scripture.setPrice(9);
         UserScripturePurchase purchase = buildPurchase();
-        UserScriptureProgress latestProgress = buildProgress(LATEST_SECTION_ID, 7613, 0, new Date());
+        UserScriptureProgress latestProgress = buildProgress(LATEST_SECTION_ID, 7613, 0, 0D, new Date());
         ScriptureSection latestSection = buildSection(LATEST_SECTION_ID, 3, "第三卷");
 
         when(scriptureService.getScriptureById(SCRIPTURE_ID)).thenReturn(scripture);
@@ -111,23 +111,23 @@ class UserScriptureControllerTest {
     }
 
     @Test
-    void saveSectionProgress_updatesSnapshotOnce_withCalculatedTotalProgress() {
+    void saveSectionProgress_includesCurrentSectionPartialProgressInTotalProgress() {
         Scripture scripture = buildScripture();
         ScriptureSection section = buildSection(LATEST_SECTION_ID, 3, "第三卷");
-        UserScriptureProgress existingProgress = buildProgress(LATEST_SECTION_ID, 3200, 0, new Date());
+        UserScriptureProgress existingProgress = buildProgress(LATEST_SECTION_ID, 3200, 0, 20D, new Date());
         SaveSectionProgressRequest request = new SaveSectionProgressRequest();
         request.setLastPosition(7613);
-        request.setSectionReadingProgress(100D);
-        request.setIsCompleted(1);
+        request.setSectionReadingProgress(40D);
+        request.setIsCompleted(0);
         request.setSpendSeconds(30);
 
         when(scriptureService.getScriptureById(SCRIPTURE_ID)).thenReturn(scripture);
         when(scriptureSectionService.getById(LATEST_SECTION_ID)).thenReturn(section);
         when(userScripturePurchaseService.isUserPurchaseValid(USER_ID, SCRIPTURE_ID)).thenReturn(true);
         when(userScriptureProgressService.getByUserAndSection(USER_ID, LATEST_SECTION_ID)).thenReturn(existingProgress);
-        when(userScriptureProgressService.countCompletedSections(USER_ID, SCRIPTURE_ID)).thenReturn(2);
+        when(userScriptureProgressService.sumSectionReadingProgress(USER_ID, SCRIPTURE_ID)).thenReturn(220D);
         when(userScripturePurchaseService.updateSectionProgress(USER_ID, SCRIPTURE_ID, LATEST_SECTION_ID,
-                7613, 100D, 30D, 30, true)).thenReturn(true);
+                7613, 40D, 24D, 30, false)).thenReturn(true);
 
         Result<Void> result = controller.saveSectionProgress(
                 String.valueOf(SCRIPTURE_ID),
@@ -143,12 +143,12 @@ class UserScriptureControllerTest {
                 eq(SCRIPTURE_ID),
                 eq(LATEST_SECTION_ID),
                 eq(7613),
-                eq(100D),
+                eq(40D),
                 totalProgressCaptor.capture(),
                 eq(30),
-                eq(true)
+                eq(false)
         );
-        assertEquals(30D, totalProgressCaptor.getValue());
+        assertEquals(24D, totalProgressCaptor.getValue());
     }
 
     private Scripture buildScripture() {
@@ -181,11 +181,16 @@ class UserScriptureControllerTest {
         return section;
     }
 
-    private UserScriptureProgress buildProgress(Long sectionId, Integer lastPosition, Integer isCompleted, Date lastReadTime) {
+    private UserScriptureProgress buildProgress(Long sectionId,
+                                                Integer lastPosition,
+                                                Integer isCompleted,
+                                                Double readingProgress,
+                                                Date lastReadTime) {
         UserScriptureProgress progress = new UserScriptureProgress();
         progress.setSectionId(sectionId);
         progress.setLastPosition(lastPosition);
         progress.setIsCompleted(isCompleted);
+        progress.setReadingProgress(BigDecimal.valueOf(readingProgress));
         progress.setLastReadTime(lastReadTime);
         return progress;
     }

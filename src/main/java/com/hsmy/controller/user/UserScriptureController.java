@@ -745,21 +745,18 @@ public class UserScriptureController {
             }
 
             UserScriptureProgress existingProgress = userScriptureProgressService.getByUserAndSection(currentUserId, sectionLongId);
-            boolean wasCompleted = existingProgress != null && existingProgress.getIsCompleted() != null
-                    && existingProgress.getIsCompleted() == 1;
             boolean willBeCompleted = isSectionCompleted(request);
-
-            Integer completedSections = userScriptureProgressService.countCompletedSections(currentUserId, scriptureLongId);
-            int completedCount = completedSections == null ? 0 : completedSections;
-            if (!wasCompleted && willBeCompleted) {
-                completedCount++;
-            } else if (wasCompleted && !willBeCompleted) {
-                completedCount = Math.max(0, completedCount - 1);
-            }
-
+            double existingSectionProgress = existingProgress != null && existingProgress.getReadingProgress() != null
+                    ? existingProgress.getReadingProgress().doubleValue()
+                    : 0D;
+            double currentSectionProgress = request.getSectionReadingProgress() == null
+                    ? 0D
+                    : request.getSectionReadingProgress();
+            double summedSectionProgress = userScriptureProgressService.sumSectionReadingProgress(currentUserId, scriptureLongId);
             int totalSections = scripture.getSectionCount() == null ? 0 : scripture.getSectionCount();
             double totalProgress = totalSections > 0
-                    ? Math.min(100.0, (completedCount * 100.0) / totalSections)
+                    ? Math.min(100.0, Math.max(0D,
+                    (summedSectionProgress - existingSectionProgress + currentSectionProgress) / totalSections))
                     : 0.0;
 
             Boolean success = userScripturePurchaseService.updateSectionProgress(

@@ -55,4 +55,12 @@
           AND is_deleted = 0
     </select>
 
+    <select id="sumReadingProgressByScripture" resultType="java.lang.Double">
+        SELECT COALESCE(SUM(reading_progress), 0)
+        FROM t_user_scripture_progress
+        WHERE user_id = #{userId}
+          AND scripture_id = #{scriptureId}
+          AND is_deleted = 0
+    </select>
+
 </mapper>
