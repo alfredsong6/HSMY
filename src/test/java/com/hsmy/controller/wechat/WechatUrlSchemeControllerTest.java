@@ -1,4 +1,4 @@
-package com.example.wechat.controller;
+package com.hsmy.controller.wechat;
 
 import com.hsmy.config.WechatMiniProperties;
 import org.junit.jupiter.api.BeforeEach;

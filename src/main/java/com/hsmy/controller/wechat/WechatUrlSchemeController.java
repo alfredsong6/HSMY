@@ -1,4 +1,4 @@
-package com.example.wechat.controller;
+package com.hsmy.controller.wechat;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.JsonNode;
