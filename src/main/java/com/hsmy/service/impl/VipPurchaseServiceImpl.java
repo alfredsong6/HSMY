@@ -212,11 +212,12 @@ public class VipPurchaseServiceImpl implements VipPurchaseService {
         tx.setUserId(userId);
         tx.setBizType(MeritBizType.VIP_PURCHASE.getCode());
         tx.setBizId(purchaseId);
-        tx.setChangeAmount(0);
-        tx.setBalanceAfter(Math.toIntExact(balance));
+        tx.setChangeAmount(-vipPackage.getPrice().intValue());
+        tx.setBalanceAfter(Math.toIntExact(balance)-vipPackage.getPrice().intValue());
         String packageName = vipPackage != null ? vipPackage.getPackageName() : String.valueOf(purchaseId);
-        tx.setRemark("Purchase VIP-" + packageName);
+        tx.setRemark("购买 VIP-" + packageName);
         meritCoinTransactionMapper.insert(tx);
+        userStatsMapper.reduceMeritCoins(userId, vipPackage.getPrice().longValue());
     }
 
     private VipBenefits parseBenefits(String benefitsJson) {
