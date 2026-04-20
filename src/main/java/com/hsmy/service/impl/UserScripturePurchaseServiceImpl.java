@@ -97,7 +97,7 @@ public class UserScripturePurchaseServiceImpl implements UserScripturePurchaseSe
         Scripture scripture = scriptureMapper.selectById(scriptureId);
         ensureScriptureAvailable(scripture);
         Integer permanentPrice = scripture.getPermanentPrice();
-        if (permanentPrice == null || permanentPrice <= 0) {
+        if (permanentPrice == null) {
             throw new BusinessException("该典籍暂不支持买断");
         }
 
@@ -338,7 +338,7 @@ public class UserScripturePurchaseServiceImpl implements UserScripturePurchaseSe
             return existing;
         }
         ensureScriptureAvailable(scripture);
-        if (scripture.getPrice() == null || scripture.getPrice() != 0) {
+        if (scripture.getPermanentPrice() == null || scripture.getPermanentPrice() != 0) {
             throw new BusinessException("该典籍并非免费，无法创建免费购买记录");
         }
         Date now = new Date();
