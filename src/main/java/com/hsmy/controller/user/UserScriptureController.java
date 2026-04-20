@@ -287,12 +287,8 @@ public class UserScriptureController {
                     vo.setExpireTime(purchase.getExpireTime());
                     vo.setPurchaseType(purchase.getPurchaseType());
                 } else {
-                    boolean free = scripture.getPermanentPrice() != null && scripture.getPermanentPrice() == 0;
-                    vo.setIsPurchased(free);
-                    vo.setIsPurchaseValid(free);
-                    if (free) {
-                        vo.setPurchaseType("free");
-                    }
+                    vo.setIsPurchased(false);
+                    vo.setIsPurchaseValid(false);
                 }
                 return vo;
             }).collect(Collectors.toList());
@@ -608,14 +604,7 @@ public class UserScriptureController {
 
             UserScripturePurchase purchase = userScripturePurchaseService.getUserPurchaseDetail(userId, scriptureLongId);
             if (purchase == null) {
-                if (scripture.getPrice() != null && scripture.getPrice() == 0) {
-                    purchase = userScripturePurchaseService.ensureFreePermanentPurchase(userId, scripture);
-                } else {
-                    purchase = userScripturePurchaseService.ensureTrialPurchase(userId, scriptureLongId);
-                }
-            } else if (!"permanent".equalsIgnoreCase(purchase.getPurchaseType())
-                    && scripture.getPrice() != null && scripture.getPrice() == 0) {
-                purchase = userScripturePurchaseService.ensureFreePermanentPurchase(userId, scripture);
+                purchase = userScripturePurchaseService.ensureTrialPurchase(userId, scriptureLongId);
             }
 
             boolean valid = userScripturePurchaseService.isUserPurchaseValid(userId, scriptureLongId);

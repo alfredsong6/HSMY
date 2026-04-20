@@ -26,11 +26,14 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.math.BigDecimal;
+import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -108,6 +111,47 @@ class UserScriptureControllerTest {
         assertEquals("valid", result.getData().getStatus());
         assertEquals(String.valueOf(LATEST_SECTION_ID), result.getData().getLastSectionId());
         assertEquals(Integer.valueOf(7613), result.getData().getLastPosition());
+    }
+
+    @Test
+    void startReading_createsTrial_whenFreePermanentScriptureHasNotBeenPurchased() {
+        Scripture scripture = buildScripture();
+        scripture.setPrice(0);
+        scripture.setPermanentPrice(0);
+        UserScripturePurchase trialPurchase = new UserScripturePurchase();
+        trialPurchase.setPurchaseType("trial");
+        trialPurchase.setCompletedSections(0);
+
+        when(scriptureService.getScriptureById(SCRIPTURE_ID)).thenReturn(scripture);
+        when(userScripturePurchaseService.getUserPurchaseDetail(USER_ID, SCRIPTURE_ID)).thenReturn(null);
+        when(userScripturePurchaseService.ensureTrialPurchase(USER_ID, SCRIPTURE_ID)).thenReturn(trialPurchase);
+        when(userScripturePurchaseService.isUserPurchaseValid(USER_ID, SCRIPTURE_ID)).thenReturn(false);
+
+        Result<StartReadingStatusVO> result = controller.startReading(String.valueOf(SCRIPTURE_ID));
+
+        assertEquals(200, result.getCode());
+        assertNotNull(result.getData());
+        assertEquals("trial", result.getData().getPurchaseType());
+        verify(userScripturePurchaseService).ensureTrialPurchase(USER_ID, SCRIPTURE_ID);
+        verify(userScripturePurchaseService, never()).ensureFreePermanentPurchase(USER_ID, scripture);
+    }
+
+    @Test
+    void getAvailableScriptures_doesNotMarkFreePermanentScriptureAsPurchasedWithoutRecord() {
+        Scripture scripture = buildScripture();
+        scripture.setPermanentPrice(0);
+
+        when(scriptureService.getUsableScriptures(USER_ID)).thenReturn(Collections.singletonList(scripture));
+        when(userScripturePurchaseService.getValidPurchasesByUserId(USER_ID)).thenReturn(Collections.emptyList());
+
+        Result<List<com.hsmy.vo.ScriptureVO>> result = controller.getAvailableScriptures();
+
+        assertEquals(200, result.getCode());
+        assertNotNull(result.getData());
+        assertEquals(1, result.getData().size());
+        assertEquals(Boolean.FALSE, result.getData().get(0).getIsPurchased());
+        assertEquals(Boolean.FALSE, result.getData().get(0).getIsPurchaseValid());
+        assertEquals(null, result.getData().get(0).getPurchaseType());
     }
 
     @Test
