@@ -129,13 +129,14 @@
             ON s.id = usp.scripture_id
             AND usp.user_id = #{userId}
             AND usp.is_deleted = 0
-        WHERE s.status = 1
-        AND s.is_deleted = 0
+        WHERE s.is_deleted = 0
         AND (
-            s.permanent_price = 0
+            (
+                s.status = 1
+                AND s.permanent_price = 0
+            )
             OR (
-                s.permanent_price > 0
-                AND usp.status = 1
+                usp.status = 1
                 AND (usp.is_expired IS NULL OR usp.is_expired = 0)
                 AND (usp.expire_time IS NULL OR usp.expire_time > NOW())
             )
