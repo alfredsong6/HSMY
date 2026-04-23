@@ -1,7 +1,9 @@
 package com.hsmy.config;
 
+import com.hsmy.logging.TraceMdcTaskDecorator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.task.TaskDecorator;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -70,8 +72,14 @@ public class SchedulingConfig implements SchedulingConfigurer {
         // 等待时间
         executor.setAwaitTerminationSeconds(60);
         // 初始化
+        executor.setTaskDecorator(traceMdcTaskDecorator());
         executor.initialize();
         return executor;
+    }
+
+    @Bean
+    public TaskDecorator traceMdcTaskDecorator() {
+        return new TraceMdcTaskDecorator();
     }
 
     @Override

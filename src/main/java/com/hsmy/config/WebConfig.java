@@ -32,7 +32,7 @@ public class WebConfig implements WebMvcConfigurer {
                 .allowedOriginPatterns("*")
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
-                .exposedHeaders("X-Session-Id")
+                .exposedHeaders("X-Session-Id", "X-Trace-Id")
                 .allowCredentials(true)
                 .maxAge(3600);
     }

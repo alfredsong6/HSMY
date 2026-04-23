@@ -14,7 +14,7 @@
     
     <groupId>com.hsmy</groupId>
     <artifactId>HSMY</artifactId>
-    <version>1.0.6.3</version>
+    <version>1.0.7</version>
     <packaging>jar</packaging>
     
     <name>HSMY</name>
