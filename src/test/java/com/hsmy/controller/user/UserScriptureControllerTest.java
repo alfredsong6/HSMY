@@ -1,5 +1,6 @@
 package com.hsmy.controller.user;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.hsmy.common.Result;
 import com.hsmy.dto.SaveSectionProgressRequest;
 import com.hsmy.entity.Scripture;
@@ -11,8 +12,10 @@ import com.hsmy.service.ScriptureSectionService;
 import com.hsmy.service.ScriptureService;
 import com.hsmy.service.UserScriptureProgressService;
 import com.hsmy.service.UserScripturePurchaseService;
+import com.hsmy.service.impl.ScriptureRechargeGateService;
 import com.hsmy.vo.LatestScriptureProgressVO;
 import com.hsmy.vo.StartReadingStatusVO;
+import com.hsmy.vo.UserScripturePurchaseVO;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -34,6 +37,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -53,6 +57,8 @@ class UserScriptureControllerTest {
     private ScriptureSectionService scriptureSectionService;
     @Mock
     private UserScriptureProgressService userScriptureProgressService;
+    @Mock
+    private ScriptureRechargeGateService scriptureRechargeGateService;
 
     @InjectMocks
     private UserScriptureController controller;
@@ -62,6 +68,7 @@ class UserScriptureControllerTest {
         MockHttpServletRequest request = new MockHttpServletRequest();
         request.setAttribute(LoginInterceptor.USER_ID_ATTRIBUTE, USER_ID);
         RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
+        lenient().when(scriptureRechargeGateService.canReturnScriptureLists(USER_ID)).thenReturn(true);
     }
 
     @AfterEach
@@ -152,6 +159,44 @@ class UserScriptureControllerTest {
         assertEquals(Boolean.FALSE, result.getData().get(0).getIsPurchased());
         assertEquals(Boolean.FALSE, result.getData().get(0).getIsPurchaseValid());
         assertEquals(null, result.getData().get(0).getPurchaseType());
+    }
+
+    @Test
+    void getAvailableScriptures_returnsReviewList_whenRechargeGateBlocksUser() {
+        Scripture scripture = buildScripture();
+        scripture.setStatus(3);
+        when(scriptureRechargeGateService.canReturnScriptureLists(USER_ID)).thenReturn(false);
+        when(scriptureService.getReviewScriptures()).thenReturn(Collections.singletonList(scripture));
+
+        Result<List<com.hsmy.vo.ScriptureVO>> result = controller.getAvailableScriptures();
+
+        assertEquals(200, result.getCode());
+        assertNotNull(result.getData());
+        assertEquals(1, result.getData().size());
+        assertEquals(Integer.valueOf(3), result.getData().get(0).getStatus());
+        assertEquals(Boolean.FALSE, result.getData().get(0).getIsPurchased());
+        verify(scriptureService, never()).getUsableScriptures(USER_ID);
+        verify(userScripturePurchaseService, never()).getValidPurchasesByUserId(USER_ID);
+    }
+
+    @Test
+    void getUserPurchases_returnsReviewPage_whenRechargeGateBlocksUser() {
+        Scripture scripture = buildScripture();
+        scripture.setStatus(3);
+        when(scriptureRechargeGateService.canReturnScriptureLists(USER_ID)).thenReturn(false);
+        when(scriptureService.getReviewScriptures()).thenReturn(Collections.singletonList(scripture));
+
+        Result<Page<UserScripturePurchaseVO>> result = controller.getUserPurchases(1, 10, new MockHttpServletRequest());
+
+        assertEquals(200, result.getCode());
+        assertNotNull(result.getData());
+        assertEquals(1, result.getData().getCurrent());
+        assertEquals(10, result.getData().getSize());
+        assertEquals(1, result.getData().getTotal());
+        assertEquals(1, result.getData().getRecords().size());
+        assertEquals("200", result.getData().getRecords().get(0).getScriptureId());
+        assertEquals(Integer.valueOf(3), result.getData().getRecords().get(0).getStatus());
+        verify(userScripturePurchaseService, never()).getPurchasesByUserId(USER_ID, 1, 10);
     }
 
     @Test

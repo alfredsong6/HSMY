@@ -32,6 +32,13 @@ public interface ScriptureMapper extends BaseMapper<Scripture> {
     List<Scripture> selectAllActive();
 
     /**
+     * 查询审核兜底典籍
+     *
+     * @return 审核兜底典籍
+     */
+    List<Scripture> selectReviewScriptures();
+
+    /**
      * 查询热门典籍
      *
      * @return 热门典籍列表

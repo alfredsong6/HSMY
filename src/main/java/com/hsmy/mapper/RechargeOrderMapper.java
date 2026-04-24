@@ -98,4 +98,12 @@ public interface RechargeOrderMapper extends BaseMapper<RechargeOrder> {
      */
     List<RechargeOrder> selectUserRechargeOrders(@Param("userId") Long userId,
                                                  @Param("paymentMethod") String paymentMethod);
+
+    /**
+     * 统计用户成功充值订单数.
+     *
+     * @param userId 用户ID
+     * @return 成功充值订单数
+     */
+    Integer countSuccessfulRechargeOrders(@Param("userId") Long userId);
 }

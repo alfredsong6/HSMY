@@ -30,6 +30,13 @@ public interface ScriptureService {
     List<Scripture> getAllActiveScriptures();
 
     /**
+     * 获取审核兜底典籍列表
+     *
+     * @return 审核兜底典籍
+     */
+    List<Scripture> getReviewScriptures();
+
+    /**
      * 获取热门典籍列表
      *
      * @return 热门典籍列表

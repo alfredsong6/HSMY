@@ -35,6 +35,11 @@ public class ScriptureServiceImpl implements ScriptureService {
     }
 
     @Override
+    public List<Scripture> getReviewScriptures() {
+        return scriptureMapper.selectReviewScriptures();
+    }
+
+    @Override
     public List<Scripture> getHotScriptures() {
         return scriptureMapper.selectHotScriptures();
     }

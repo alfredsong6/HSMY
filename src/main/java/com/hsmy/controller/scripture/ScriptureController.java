@@ -12,6 +12,7 @@ import com.hsmy.service.ScriptureBarrageProgressService;
 import com.hsmy.service.ScriptureSectionService;
 import com.hsmy.service.ScriptureService;
 import com.hsmy.service.UserScripturePurchaseService;
+import com.hsmy.service.impl.ScriptureRechargeGateService;
 import com.hsmy.utils.TextSanitizerUtil;
 import com.hsmy.utils.UserContextUtil;
 import com.hsmy.vo.*;
@@ -48,6 +49,7 @@ public class ScriptureController {
     private final ScriptureSectionService scriptureSectionService;
     private final UserScripturePurchaseService userScripturePurchaseService;
     private final ScriptureBarrageProgressService scriptureBarrageProgressService;
+    private final ScriptureRechargeGateService scriptureRechargeGateService;
 
     /**
      * 获取典籍列表
@@ -58,11 +60,25 @@ public class ScriptureController {
      */
     @GetMapping("/list")
     public Result<Page<ScriptureVO>> getScriptureList(ScriptureQueryVO queryVO, HttpServletRequest request) {
-        if (StringUtils.hasText(queryVO.getScriptureType()) && queryVO.getScriptureType().equals("hot")) {
+        if (queryVO != null && StringUtils.hasText(queryVO.getScriptureType()) && queryVO.getScriptureType().equals("hot")) {
             queryVO.setScriptureType(null);
             queryVO.setIsHot(1);
         }
         try {
+            Long userId = UserContextUtil.getCurrentUserId();
+            if (!scriptureRechargeGateService.canReturnScriptureLists(userId)) {
+                long pageNum = queryVO != null && queryVO.getPageNum() != null && queryVO.getPageNum() > 0 ? queryVO.getPageNum() : 1;
+                long pageSize = queryVO != null && queryVO.getPageSize() != null && queryVO.getPageSize() > 0 ? queryVO.getPageSize() : 10;
+                List<Scripture> reviewScriptures = scriptureService.getReviewScriptures();
+                Page<ScriptureVO> reviewPage = new Page<>(pageNum, Math.min(100, pageSize), reviewScriptures.size());
+                List<ScriptureVO> reviewVOs = new ArrayList<>();
+                Map<Long, UserScripturePurchase> emptyPurchases = new HashMap<>();
+                for (Scripture reviewScripture : reviewScriptures) {
+                    reviewVOs.add(getScriptureVO(reviewScripture, emptyPurchases));
+                }
+                reviewPage.setRecords(reviewVOs);
+                return Result.success(reviewPage);
+            }
             // 使用分页查询
             Page<Scripture> scripturesPage = scriptureService.pageScriptures(queryVO);
 
@@ -70,7 +86,6 @@ public class ScriptureController {
             Page<ScriptureVO> voPage = new Page<>(scripturesPage.getCurrent(), scripturesPage.getSize(), scripturesPage.getTotal());
 
             List<ScriptureVO> scriptureVOs = new ArrayList<>();
-            Long userId = UserContextUtil.getCurrentUserId();
             Map<Long, UserScripturePurchase> purchases = new HashMap<>();
             if (userId != null) {
                 List<UserScripturePurchase> result = userScripturePurchaseService.getPurchasesByUserId(userId);

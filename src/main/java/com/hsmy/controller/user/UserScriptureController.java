@@ -13,6 +13,7 @@ import com.hsmy.service.ScriptureSectionService;
 import com.hsmy.service.ScriptureService;
 import com.hsmy.service.UserScriptureProgressService;
 import com.hsmy.service.UserScripturePurchaseService;
+import com.hsmy.service.impl.ScriptureRechargeGateService;
 import com.hsmy.utils.UserContextUtil;
 import com.hsmy.vo.*;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +25,7 @@ import javax.validation.Valid;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
 import java.util.List;
@@ -45,6 +47,7 @@ public class UserScriptureController {
     private final ScriptureService scriptureService;
     private final ScriptureSectionService scriptureSectionService;
     private final UserScriptureProgressService userScriptureProgressService;
+    private final ScriptureRechargeGateService scriptureRechargeGateService;
 
     /**
      * 购买典籍
@@ -126,6 +129,14 @@ public class UserScriptureController {
                                                                    HttpServletRequest httpRequest) {
         try {
             Long userId = UserContextUtil.requireCurrentUserId();
+            if (!scriptureRechargeGateService.canReturnScriptureLists(userId)) {
+                List<Scripture> reviewScriptures = scriptureService.getReviewScriptures();
+                Page<UserScripturePurchaseVO> reviewPage = new Page<>(pageNum, pageSize, reviewScriptures.size());
+                reviewPage.setRecords(reviewScriptures.stream()
+                        .map(this::toReviewPurchaseVO)
+                        .collect(Collectors.toList()));
+                return Result.success(reviewPage);
+            }
             Page<UserScripturePurchase> purchasesPage = userScripturePurchaseService.getPurchasesByUserId(userId, pageNum, pageSize);
 
             Page<UserScripturePurchaseVO> voPage = new Page<>(purchasesPage.getCurrent(), purchasesPage.getSize(), purchasesPage.getTotal());
@@ -269,6 +280,11 @@ public class UserScriptureController {
     public Result<List<ScriptureVO>> getAvailableScriptures() {
         try {
             Long userId = UserContextUtil.requireCurrentUserId();
+            if (!scriptureRechargeGateService.canReturnScriptureLists(userId)) {
+                return Result.success(scriptureService.getReviewScriptures().stream()
+                        .map(this::toReviewScriptureVO)
+                        .collect(Collectors.toList()));
+            }
             List<Scripture> scriptures = scriptureService.getUsableScriptures(userId);
             List<UserScripturePurchase> validPurchases = userScripturePurchaseService.getValidPurchasesByUserId(userId);
             Map<Long, UserScripturePurchase> purchaseMap = validPurchases.stream()
@@ -976,6 +992,49 @@ public class UserScriptureController {
         private Date getLastReadTime() {
             return lastReadTime;
         }
+    }
+
+    private ScriptureVO toReviewScriptureVO(Scripture scripture) {
+        ScriptureVO vo = new ScriptureVO();
+        BeanUtils.copyProperties(scripture, vo);
+        vo.setId(scripture.getId().toString());
+        vo.setCanPreview(scripture.getPreviewSectionCount() != null && scripture.getPreviewSectionCount() > 0);
+        vo.setIsPurchased(false);
+        vo.setIsPurchaseValid(false);
+        vo.setPurchaseType(null);
+        vo.setExpireTime(null);
+        return vo;
+    }
+
+    private UserScripturePurchaseVO toReviewPurchaseVO(Scripture scripture) {
+        UserScripturePurchaseVO vo = new UserScripturePurchaseVO();
+        vo.setId(scripture.getId().toString());
+        vo.setScriptureId(scripture.getId().toString());
+        vo.setScriptureName(scripture.getScriptureName());
+        vo.setScriptureType(scripture.getScriptureType());
+        vo.setCoverUrl(scripture.getCoverUrl());
+        vo.setAudioUrl(scripture.getAudioUrl());
+        vo.setDescription(scripture.getDescription());
+        vo.setIsHot(scripture.getIsHot());
+        vo.setPrice(scripture.getPrice());
+        vo.setPermanentPrice(scripture.getPermanentPrice());
+        vo.setPriceUnit(scripture.getPriceUnit());
+        vo.setDurationMonths(scripture.getDurationMonths());
+        vo.setDifficultyLevel(scripture.getDifficultyLevel());
+        vo.setTotalWordCount(scripture.getTotalWordCount());
+        vo.setWordCount(scripture.getWordCount());
+        vo.setSectionCount(scripture.getSectionCount());
+        vo.setPreviewSectionCount(scripture.getPreviewSectionCount());
+        vo.setCanPreview(scripture.getPreviewSectionCount() != null && scripture.getPreviewSectionCount() > 0);
+        vo.setCategoryTags(scripture.getCategoryTags());
+        vo.setStatus(scripture.getStatus());
+        vo.setSortOrder(scripture.getSortOrder());
+        vo.setIsPurchased(false);
+        vo.setRemainingDays(-1L);
+        vo.setIsExpiringSoon(false);
+        vo.setIsPermanent(false);
+        vo.setIsExpired(0);
+        return vo;
     }
 
     /**

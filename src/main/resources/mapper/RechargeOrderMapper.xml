@@ -139,6 +139,14 @@
         LIMIT #{limit}
     </select>
 
+    <select id="countSuccessfulRechargeOrders" resultType="java.lang.Integer">
+        SELECT COUNT(1)
+        FROM t_recharge_order
+        WHERE user_id = #{userId}
+          AND payment_status = 1
+          AND is_deleted = 0
+    </select>
+
     <update id="incrementQueryCount">
         UPDATE t_recharge_order
         SET query_count = query_count + 1,

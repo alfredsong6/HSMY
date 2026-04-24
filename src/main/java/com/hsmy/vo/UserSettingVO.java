@@ -30,6 +30,8 @@ public class UserSettingVO implements Serializable {
     private Integer bulletScreen;
     private String scriptureId;
     private String scriptureName;
+    private Boolean dailyWishPopupEnabled;
+    private Boolean scriptureGate;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date createTime;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")

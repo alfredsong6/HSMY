@@ -51,6 +51,14 @@
         ORDER BY sort_order ASC, create_time DESC
     </select>
 
+    <select id="selectReviewScriptures" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM t_scripture
+        WHERE status = 3 AND is_deleted = 0
+        ORDER BY sort_order ASC, create_time DESC
+    </select>
+
     <!-- 查询热门典籍 -->
     <select id="selectHotScriptures" resultMap="BaseResultMap">
         SELECT

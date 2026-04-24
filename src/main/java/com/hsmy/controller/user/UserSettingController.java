@@ -6,6 +6,8 @@ import com.hsmy.entity.UserSetting;
 import com.hsmy.entity.Scripture;
 import com.hsmy.service.UserSettingService;
 import com.hsmy.service.ScriptureService;
+import com.hsmy.service.impl.DailyWishPopupSettingService;
+import com.hsmy.service.impl.ScriptureRechargeGateService;
 import com.hsmy.utils.UserContextUtil;
 import com.hsmy.vo.UserSettingVO;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +31,8 @@ public class UserSettingController {
     
     private final UserSettingService userSettingService;
     private final ScriptureService scriptureService;
+    private final DailyWishPopupSettingService dailyWishPopupSettingService;
+    private final ScriptureRechargeGateService scriptureRechargeGateService;
     
     /**
      * 获取用户设置
@@ -59,6 +63,8 @@ public class UserSettingController {
                     vo.setScriptureName(scripture.getScriptureName());
                 }
             }
+            vo.setDailyWishPopupEnabled(dailyWishPopupSettingService.isDailyWishPopupEnabled());
+            vo.setScriptureGate(scriptureRechargeGateService.isGateEnabled());
 
             return Result.success(vo);
         } catch (Exception e) {
