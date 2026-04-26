@@ -166,7 +166,9 @@ public class ScriptureServiceImpl implements ScriptureService {
     @Override
     public Boolean checkScriptureAvailable(Long scriptureId) {
         Scripture scripture = scriptureMapper.selectById(scriptureId);
-        return scripture != null && scripture.getStatus() != null && scripture.getStatus() == 1;
+        return scripture != null
+                && scripture.getStatus() != null
+                && (scripture.getStatus() == 1 || scripture.getStatus() == 3);
     }
 
     @Override

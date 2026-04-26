@@ -2,6 +2,7 @@ package com.hsmy.controller.user;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.hsmy.common.Result;
+import com.hsmy.dto.PurchaseScripturePermanentRequest;
 import com.hsmy.dto.SaveSectionProgressRequest;
 import com.hsmy.entity.Scripture;
 import com.hsmy.entity.ScriptureSection;
@@ -29,6 +30,7 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.math.BigDecimal;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -144,6 +146,21 @@ class UserScriptureControllerTest {
     }
 
     @Test
+    void purchaseScripturePermanent_allowsReviewScriptureWhenAvailableCheckPasses() {
+        PurchaseScripturePermanentRequest request = new PurchaseScripturePermanentRequest();
+        request.setScriptureId(SCRIPTURE_ID);
+        request.setPurchaseType("permanent");
+
+        when(scriptureService.checkScriptureAvailable(SCRIPTURE_ID)).thenReturn(true);
+        when(userScripturePurchaseService.purchaseScripturePermanent(USER_ID, SCRIPTURE_ID)).thenReturn(true);
+
+        Result<Void> result = controller.purchaseScripturePermanent(request, new MockHttpServletRequest());
+
+        assertEquals(200, result.getCode());
+        verify(userScripturePurchaseService).purchaseScripturePermanent(USER_ID, SCRIPTURE_ID);
+    }
+
+    @Test
     void getAvailableScriptures_doesNotMarkFreePermanentScriptureAsPurchasedWithoutRecord() {
         Scripture scripture = buildScripture();
         scripture.setPermanentPrice(0);
@@ -162,11 +179,25 @@ class UserScriptureControllerTest {
     }
 
     @Test
-    void getAvailableScriptures_returnsReviewList_whenRechargeGateBlocksUser() {
-        Scripture scripture = buildScripture();
-        scripture.setStatus(3);
+    void getAvailableScriptures_returnsOnlyPurchasedReviewScriptures_whenRechargeGateBlocksUser() {
+        Scripture reviewScripture = buildScripture();
+        reviewScripture.setStatus(3);
+        Scripture normalScripture = buildScripture();
+        normalScripture.setId(201L);
+        normalScripture.setStatus(1);
+        UserScripturePurchase reviewPurchase = new UserScripturePurchase();
+        reviewPurchase.setScriptureId(SCRIPTURE_ID);
+        reviewPurchase.setPurchaseType("permanent");
+        reviewPurchase.setStatus(1);
+        UserScripturePurchase normalPurchase = new UserScripturePurchase();
+        normalPurchase.setScriptureId(201L);
+        normalPurchase.setPurchaseType("permanent");
+        normalPurchase.setStatus(1);
         when(scriptureRechargeGateService.canReturnScriptureLists(USER_ID)).thenReturn(false);
-        when(scriptureService.getReviewScriptures()).thenReturn(Collections.singletonList(scripture));
+        when(userScripturePurchaseService.getValidPurchasesByUserId(USER_ID))
+                .thenReturn(Arrays.asList(reviewPurchase, normalPurchase));
+        when(scriptureService.getScriptureById(SCRIPTURE_ID)).thenReturn(reviewScripture);
+        when(scriptureService.getScriptureById(201L)).thenReturn(normalScripture);
 
         Result<List<com.hsmy.vo.ScriptureVO>> result = controller.getAvailableScriptures();
 
@@ -174,17 +205,31 @@ class UserScriptureControllerTest {
         assertNotNull(result.getData());
         assertEquals(1, result.getData().size());
         assertEquals(Integer.valueOf(3), result.getData().get(0).getStatus());
-        assertEquals(Boolean.FALSE, result.getData().get(0).getIsPurchased());
+        assertEquals(Boolean.TRUE, result.getData().get(0).getIsPurchased());
+        assertEquals(Boolean.TRUE, result.getData().get(0).getIsPurchaseValid());
         verify(scriptureService, never()).getUsableScriptures(USER_ID);
-        verify(userScripturePurchaseService, never()).getValidPurchasesByUserId(USER_ID);
     }
 
     @Test
-    void getUserPurchases_returnsReviewPage_whenRechargeGateBlocksUser() {
-        Scripture scripture = buildScripture();
-        scripture.setStatus(3);
+    void getUserPurchases_returnsOnlyPurchasedReviewScriptures_whenRechargeGateBlocksUser() {
+        Scripture reviewScripture = buildScripture();
+        reviewScripture.setStatus(3);
+        Scripture normalScripture = buildScripture();
+        normalScripture.setId(201L);
+        normalScripture.setStatus(1);
+        UserScripturePurchase reviewPurchase = new UserScripturePurchase();
+        reviewPurchase.setScriptureId(SCRIPTURE_ID);
+        reviewPurchase.setPurchaseType("permanent");
+        reviewPurchase.setStatus(1);
+        UserScripturePurchase normalPurchase = new UserScripturePurchase();
+        normalPurchase.setScriptureId(201L);
+        normalPurchase.setPurchaseType("permanent");
+        normalPurchase.setStatus(1);
         when(scriptureRechargeGateService.canReturnScriptureLists(USER_ID)).thenReturn(false);
-        when(scriptureService.getReviewScriptures()).thenReturn(Collections.singletonList(scripture));
+        when(userScripturePurchaseService.getPurchasesByUserId(USER_ID))
+                .thenReturn(Arrays.asList(reviewPurchase, normalPurchase));
+        when(scriptureService.getScriptureById(SCRIPTURE_ID)).thenReturn(reviewScripture);
+        when(scriptureService.getScriptureById(201L)).thenReturn(normalScripture);
 
         Result<Page<UserScripturePurchaseVO>> result = controller.getUserPurchases(1, 10, new MockHttpServletRequest());
 

@@ -130,10 +130,12 @@ public class UserScriptureController {
         try {
             Long userId = UserContextUtil.requireCurrentUserId();
             if (!scriptureRechargeGateService.canReturnScriptureLists(userId)) {
-                List<Scripture> reviewScriptures = scriptureService.getReviewScriptures();
-                Page<UserScripturePurchaseVO> reviewPage = new Page<>(pageNum, pageSize, reviewScriptures.size());
-                reviewPage.setRecords(reviewScriptures.stream()
-                        .map(this::toReviewPurchaseVO)
+                List<UserScripturePurchase> reviewPurchases = userScripturePurchaseService.getPurchasesByUserId(userId).stream()
+                        .filter(purchase -> isReviewScripture(purchase.getScriptureId()))
+                        .collect(Collectors.toList());
+                Page<UserScripturePurchaseVO> reviewPage = new Page<>(pageNum, pageSize, reviewPurchases.size());
+                reviewPage.setRecords(reviewPurchases.stream()
+                        .map(this::toPurchaseVO)
                         .collect(Collectors.toList()));
                 return Result.success(reviewPage);
             }
@@ -281,8 +283,9 @@ public class UserScriptureController {
         try {
             Long userId = UserContextUtil.requireCurrentUserId();
             if (!scriptureRechargeGateService.canReturnScriptureLists(userId)) {
-                return Result.success(scriptureService.getReviewScriptures().stream()
-                        .map(this::toReviewScriptureVO)
+                return Result.success(userScripturePurchaseService.getValidPurchasesByUserId(userId).stream()
+                        .map(purchase -> toOwnedReviewScriptureVO(scriptureService.getScriptureById(purchase.getScriptureId()), purchase))
+                        .filter(java.util.Objects::nonNull)
                         .collect(Collectors.toList()));
             }
             List<Scripture> scriptures = scriptureService.getUsableScriptures(userId);
@@ -1006,6 +1009,21 @@ public class UserScriptureController {
         return vo;
     }
 
+    private ScriptureVO toOwnedReviewScriptureVO(Scripture scripture, UserScripturePurchase purchase) {
+        if (!isReviewScripture(scripture)) {
+            return null;
+        }
+        ScriptureVO vo = new ScriptureVO();
+        BeanUtils.copyProperties(scripture, vo);
+        vo.setId(scripture.getId().toString());
+        vo.setCanPreview(scripture.getPreviewSectionCount() != null && scripture.getPreviewSectionCount() > 0);
+        vo.setIsPurchased(true);
+        vo.setIsPurchaseValid(true);
+        vo.setPurchaseType(purchase != null ? purchase.getPurchaseType() : null);
+        vo.setExpireTime(purchase != null ? purchase.getExpireTime() : null);
+        return vo;
+    }
+
     private UserScripturePurchaseVO toReviewPurchaseVO(Scripture scripture) {
         UserScripturePurchaseVO vo = new UserScripturePurchaseVO();
         vo.setId(scripture.getId().toString());
@@ -1043,6 +1061,70 @@ public class UserScriptureController {
      * @param httpRequest HTTP请求
      * @return 购买统计
      */
+    private UserScripturePurchaseVO toPurchaseVO(UserScripturePurchase purchase) {
+        UserScripturePurchaseVO vo = new UserScripturePurchaseVO();
+        BeanUtils.copyProperties(purchase, vo);
+
+        Scripture scripture = scriptureService.getScriptureById(purchase.getScriptureId());
+        if (scripture != null) {
+            vo.setId(scripture.getId().toString());
+            vo.setScriptureId(scripture.getId().toString());
+            vo.setScriptureName(scripture.getScriptureName());
+            vo.setScriptureType(scripture.getScriptureType());
+            vo.setCoverUrl(scripture.getCoverUrl());
+            vo.setAudioUrl(scripture.getAudioUrl());
+            vo.setDescription(scripture.getDescription());
+            vo.setIsHot(scripture.getIsHot());
+            vo.setPrice(scripture.getPrice());
+            vo.setPermanentPrice(scripture.getPermanentPrice());
+            vo.setPriceUnit(scripture.getPriceUnit());
+            vo.setDurationMonths(scripture.getDurationMonths());
+            vo.setDifficultyLevel(scripture.getDifficultyLevel());
+            vo.setTotalWordCount(scripture.getTotalWordCount());
+            vo.setWordCount(scripture.getWordCount());
+            vo.setSectionCount(scripture.getSectionCount());
+            vo.setPreviewSectionCount(scripture.getPreviewSectionCount());
+            vo.setCanPreview(scripture.getPreviewSectionCount() != null && scripture.getPreviewSectionCount() > 0);
+            vo.setCategoryTags(scripture.getCategoryTags());
+            vo.setStatus(scripture.getStatus());
+            vo.setSortOrder(scripture.getSortOrder());
+        }
+        if (purchase.getPurchaseType().equals("trial")) {
+            vo.setIsPurchased(false);
+        } else if (purchase.getPurchaseType().equals("lease") && purchase.getIsExpired() == 1) {
+            vo.setIsPurchased(false);
+        } else {
+            vo.setIsPurchased(true);
+        }
+
+        boolean isPermanent = "permanent".equalsIgnoreCase(purchase.getPurchaseType()) || purchase.getExpireTime() == null;
+        vo.setIsPermanent(isPermanent);
+
+        if (purchase.getStatus() != null && purchase.getStatus() != 1) {
+            vo.setRemainingDays(0L);
+            vo.setIsExpiringSoon(false);
+        } else if (!isPermanent && purchase.getExpireTime() != null) {
+            long remainingDays = ChronoUnit.DAYS.between(
+                    LocalDate.now(),
+                    purchase.getExpireTime().toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalDate()
+            );
+            vo.setRemainingDays(remainingDays);
+            vo.setIsExpiringSoon(remainingDays <= 7 && remainingDays > 0);
+        } else {
+            vo.setRemainingDays(-1L);
+            vo.setIsExpiringSoon(false);
+        }
+        return vo;
+    }
+
+    private boolean isReviewScripture(Long scriptureId) {
+        return isReviewScripture(scriptureService.getScriptureById(scriptureId));
+    }
+
+    private boolean isReviewScripture(Scripture scripture) {
+        return scripture != null && scripture.getStatus() != null && scripture.getStatus() == 3;
+    }
+
     @GetMapping("/stats")
     public Result<UserPurchaseStatsVO> getUserPurchaseStats(HttpServletRequest httpRequest) {
         try {

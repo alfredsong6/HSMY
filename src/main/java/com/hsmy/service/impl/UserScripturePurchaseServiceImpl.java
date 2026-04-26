@@ -409,7 +409,8 @@ public class UserScripturePurchaseServiceImpl implements UserScripturePurchaseSe
     }
 
     private void ensureScriptureAvailable(Scripture scripture) {
-        if (scripture == null || scripture.getStatus() == null || scripture.getStatus() != 1) {
+        if (scripture == null || scripture.getStatus() == null
+                || (scripture.getStatus() != 1 && scripture.getStatus() != 3)) {
             throw new BusinessException("该典籍不存在或已下架");
         }
     }

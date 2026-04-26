@@ -63,4 +63,20 @@ class UserScripturePurchaseServiceImplTest {
         assertEquals("permanent", captor.getValue().getPurchaseType());
         assertEquals(Integer.valueOf(0), captor.getValue().getMeritCoinsPaid());
     }
+
+    @Test
+    void ensureFreePermanentPurchase_allowsReviewScriptureStatus() {
+        Scripture scripture = new Scripture();
+        scripture.setId(SCRIPTURE_ID);
+        scripture.setStatus(3);
+        scripture.setPermanentPrice(0);
+
+        when(userScripturePurchaseMapper.selectByUserAndScripture(USER_ID, SCRIPTURE_ID)).thenReturn(null);
+
+        UserScripturePurchase purchase = service.ensureFreePermanentPurchase(USER_ID, scripture);
+
+        assertNotNull(purchase);
+        assertEquals("permanent", purchase.getPurchaseType());
+        assertEquals(Integer.valueOf(0), purchase.getMeritCoinsPaid());
+    }
 }

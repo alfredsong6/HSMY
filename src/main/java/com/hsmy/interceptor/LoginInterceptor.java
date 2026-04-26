@@ -16,7 +16,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 /**
  * 登录拦截器
@@ -28,6 +30,8 @@ import java.util.Collections;
 @Component
 @RequiredArgsConstructor
 public class LoginInterceptor implements HandlerInterceptor {
+
+    private static final List<String> ANONYMOUS_OPTIONAL_PATHS = Arrays.asList("/scripture/list", "/rankings/total");
     
     private final SessionService sessionService;
     private final AuthWhiteListProperties authWhiteListProperties;
@@ -76,7 +80,7 @@ public class LoginInterceptor implements HandlerInterceptor {
         // 获取token
         String token = getToken(request);
 
-        if (WhiteListUtil.isInWhiteList(requestPath, Collections.singletonList("/scripture/list")) && !StringUtils.hasText(token)) {
+        if (WhiteListUtil.isInWhiteList(requestPath, ANONYMOUS_OPTIONAL_PATHS) && !StringUtils.hasText(token)) {
             log.debug("加持库白名单路径放行: {}", requestPath);
             return true;
         }
